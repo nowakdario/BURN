@@ -525,11 +525,12 @@
   .tpl-crumb{display:inline-flex;align-items:center;font-size:.78rem;font-weight:bold;color:var(--violet-deep);opacity:.8;margin-left:4px}
   .tpl-step-title{font-size:.95rem;font-weight:bold;color:var(--violet-deep);margin:4px 0 10px;text-align:center}
   .tpl-pick{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;cursor:pointer;
-    background:var(--card-bg);border:2px solid var(--line);border-left:5px solid var(--violet);
-    border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+    background:var(--card-bg);color:var(--ink);border:2px solid var(--line);border-left:5px solid var(--violet);
+    border-radius:10px;padding:12px 14px;margin-bottom:8px;font-family:var(--font-body);}
   .tpl-pick:hover{border-color:var(--violet);background:rgba(209,10,20,0.04);transform:translateX(2px)}
+  .tpl-pick:focus,.tpl-pick:active{outline:none;color:var(--ink)}
   .tpl-pick-name{font-weight:bold;font-size:1rem;color:var(--ink)}
-  .tpl-pick-sub{font-size:.78rem;opacity:.65}
+  .tpl-pick-sub{font-size:.78rem;color:var(--ink);opacity:.6}
   .tpl-pick.lvl-1{border-left-color:#2a9d3a}
   .tpl-pick.lvl-2{border-left-color:#7ab800}
   .tpl-pick.lvl-3{border-left-color:#e0a30b}
