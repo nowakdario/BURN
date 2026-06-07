@@ -1,4 +1,4 @@
-Training Hub 🔴⚪
+Burn 🔴
 Aplicación web de entrenamiento (ES/EN) para fuerza, hipertrofia, calistenia y resistencia. Todo corre en un solo archivo HTML, sin instalación, y guarda los datos en tu propio dispositivo.
 A bilingual (ES/EN) web training app for strength, hypertrophy, calisthenics and endurance. Runs from a single HTML file, no install, and stores data on your own device.
 ✨ Funciones · Features
@@ -28,3 +28,4 @@ Celda con formato opcional Nombre  4x8 @30 r90 → 4 series, 8 reps, 30 kg, 90 s
 HTML, CSS y JavaScript puro. Sin frameworks. El export/import de Excel usa SheetJS cargado por CDN (requiere conexión solo para esa función).
 
 by Darío Nowak
+dnowak.ar@gmail.com
