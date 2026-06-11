@@ -228,6 +228,15 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
 
   /* Barra de progreso del día */
+  #workoutPieWrap{
+    display:none;
+    flex-direction:row;align-items:center;gap:10px;
+    padding:8px 16px 4px;justify-content:center;
+  }
+  body.god-mode #workoutPieWrap{display:flex;}
+  #workoutPie{border-radius:50%;flex:0 0 auto;}
+  .workout-pie-pct{display:none;}
+  .workout-pie-label{font-size:.7rem;color:var(--cream);opacity:.75;text-transform:uppercase;letter-spacing:.5px;}
   .day-progress{margin:12px auto 2px;max-width:420px}
   .day-progress-bar{height:10px;background:rgba(255,255,255,0.25);border-radius:999px;overflow:hidden}
   .day-progress-bar span{display:block;height:100%;width:0;background:var(--cream);border-radius:999px;transition:width .4s ease}
@@ -346,9 +355,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .circuit-notation .cn-head{font-weight:700;font-size:1rem;font-family:var(--font-head);letter-spacing:.3px}
   .circuit-notation .cn-expanded{font-size:.82rem;opacity:.9;margin-top:4px;line-height:1.4}
   .rounds-control{display:flex;align-items:center;justify-content:space-between;
-    background:var(--card-bg);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:10px}
-  .rounds-control .rc-label{font-weight:700;color:var(--ink);font-family:var(--font-head);letter-spacing:.3px}
-  .rounds-control .rc-label small{font-weight:400;opacity:.6;font-family:var(--font-body);font-size:.7rem}
+    background:var(--card-bg);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:14px 0 18px}
+  .rounds-control .rc-label{font-weight:700;font-size:1rem;color:var(--ink);font-family:var(--font-head);letter-spacing:.3px}
+  .rounds-control .rc-label small{display:block;font-weight:400;opacity:.65;font-family:var(--font-body);font-size:.75rem;margin-top:2px}
   .rounds-control .rc-stepper{display:flex;align-items:center;gap:14px}
   .rounds-control .rc-val{font-size:1.4rem;font-weight:800;min-width:28px;text-align:center;color:var(--ink)}
   .install-btn{margin:12px auto 0;display:block;border:none;border-radius:12px;padding:12px 22px;cursor:pointer;
@@ -367,15 +376,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .cc-field label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;opacity:.6;font-weight:700;margin-bottom:6px}
   .cc-step{display:flex;align-items:center;justify-content:center;gap:12px}
   .cc-v{font-size:1.2rem;font-weight:800;min-width:36px;text-align:center;color:var(--ink)}
-  .cc-mix{padding:0 14px 12px}
+  .cc-mix{padding:0 10px 12px;box-sizing:border-box}
   .mix-head{font-size:.82rem;color:var(--violet-deep);background:rgba(209,10,20,0.07);border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.4}
   .mix-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
   .mix-row .mix-reps{width:64px;text-align:center;border:1px solid var(--line);border-radius:7px;padding:6px;background:var(--card-bg);color:var(--ink);font-weight:bold}
   .mix-row .mix-name{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card-bg);color:var(--ink)}
-  .mix-row .mix-select{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card-bg);color:var(--ink);font-size:.9rem}
+  .mix-row .mix-select{flex:1;min-width:0;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card-bg);color:var(--ink);font-size:.9rem}
   .mix-row .mix-del{border:none;background:transparent;color:var(--violet);font-size:1rem;cursor:pointer;padding:4px 8px}
-  .mix-add{width:100%;border:2px dashed var(--violet);background:transparent;color:var(--violet-deep);border-radius:10px;padding:8px;font-weight:bold;font-size:.82rem;cursor:pointer;margin-top:2px}
+  .mix-add{width:100%;border:2px dashed var(--violet);background:transparent;color:var(--violet-deep);border-radius:10px;padding:8px;font-weight:bold;font-size:.82rem;cursor:pointer;margin-top:2px;text-align:center}
   .mix-add:hover{background:rgba(209,10,20,0.06)}
+  .mix-cancel-btn{
+    display:block;width:100%;margin:0 0 8px;
+    border:1px solid var(--violet);background:transparent;color:var(--violet);
+    border-radius:7px;padding:5px 10px;font-size:.8rem;cursor:pointer;text-align:center;
+    transition:background .15s;
+  }
+  .mix-cancel-btn:hover{background:rgba(209,10,20,0.08)}
   .train-notation span{font-weight:500;font-size:.8rem;color:rgba(255,255,255,0.8)}
   .iv-clock{font-size:5rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
   .iv-info{font-size:1.2rem;font-weight:bold;opacity:.95}
@@ -408,7 +424,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .card:hover{box-shadow:var(--shadow)}
   .card.done{opacity:.6}
   .card-head{
-    display:flex;align-items:center;gap:12px;
+    display:flex;align-items:flex-start;gap:12px;
     padding:14px 16px;
     background:linear-gradient(90deg, rgba(209,10,20,0.05), transparent);
     border-bottom:1px solid var(--line);
@@ -423,10 +439,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .card.done .check{background:var(--ok);border-color:var(--ok);animation:pop .35s ease}
   .card.done .check::after{content:"✓"}
   @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
-  .titles{flex:1;min-width:0;padding:2px 0}
+  .titles{flex:1;min-width:0;padding:2px 0;display:flex;align-items:center;gap:8px;}
+  .titles-text{flex:1;min-width:0;}
   .titles .es{font-weight:700;font-size:1.05rem;font-family:var(--font-head);letter-spacing:.3px;
-    word-break:break-word;overflow-wrap:anywhere;line-height:1.3}
-  .titles .en{font-size:.85rem;opacity:.7;font-style:italic;word-break:break-word;overflow-wrap:anywhere}
+    word-break:break-word;overflow-wrap:break-word;hyphens:none;line-height:1.3}
+  .titles .en{font-size:.85rem;opacity:.7;font-style:italic;word-break:break-word;overflow-wrap:break-word;hyphens:none}
   .titles .es:focus,.titles .en:focus{outline:none}
   .titles [contenteditable]{cursor:text}
   .muscle{
@@ -434,6 +451,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     background:var(--violet);color:var(--cream);padding:3px 8px;border-radius:6px;
     flex:0 0 auto;
   }
+  .card-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:0 0 auto;}
+  .card-btns{display:flex;align-items:center;}
 
   .card-body{padding:14px 16px;display:grid;gap:14px}
 
@@ -751,7 +770,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
   /* Export scope dialog */
   .export-scope-overlay{position:fixed;inset:0;background:rgba(36,22,54,0.6);
-    display:none;align-items:center;justify-content:center;z-index:200;}
+    display:none;align-items:center;justify-content:center;z-index:9999;}
   .export-scope-dialog{background:var(--cream);color:var(--ink);border-radius:14px;
     padding:24px 28px;max-width:300px;width:90%;box-shadow:var(--shadow);text-align:center;}
   .export-scope-dialog h3{margin:0 0 18px;font-size:1rem;font-weight:700;opacity:.9;}
@@ -771,6 +790,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
   /* ── Mobile header ── */
   @media (max-width:480px){
+    body.pocket-mode .controls-strip{
+      flex-wrap:nowrap;gap:3px;
+    }
+    body.pocket-mode .controls-strip > *{ flex:1 1 0;min-width:0; }
+    body.pocket-mode .app-mode-pill button,
+    body.pocket-mode .mode-switch button{ flex:1;min-width:0; }
+    body.pocket-mode .pocket-import-btn.wk-btn,
+    body.pocket-mode .app-mode-pill button,
+    body.pocket-mode .mode-switch button,
+    body.pocket-mode .tpl-strip-btn{ font-size:.6rem;padding:7px 2px;overflow:hidden; }
+    body.god-mode .mode-switch button,
+    body.god-mode .app-mode-pill button,
+    body.god-mode .tpl-strip-btn,
+    body.god-mode .quick-btn{ font-size:.75rem;padding:7px 8px; }
     header.app{ padding:12px 10px 14px; }
     .header-top-row{ gap:6px; }
     .app-logo-img{ width:34px;height:34px; }
@@ -779,7 +812,128 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .header-btns{ gap:5px; }
     .theme-toggle,.lang-toggle,#voiceToggleBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
   }
-</style>
+
+  /* ── Credit email ── */
+  .credit-email{
+    display:block;font-size:.75em;opacity:.65;margin-top:2px;
+    font-family:var(--font-body);font-weight:400;letter-spacing:0;
+  }
+
+  /* ── Controls strip ── */
+  .controls-strip{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+    gap:8px;margin:10px 0 8px;
+  }
+  .tpl-strip-btn{
+    border:2px solid var(--violet);background:transparent;color:var(--violet);
+    border-radius:12px;padding:5px 14px;font-size:.82rem;font-weight:600;
+    cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;
+  }
+  .tpl-strip-btn:hover{background:var(--violet);color:#fff;}
+  .app-mode-pill{
+    display:inline-flex;border:2px solid var(--violet);
+    border-radius:20px;overflow:hidden;flex-shrink:0;
+  }
+  .app-mode-pill button{
+    border:none;background:transparent;color:var(--ink);
+    padding:5px 16px;font-size:.78rem;font-weight:700;cursor:pointer;
+    font-family:var(--font-body);transition:background .18s,color .18s;line-height:1.4;
+  }
+  .app-mode-pill button.active{background:var(--violet);color:#fff;}
+  .app-mode-pill button:not(.active):hover{background:rgba(209,10,20,.1)}
+  .quick-extra{display:flex;gap:8px;flex-wrap:nowrap;align-items:center;}
+  .pocket-import-btn{ display:none; }
+
+  /* ── Circuit header wrap ── */
+  .circuit-header-wrap{
+    display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:8px;
+  }
+  .circuit-header-wrap .circuit-notation{flex:1;min-width:180px;margin-bottom:0;}
+  .circuit-header-wrap .rounds-control{flex:0 0 auto;margin-bottom:0;}
+  .circuit-header-wrap .start-circuit-btn{flex:1;min-width:140px;width:auto;margin-bottom:0;}
+  body.pocket-mode .circuit-header-wrap{ grid-column:1 / -1; }
+
+  /* ── Pocket mode: hide god-only elements ── */
+  body.pocket-mode .quote,
+  body.pocket-mode .user-info-bar,
+  body.pocket-mode .session-bar,
+  body.pocket-mode #motivBtn,
+  body.pocket-mode #dedication,
+  body.pocket-mode .bg-row,
+  body.pocket-mode #undoBtn,
+  body.pocket-mode #redoBtn,
+  body.pocket-mode .sb-sep,
+  body.pocket-mode .workout-bar,
+  body.pocket-mode .quick-extra,
+  body.pocket-mode .rest-custom,
+  body.pocket-mode #bgPick,
+  body.pocket-mode #bgClear
+  { display:none !important; }
+  body.pocket-mode .pocket-import-btn{ display:inline-flex !important; }
+
+  /* ── Pocket mode: grid de tarjetas ── */
+  body.pocket-mode #list{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(195px,1fr));
+    gap:8px;
+  }
+  body.pocket-mode .card{ margin-bottom:0; }
+  body.pocket-mode .reorder{ display:none !important; }
+  body.pocket-mode .notes-wrap{ display:none !important; }
+  body.pocket-mode .ex-actions{ display:none !important; }
+  body.pocket-mode .rest-btn{ display:none !important; }
+  body.pocket-mode .rest-custom{ display:none !important; }
+  body.pocket-mode .titles .en{ display:none !important; }
+  body.pocket-mode .card-head{
+    flex-wrap:wrap;gap:0;padding:0;align-items:center;
+  }
+  /* Red title bar full-width at top */
+  body.pocket-mode .card-head .titles{
+    order:-1;flex-basis:100%;width:100%;
+    background:var(--violet);padding:6px 10px;
+    margin-bottom:0;
+    display:flex;flex-direction:row;align-items:center;gap:6px;
+  }
+  body.pocket-mode .card-head .titles .cc-num{
+    flex-shrink:0;width:20px;height:20px;min-width:20px;
+    background:rgba(255,255,255,0.25);color:#fff;border-radius:50%;
+    display:grid;place-items:center;font-size:.72rem;font-weight:700;
+  }
+  body.pocket-mode .card-head .titles .es{
+    color:#fff;font-size:.88rem;white-space:nowrap;overflow:hidden;
+    text-overflow:ellipsis;font-weight:700;line-height:1.25;
+  }
+  /* Number badge on left, 3 buttons pushed to right */
+  body.pocket-mode .card-head .cc-num{
+    width:22px;height:22px;font-size:.75rem;
+    margin:6px 4px 6px 8px;flex-shrink:0;
+  }
+  body.pocket-mode .card-head .check{
+    width:22px;height:22px;margin:6px 4px 6px 8px;flex-shrink:0;border-radius:6px;
+    margin-right:auto;
+    background:transparent;border-color:var(--violet);
+  }
+  body.pocket-mode .card-head .swap,
+  body.pocket-mode .card-head .info,
+  body.pocket-mode .card-head .cc-info,
+  body.pocket-mode .card-head .del{ margin:4px 3px; }
+  body.pocket-mode .card-body{ padding:6px 8px;gap:6px; }
+  body.pocket-mode .grid{ grid-template-columns:1fr 1fr;gap:6px; }
+  body.pocket-mode .field{ padding:5px 8px;border-radius:8px; }
+  body.pocket-mode .field label{ font-size:.6rem;margin-bottom:2px; }
+  body.pocket-mode .field .ctrl{ gap:4px; }
+  body.pocket-mode .field input{ font-size:.9rem; }
+  body.pocket-mode .muscle{ display:none !important; }
+  body.pocket-mode .card-head .card-right{ flex-direction:row;align-items:center; }
+  body.pocket-mode .cc-fields{ gap:6px;padding:6px 10px; }
+  body.pocket-mode .cc-field label{ font-size:.62rem;margin-bottom:3px; }
+  body.pocket-mode .cc-step{ gap:6px; }
+  body.pocket-mode .cc-v{ font-size:1rem;min-width:32px; }
+  body.pocket-mode .stepper{ width:24px;height:24px;font-size:.95rem; }
+  body.pocket-mode .set-row{ padding:3px 5px;gap:4px;font-size:.82rem; }
+  body.pocket-mode .set-row input{ width:38px;min-width:38px;padding:3px 2px;font-size:.82rem; }
+  body.pocket-mode .cc-wrap{ gap:4px; }
+  </style>
 </head>
 <body>
 <div class="wrap">
@@ -798,7 +952,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   </div>
     <div class="user-info-bar">
       <label id="userNameLabel">👤 Atleta:</label>
-      <input type="text" id="userNameInput" class="user-name-input" placeholder="Your name…" maxlength="40">
+      <input type="text" id="userNameInput" class="user-name-input" placeholder="Tu nombre…" maxlength="40">
       <label id="lastModLabel">📅 Última actualización:</label>
       <span id="lastModDisplay" class="last-modified-display">—</span>
     </div>
@@ -823,7 +977,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <select id="workoutSelect" class="wk-select">
         <option value="">— Workouts guardados · Saved —</option>
       </select>
-      <button id="wkLoad" class="wk-btn">📂 Cargar</button>
       <button id="wkSave" class="wk-btn">💾 Guardar</button>
       <button id="wkDelete" class="wk-btn danger">🗑</button>
       <button id="wkExport" class="wk-btn">📊 Excel</button>
@@ -835,19 +988,31 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </div>
   </header>
 
-  <div class="quick-bar">
-    <div class="mode-switch" id="modeSwitch" title="Modo de entrenamiento del día">
-      <button data-mode="straight" id="modeStraight">↓ Series seguidas</button>
-      <button data-mode="circuit" id="modeCircuit">↻ Circuito ⏱</button>
+  <div class="controls-strip">
+    <button class="wk-btn pocket-import-btn" onclick="document.getElementById('wkImportInput').click()">📥 Importar</button>
+    <div class="app-mode-pill">
+      <button id="pocketModeBtn">📱 Pocket</button>
+      <button id="godModeBtn">⚡ God Mode</button>
     </div>
-    <button id="tplBtn" class="quick-btn">🗂️ Plantillas</button>
-    <button id="propagateBtn" class="quick-btn">⚙️ Propagar config</button>
-    <button id="intervalBtn" class="quick-btn">⏲️ Intervalos</button>
+    <button id="tplBtn" class="tpl-strip-btn">🗂️ Plantillas</button>
+    <div class="mode-switch" id="modeSwitch" title="Modo de entrenamiento del día">
+      <button data-mode="straight" id="modeStraight">↓ Series</button>
+      <button data-mode="circuit" id="modeCircuit">↻ Circuito</button>
+    </div>
+    <div class="quick-extra">
+      <button id="propagateBtn" class="quick-btn">⚙️ Propagar config</button>
+      <button id="intervalBtn" class="quick-btn">⏲️ Intervalos</button>
+    </div>
   </div>
 
+  <div id="workoutPieWrap">
+    <canvas id="workoutPie" width="88" height="88"></canvas>
+    <div class="workout-pie-label" id="workoutPieLabel">progreso</div>
+    <div class="workout-pie-pct" id="workoutPiePct"></div>
+  </div>
   <div id="list"></div>
 
-  <button class="add-ex" id="trainBtn" style="background:var(--violet);color:var(--cream);border-style:solid">🏋️ Modo entrenar</button>
+  <button class="add-ex" id="trainBtn" style="background:var(--violet);color:var(--cream);border-style:solid;margin-top:48px;">🏋️ Entrenar</button>
   <button class="add-ex" id="motivBtn">🔥 Frases motivacionales</button>
   <button class="add-ex" id="browseLib">📚 Biblioteca de ejercicios</button>
   <button class="add-ex" id="addEx">＋ Añadir ejercicio en blanco</button>
@@ -861,7 +1026,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     <div class="dedication" id="dedication" contenteditable="true" data-placeholder="Escribí acá tu frase…">Escribí acá tu frase…</div>
     <button id="installBtn" class="install-btn" style="display:none">📲 Instalar app</button>
     <div style="margin-top:8px" id="dataSavedTxt">Los datos se guardan en tu dispositivo</div>
-    <div class="credit">by Darío Nowak</div>
+    <div class="credit">by Darío Nowak<span class="credit-email">dnowak.ar@gmail.com</span></div>
   </footer>
 </div>
 
@@ -986,17 +1151,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     <button id="ivPause">⏸ Pausar</button>
     <button id="ivStop">■ Terminar</button>
   </div>
-<!-- Export scope modal -->
-<div class="export-scope-overlay" id="exportScopeOverlay">
-  <div class="export-scope-dialog">
-    <h3 id="exportScopeTitle">📊</h3>
-    <div class="export-scope-btns">
-      <button class="scope-btn scope-btn-all"    id="exportScopeAll"></button>
-      <button class="scope-btn scope-btn-sel"    id="exportScopeSel"></button>
-      <button class="scope-btn scope-btn-cancel" id="exportScopeCancel"></button>
-    </div>
-  </div>
-</div>
+
 
 </div>
 
@@ -1030,6 +1185,21 @@ const DEFAULT_DATA = {
    BIBLIOTECA DE EJERCICIOS · EXERCISE LIBRARY
    Organizada por equipamiento. Cada uno: es / en / músculo.
    ============================================================ */
+const MUSCLE_EN = {
+  "Pecho":"Chest", "Hombros":"Shoulders", "Espalda":"Back",
+  "Piernas":"Legs", "Cuádriceps":"Quadriceps", "Femoral":"Hamstrings",
+  "Glúteos":"Glutes", "Gemelos":"Calves", "Bíceps":"Biceps",
+  "Tríceps":"Triceps", "Core":"Core/Abs", "Trapecios":"Traps",
+  "Pecho/Espalda":"Chest/Back", "Bíceps/Antebrazo":"Biceps/Forearm",
+  "Aductores":"Adductors", "Aductores/Glúteos":"Adductors/Glutes",
+  "Abdomen":"Abs", "Cardio":"Cardio", "Cuerpo completo":"Full Body",
+  "Piernas (base)":"Legs (base)", "Hombros/Trapecios":"Shoulders/Traps",
+  "Tobillo/Equilibrio":"Ankle/Balance", "Cadera/Core":"Hip/Core",
+  "Espalda baja":"Lower Back", "Pecho/Tríceps":"Chest/Triceps",
+  "Espalda/Piernas":"Back/Legs", "Espalda/Bíceps":"Back/Biceps",
+  "Hombros/Bíceps":"Shoulders/Biceps", "Piernas/Core":"Legs/Core",
+  "Isquios":"Hamstrings", "Cuello":"Neck", "Antebrazo":"Forearm"
+};
 const LIBRARY = {
   "Preparación (principiantes) · Foundation": [
     {es:"Sentadilla a una silla", en:"Sit-to-stand (chair squat)", muscle:"Piernas (base)"},
@@ -1134,6 +1304,13 @@ const LIBRARY = {
     {es:"Pallof press", en:"Pallof press", muscle:"Core"},
     {es:"Woodchopper", en:"Cable woodchopper", muscle:"Core"},
     {es:"Curl martillo en polea", en:"Cable hammer curl", muscle:"Bíceps"},
+    {es:"Aperturas en polea alta", en:"High cable fly", muscle:"Pecho"},
+    {es:"Aperturas en polea media", en:"Mid cable fly", muscle:"Pecho"},
+    {es:"Aperturas en polea central", en:"Mid-height cable fly", muscle:"Pecho"},
+    {es:"Vuelo posterior en polea", en:"Rear delt cable fly", muscle:"Hombros"},
+    {es:"Elevación lateral en polea baja", en:"Low cable lateral raise", muscle:"Hombros"},
+    {es:"Elevación lateral en polea alta", en:"High cable lateral raise", muscle:"Hombros"},
+    {es:"Vuelo invertido en polea", en:"Cable reverse fly", muscle:"Hombros"},
   ],
   "Barra · Barbell": [
     {es:"Sentadilla con barra", en:"Barbell back squat", muscle:"Piernas"},
@@ -1191,6 +1368,14 @@ const LIBRARY = {
     {es:"Press Arnold", en:"Arnold press", muscle:"Hombros"},
     {es:"Remo renegado", en:"Renegade row", muscle:"Espalda/Core"},
     {es:"Russian twist con mancuerna", en:"Weighted Russian twist", muscle:"Core"},
+    {es:"Aperturas inclinadas con mancuernas", en:"Incline dumbbell fly", muscle:"Pecho"},
+    {es:"Aperturas declinadas con mancuernas", en:"Decline dumbbell fly", muscle:"Pecho"},
+    {es:"Vuelo posterior inclinado con mancuernas", en:"Incline rear delt fly", muscle:"Hombros"},
+    {es:"Elevaciones laterales inclinadas", en:"Incline lateral raise", muscle:"Hombros"},
+    {es:"Elevaciones laterales sentado", en:"Seated lateral raise", muscle:"Hombros"},
+    {es:"Vuelo lateral tumbado", en:"Side-lying lateral raise", muscle:"Hombros"},
+    {es:"Elevaciones posteriores sentado", en:"Seated rear delt raise", muscle:"Hombros"},
+    {es:"Vuelo posterior de pie", en:"Standing rear delt fly", muscle:"Hombros"},
   ],
   "Bandas · Bands": [
     {es:"Sentadilla con banda", en:"Banded squat", muscle:"Piernas"},
@@ -1317,6 +1502,19 @@ const LIBRARY = {
     {es:"Burpee sin flexión", en:"No push-up burpee", muscle:"Cuerpo completo"},
     {es:"Jumping jacks (saltos de tijera)", en:"Jumping jacks", muscle:"Cardio"},
     {es:"Abdominal bicicleta con disco (pase entre piernas)", en:"Bicycle crunch with plate pass", muscle:"Core/Oblicuos"},
+    // --- HIIT / circuito ---
+    {es:"Saltos estrella", en:"Jumping jacks", muscle:"Cardio"},
+    {es:"Estocadas con salto", en:"Jump lunges", muscle:"Piernas"},
+    {es:"Saltos rodillas al pecho", en:"Tuck jumps", muscle:"Piernas"},
+    {es:"Puente con salto", en:"Bridge jump", muscle:"Glúteos"},
+    {es:"Talones a la cola", en:"Butt kicks", muscle:"Cardio"},
+    {es:"Extensiones de brazos", en:"Push-ups", muscle:"Pecho"},
+    {es:"Abd paso tapa", en:"Bicycle crunch with plate pass", muscle:"Core/Oblicuos"},
+    {es:"Plancha sacando apoyo", en:"Plank arm lift", muscle:"Core"},
+    {es:"Rabietas", en:"Swimmers", muscle:"Espalda baja/Core"},
+    {es:"Twist con disco", en:"Russian twist with disc", muscle:"Core/Oblicuos"},
+    {es:"Empuje (de pie con disco)", en:"Chest push (standing)", muscle:"Pecho/Hombros"},
+    {es:"Press de hombros con disco", en:"Overhead press", muscle:"Hombros"},
   ],
   "Bicicleta fija · Stationary bike": [
     {es:"Bici fija — ritmo constante", en:"Stationary bike — steady pace", muscle:"Cardio"},
@@ -1342,6 +1540,21 @@ let currentDay = Object.keys(data)[0];
 /* Migración: corrige días de cardio continuo guardados con tiempo en segundos (valores enormes).
    Si un ejercicio tiene 1 sola serie y un valor de "reps" gigante (>120), estaba en segundos
    y lo pasamos a minutos para que se lea bien (ej: 3600 -> 60). */
+function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* Aviso no bloqueante (reemplaza a los alert informativos) */
+function toast(msg, ms=2600){
+  let t = document.getElementById("burnToast");
+  if(!t){
+    t = document.createElement("div");
+    t.id = "burnToast";
+    t.style.cssText = "position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:rgba(26,26,26,.92);color:#fff;padding:10px 18px;border-radius:12px;font-size:.95rem;z-index:99999;max-width:86vw;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.35);opacity:0;transition:opacity .25s;pointer-events:none";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = "1";
+  clearTimeout(t._h);
+  t._h = setTimeout(()=>{ t.style.opacity = "0"; }, ms);
+}
 function migrateData(){
   let changed = false;
   Object.keys(data).forEach(dayName=>{
@@ -1468,7 +1681,7 @@ function updateUndoButtons(){
 /* ---------- Propagar configuración a todos los ejercicios del día ---------- */
 function propagateConfig(){
   const list = data[currentDay];
-  if(!list || !list.length){ alert(LL("Este día no tiene ejercicios","No exercises")); return; }
+  if(!list || !list.length){ toast(LL("Este día no tiene ejercicios","No exercises")); return; }
   const sets = prompt("Series para TODOS los ejercicios del día (vacío = no cambiar):", list[0].sets ?? "");
   if(sets===null) return;
   const reps = prompt("Reps para TODOS (vacío = no cambiar):", list[0].reps ?? "");
@@ -1477,7 +1690,7 @@ function propagateConfig(){
   if(rest===null) return;
   pushUndo();
   list.forEach(ex=>{
-    if(sets!=="" && !isNaN(+sets)){ ex.sets = +sets; ex.setsDone = []; }
+    if(sets!=="" && !isNaN(+sets)){ ex.sets = +sets; ex.setsDone = (ex.setsDone||[]).slice(0,+sets); }
     if(reps!=="" && !isNaN(+reps)) ex.reps = +reps;
     if(rest!=="" && !isNaN(+rest)) ex.rest = +rest;
   });
@@ -1561,7 +1774,7 @@ function renderDays(){
 function addDayNamed(name){
   const trimmed = (name||"").trim();
   if(!trimmed) return;
-  if(data[trimmed]){ alert(LL("Ya existe ese día, lo selecciono","Day already exists")); currentDay=trimmed; renderDays(); renderList(); return; }
+  if(data[trimmed]){ currentDay=trimmed; renderDays(); renderList(); return; }
   pushUndo();
   data[trimmed] = [];
   currentDay = trimmed;
@@ -1573,13 +1786,16 @@ function renameDay(day){
   if(!name) return;
   const trimmed = name.trim();
   if(!trimmed || trimmed===day) return;
-  if(data[trimmed]){ alert(LL("Ya existe un día con ese nombre","Name already exists")); return; }
+  if(data[trimmed]){ toast(LL("Ya existe un día con ese nombre","Name already exists")); return; }
   pushUndo();
   const newData = {};
   Object.keys(data).forEach(k=>{
     newData[k===day ? trimmed : k] = data[k];
   });
   data = newData;
+  // migrar modo de día y descansos de circuito al nuevo nombre
+  if(dayModes[day]!==undefined){ dayModes[trimmed]=dayModes[day]; delete dayModes[day]; }
+  if(dayModes["__rest_"+day]!==undefined){ dayModes["__rest_"+trimmed]=dayModes["__rest_"+day]; delete dayModes["__rest_"+day]; }
   if(currentDay===day) currentDay = trimmed;
   save(); renderDays(); renderList();
 }
@@ -1589,7 +1805,7 @@ function addDay(){
   if(!name) return;
   const trimmed = name.trim();
   if(!trimmed) return;
-  if(data[trimmed]){ alert(LL("Ya existe un día con ese nombre","Name already exists")); return; }
+  if(data[trimmed]){ toast(LL("Ya existe un día con ese nombre","Name already exists")); return; }
   pushUndo();
   data[trimmed] = [];
   currentDay = trimmed;
@@ -1604,6 +1820,8 @@ function deleteDayNamed(day){
   if(!confirm(msg)) return;
   pushUndo();
   delete data[day];
+  delete dayModes[day];
+  delete dayModes["__rest_"+day];
   if(isLast){
     // recrear un día vacío para no dejar la app sin días
     const fresh = LL("Día 1","Day 1");
@@ -1633,8 +1851,11 @@ function renderList(){
     const banner = document.createElement("div");
     banner.className = "circuit-notation";
     banner.innerHTML = `<div class="cn-head">↻ ${LL("Circuito","Circuit")}: ${list.length} ${exWord} × ${rounds} ${setWord}</div>`
-      + `<div class="cn-expanded">(${names.join(" + ")}) × ${rounds}</div>`;
-    listEl.appendChild(banner);
+      + `<div class="cn-expanded">(${names.map(esc).join(" + ")}) × ${rounds}</div>`;
+    // Circuit header wrap (banner + rounds + start en una fila)
+    const circHeaderWrap = document.createElement("div");
+    circHeaderWrap.className = "circuit-header-wrap";
+    circHeaderWrap.appendChild(banner);
 
     // Control único de rounds (vueltas del circuito)
     const rc = document.createElement("div");
@@ -1646,14 +1867,15 @@ function renderList(){
         <span class="rc-val" id="circRoundsVal">${rounds}</span>
         <button class="stepper" id="circPlus">＋</button>
       </div>`;
-    listEl.appendChild(rc);
+    circHeaderWrap.appendChild(rc);
 
     // Botón grande iniciar circuito
     const startBtn = document.createElement("button");
     startBtn.className = "start-circuit-btn";
     startBtn.innerHTML = `▶ ${LL("Iniciar circuito","Start circuit")}`;
     startBtn.onclick = ()=> document.getElementById("intervalBtn").click();
-    listEl.appendChild(startBtn);
+    circHeaderWrap.appendChild(startBtn);
+    listEl.appendChild(circHeaderWrap);
 
     // Lista simplificada
     list.forEach((ex, i)=> listEl.appendChild(makeCircuitCard(ex, i)));
@@ -1734,10 +1956,13 @@ function makeCircuitCard(ex, idx){
   const secondaryName = lang==="en" ? (ex.es||"") : (ex.en||"");
   card.innerHTML = `
     <div class="card-head">
-      <span class="cc-num">${idx+1}</span>
+      <div class="check" title="${Lc('Completar','Complete')}"></div>
       <div class="titles">
-        <div class="es" contenteditable="true">${primaryName}</div>
-        <div class="en" contenteditable="true">${secondaryName}</div>
+        <span class="cc-num">${idx+1}</span>
+        <div class="titles-text">
+          <div class="es" contenteditable="true">${esc(primaryName)}</div>
+          <div class="en" contenteditable="true">${esc(secondaryName)}</div>
+        </div>
       </div>
       <div class="reorder">
         <button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
@@ -1769,7 +1994,13 @@ function makeCircuitCard(ex, idx){
       const head = document.createElement("div");
       head.className = "mix-head";
       head.innerHTML = `🔀 ${Lc('Secuencia (se repite durante el tiempo)','Sequence (loops during the time)')}: <b>${seq}</b>`;
+      // Botón para quitar el mix completo
+      const cancelMix = document.createElement("button");
+      cancelMix.className = "mix-cancel-btn";
+      cancelMix.textContent = Lc("✕ Quitar mix","✕ Remove mix");
+      cancelMix.onclick = ()=>{ pushUndo(); delete ex.mix; save(); renderList(); };
       box.appendChild(head);
+      box.appendChild(cancelMix);
       mix.forEach((m, mi)=>{
         const row = document.createElement("div");
         row.className = "mix-row";
@@ -1817,6 +2048,7 @@ function makeCircuitCard(ex, idx){
     window.open("https://www.youtube.com/results?search_query=" + term, "_blank");
   };
   card.querySelector(".del").onclick = ()=>{ if(confirm(Lc(`¿Eliminar "${primaryName}"?`,`Delete "${primaryName}"?`))){ pushUndo(); data[currentDay].splice(idx,1); save(); renderList(); } };
+  card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
   // steppers de tiempo/descanso
@@ -1840,8 +2072,48 @@ function updateDayProgress(){
   const fill = document.getElementById("dayProgressFill");
   const txt = document.getElementById("dayProgressTxt");
   if(fill) fill.style.width = total ? (done/total*100)+"%" : "0%";
-  if(txt) txt.textContent = `${done} / ${total} completados`;
+  if(txt) txt.textContent = `${done} / ${total} ${LL("completados","completed")}`;
   updateModeSwitch();
+  drawWorkoutPie(done, total);
+}
+
+function drawWorkoutPie(done, total){
+  const canvas = document.getElementById("workoutPie");
+  if(!canvas) return;
+  const ctx2d = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  const r = Math.min(W,H)/2 - 7;
+  const lw = 14;
+  ctx2d.clearRect(0,0,W,H);
+  // background ring
+  ctx2d.beginPath();
+  ctx2d.arc(cx, cy, r, 0, Math.PI*2);
+  ctx2d.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx2d.lineWidth = lw;
+  ctx2d.stroke();
+  // progress arc
+  if(total > 0 && done > 0){
+    const pct = done/total;
+    ctx2d.beginPath();
+    ctx2d.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
+    ctx2d.strokeStyle = done===total ? "#4ade80" : "#fff";
+    ctx2d.lineWidth = lw;
+    ctx2d.lineCap = "round";
+    ctx2d.stroke();
+  }
+  // center pct text on canvas
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  ctx2d.fillStyle = "#fff";
+  ctx2d.font = "bold 18px sans-serif";
+  ctx2d.textAlign = "center";
+  ctx2d.textBaseline = "middle";
+  ctx2d.fillText((total > 0 ? pct+"%" : "—"), cx, cy);
+  // label below canvas
+  const lbl = document.getElementById("workoutPieLabel");
+  if(lbl) lbl.textContent = LL("progreso","progress");
+  const pctEl = document.getElementById("workoutPiePct");
+  if(pctEl) pctEl.style.display = "none"; // text is drawn on canvas
 }
 
 function modeForCategory(cat){
@@ -1857,8 +2129,8 @@ function updateModeSwitch(){
   if(s) s.classList.toggle("active", mode==="straight");
   if(c) c.classList.toggle("active", mode==="circuit");
 }
-document.getElementById("modeStraight").onclick = ()=>{ setDayMode(currentDay,"straight"); updateModeSwitch(); };
-document.getElementById("modeCircuit").onclick = ()=>{ setDayMode(currentDay,"circuit"); updateModeSwitch(); };
+document.getElementById("modeStraight").onclick = ()=>{ setDayMode(currentDay,"straight"); renderList(); };
+document.getElementById("modeCircuit").onclick = ()=>{ setDayMode(currentDay,"circuit"); renderList(); };
 
 function makeCard(ex, idx){
   ex.setsDone = ex.setsDone || [];
@@ -1874,17 +2146,23 @@ function makeCard(ex, idx){
   head.innerHTML = `
     <div class="check" title="${Lc('Completar','Complete')}"></div>
     <div class="titles">
-      <div class="es" contenteditable="true">${primaryName}</div>
-      <div class="en" contenteditable="true">${secondaryName}</div>
+      <div class="titles-text">
+        <div class="es" contenteditable="true">${esc(primaryName)}</div>
+        <div class="en" contenteditable="true">${esc(secondaryName)}</div>
+      </div>
     </div>
-    <span class="muscle" contenteditable="true">${ex.muscle||""}</span>
-    <div class="reorder">
-      <button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
-      <button class="move-down" title="${Lc('Bajar','Move down')}" ${idx===data[currentDay].length-1?"disabled":""}>▼</button>
+    <div class="card-right">
+      <div class="card-btns">
+        <div class="reorder">
+          <button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
+          <button class="move-down" title="${Lc('Bajar','Move down')}" ${idx===data[currentDay].length-1?"disabled":""}>▼</button>
+        </div>
+        <button class="swap" title="${Lc('Cambiar ejercicio','Replace exercise')}">🔄</button>
+        <button class="info" title="${Lc('Ver técnica','How-to')}">ℹ️</button>
+        <button class="del" title="${Lc('Eliminar','Delete')}">🗑</button>
+      </div>
+      <span class="muscle" contenteditable="true">${esc(ex.muscle ? (lang==="en" ? (MUSCLE_EN[ex.muscle]||ex.muscle) : ex.muscle) : "")}</span>
     </div>
-    <button class="swap" title="${Lc('Cambiar ejercicio','Replace exercise')}">🔄</button>
-    <button class="info" title="${Lc('Ver técnica','How-to')}">ℹ️</button>
-    <button class="del" title="${Lc('Eliminar','Delete')}">🗑</button>
   `;
   head.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
   // El campo primario edita el idioma activo; el secundario, el otro
@@ -1934,9 +2212,9 @@ function makeCard(ex, idx){
   const setsLabel = isCircuit ? LL("Rondas","Rounds") : LL("Series","Sets");
   const weightLabel = LL("Peso (kg)","Weight (kg)");
   const restLabel = LL("Descanso (s)","Rest (s)");
-  grid.appendChild(numField(setsLabel, ex.sets, 1, v=>{ ex.sets=v; ex.setsDone=[]; save(); renderList(); }));
-  grid.appendChild(numField(repsLabel, ex.reps, 1, v=>{ ex.reps=v; save(); }));
-  grid.appendChild(numField(weightLabel, ex.weight, 1, v=>{ ex.weight=v; save(); }, true));
+  grid.appendChild(numField(setsLabel, ex.sets, 1, v=>{ ex.sets=v; ex.setsDone=(ex.setsDone||[]).slice(0,v); save(); renderList(); }));
+  grid.appendChild(numField(repsLabel, ex.reps, 1, v=>{ ex.reps=v; ex.setsDone.forEach(s=>{ if(s) s.r=v; }); save(); renderList(); }));
+  grid.appendChild(numField(weightLabel, ex.weight, 1, v=>{ ex.weight=v; ex.setsDone.forEach(s=>{ if(s) s.w=v; }); save(); renderList(); }, true));
   grid.appendChild(numField(restLabel, ex.rest, 5, v=>{ ex.rest=v; save(); }));
   body.appendChild(grid);
 
@@ -1982,7 +2260,11 @@ function makeCard(ex, idx){
       restIn.onchange = ()=>{ log.rest = +restIn.value || 0; save(); };
     }
     row.querySelector(".ok").onclick = ()=>{
-      log.done = !log.done; save(); renderList();
+      log.done = !log.done;
+      // auto-completar ejercicio si todos los sets están hechos (o des-completar si alguno no)
+      const _allDone = ex.sets > 0 && ex.setsDone.slice(0, ex.sets).every(s => s && s.done);
+      if(_allDone !== ex.done){ ex.done = _allDone; }
+      save(); renderList();
       // al marcar la serie, usa el descanso individual si está activo, si no el general
       if(log.done){ warmAudio(); startTimer(ex.customRest ? (log.rest ?? ex.rest) : ex.rest); }
     };
@@ -2245,7 +2527,7 @@ document.getElementById("addQuoteBtn").onclick = ()=>{
   const textEl = document.getElementById("newQuoteText");
   const srcEl = document.getElementById("newQuoteSrc");
   const text = textEl.value.trim();
-  if(!text){ alert(LL("Escribí una frase primero","Type a quote first")); return; }
+  if(!text){ toast(LL("Escribí una frase primero","Type a quote first")); return; }
   const arr = getCustomQuotes();
   arr.push({text, src: srcEl.value.trim()});
   setCustomQuotes(arr);
@@ -2255,11 +2537,13 @@ document.getElementById("addQuoteBtn").onclick = ()=>{
 document.getElementById("motivClose").onclick = ()=> motivModal.classList.remove("show");
 motivModal.onclick = e=>{ if(e.target===motivModal) motivModal.classList.remove("show"); };
 
-// Restaurar frase elegida para la cabecera
-try{
-  const savedHeader = localStorage.getItem(HEADER_Q_KEY);
-  if(savedHeader) setHeaderQuote(JSON.parse(savedHeader));
-}catch(e){}
+// Restaurar frase elegida para la cabecera (se llama en init, cuando ya existe `lang`)
+function restoreHeaderQuote(){
+  try{
+    const savedHeader = localStorage.getItem(HEADER_Q_KEY);
+    if(savedHeader) setHeaderQuote(JSON.parse(savedHeader));
+  }catch(e){}
+}
 
 /* ---------- Biblioteca de ejercicios ---------- */
 const libModal = document.getElementById("libModal");
@@ -2344,7 +2628,7 @@ function renderLibBody(){
       if(libReplaceIdx !== null){
         // Reemplazar conservando posición; preguntar si mantener config
         const old = data[currentDay][libReplaceIdx] || {};
-        const keep = confirm(LL("¿Mantener las series, reps, peso y descanso actuales?","Keep current sets, reps, weight and rest?"));
+        const keep = true; // conserva series/reps/peso/descanso sin preguntar (↶ Deshacer disponible)
         data[currentDay][libReplaceIdx] = {
           es:ex.es, en:ex.en, muscle:ex.muscle,
           sets: keep ? (old.sets ?? 3) : 3,
@@ -2381,7 +2665,11 @@ const timerEl = document.getElementById("timer");
 const timerDisplay = document.getElementById("timerDisplay");
 let timerInt = null, timeLeft = 0;
 
+let _endVoiceSched = false;
 function startTimer(seconds){
+  cancelPendingBeeps();
+  if(!seconds || seconds<=0) return; // sin descanso configurado: no mostrar timer
+  _endVoiceSched = false;
   timeLeft = seconds;
   timerEl.classList.add("show");
   updateTimer();
@@ -2389,12 +2677,16 @@ function startTimer(seconds){
   timerInt = setInterval(()=>{
     timeLeft--;
     updateTimer();
-    if(timeLeft<=0){ if(!playVoice("letsgo")) beep(); stopTimer(); }
+    if(timeLeft<=0){ if(!_endVoiceSched && !playVoice("letsgo")) beep(); stopTimer(); }
   else if(timeLeft<=3 && timeLeft>0){
       if(timeLeft===1){
-        const _rc=_getAudioCtx(), _rwp=_nextWorkPhrase();
-        const _rwo=_rwp==="letsgo"?0.25:0.18;
-        _schedVoice(_rwp, _rc.currentTime+(1.0-_rwo));
+        const _rwp=_nextWorkPhrase();
+        if(_voiceOn && _voiceBufs[_rwp]){
+          const _rc=_getAudioCtx();
+          const _rwo=_rwp==="letsgo"?0.25:0.18;
+          _schedVoice(_rwp, _rc.currentTime+(1.0-_rwo));
+          _endVoiceSched = true;
+        }
       }
       if(!playVoice(["","one","two","three"][timeLeft])) beep(660);
     }
@@ -2405,9 +2697,9 @@ function updateTimer(){
   const s = String(Math.max(timeLeft,0)%60).padStart(2,"0");
   timerDisplay.textContent = `${m}:${s}`;
 }
-function stopTimer(){ clearInterval(timerInt); timerInt=null; }
-document.getElementById("timerSkip").onclick = ()=>{ stopTimer(); timerEl.classList.remove("show"); };
-document.getElementById("timerAdd").onclick = ()=>{ timeLeft+=15; updateTimer(); };
+function stopTimer(){ clearInterval(timerInt); timerInt=null; timerEl.classList.remove("show"); }
+document.getElementById("timerSkip").onclick = ()=>{ cancelPendingBeeps(); stopTimer(); };
+document.getElementById("timerAdd").onclick = ()=>{ _cancelPendingAudio(); _endVoiceSched=false; timeLeft+=15; updateTimer(); };
 
 
 /* ───────────── Voice countdown – embedded clips ───────────── */
@@ -2487,6 +2779,7 @@ function _schedBeep(freq, when){
   o.start(t); o.stop(t+0.2); _pendingSrcs.push(o);
 }
 let _audioCtx = null;
+let _pendingOscillators = [];
 function _getAudioCtx(){
   if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
   if(_audioCtx.state==="suspended") _audioCtx.resume();
@@ -2494,6 +2787,13 @@ function _getAudioCtx(){
 }
 async function warmAudio(){
   try{ _getAudioCtx(); await preloadVoice(); }catch(e){}
+}
+function cancelPendingBeeps(){
+  _cancelPendingAudio();
+  if(_audioCtx){
+    _pendingOscillators.forEach(o=>{ try{ o.stop(_audioCtx.currentTime); }catch(e){} });
+  }
+  _pendingOscillators = [];
 }
 function beep(freq=880, offset=0.04){
   try{
@@ -2507,6 +2807,8 @@ function beep(freq=880, offset=0.04){
     g.gain.setValueAtTime(0.5, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
     o.start(t); o.stop(t + 0.2);
+    _pendingOscillators.push(o);
+    o.onended = ()=>{ _pendingOscillators = _pendingOscillators.filter(x=>x!==o); };
   }catch(e){}
 }
 /* ---------- Fondo personalizado / Custom background ---------- */
@@ -2534,7 +2836,7 @@ bgInput.onchange = ()=>{
   const reader = new FileReader();
   reader.onload = ()=>{
     const url = reader.result;
-    try{ localStorage.setItem(BG_KEY, url); }catch(e){ alert("La imagen es demasiado grande para guardarla, pero se aplicará en esta sesión."); }
+    try{ localStorage.setItem(BG_KEY, url); }catch(e){ toast(LL("Imagen muy grande para guardar: se aplica solo en esta sesión","Image too big to store: applied for this session only"), 4000); }
     applyBg(url);
   };
   reader.readAsDataURL(file);
@@ -2568,7 +2870,6 @@ dedEl.onblur = ()=>{
 const WK_KEY = "strengthGadgetRojo.workouts";
 const wkSelect = document.getElementById("workoutSelect");
 const wkSaveBtn = document.getElementById("wkSave");
-const wkLoadBtn = document.getElementById("wkLoad");
 const wkDeleteBtn = document.getElementById("wkDelete");
 
 function getWorkouts(){
@@ -2595,22 +2896,24 @@ wkSaveBtn.onclick = ()=>{
   setWorkouts(all);
   renderWorkoutList();
   wkSelect.value = name.trim();
-  alert(LL(`Guardado: "${name.trim()}"`,`Saved: "${name.trim()}"`));
 };
 
-wkLoadBtn.onclick = ()=>{
+
+wkSelect.onchange = ()=>{
   const name = wkSelect.value;
-  if(!name){ alert(LL("Elegí un workout primero","Pick a workout first")); return; }
-  const all = getWorkouts();
-  if(!all[name]) return;
-  data = structuredClone(all[name]);
+  if(!name) return;
+  const wk = getWorkouts()[name];
+  if(!wk || !Object.keys(wk).length){ toast(LL("Ese workout está vacío","That workout is empty")); return; }
+  pushUndo();
+  data = structuredClone(wk);
   currentDay = Object.keys(data)[0];
   save(); renderDays(); renderList();
+  toast(LL(`"${name}" cargado — ↶ Deshacer para volver`,`"${name}" loaded — ↶ Undo to revert`));
 };
 
 wkDeleteBtn.onclick = ()=>{
   const name = wkSelect.value;
-  if(!name){ alert(LL("Elegí un workout para borrar","Pick a workout to delete")); return; }
+  if(!name){ toast(LL("Elegí un workout para borrar","Pick a workout to delete")); return; }
   if(!confirm(LL(`¿Borrar "${name}"?`,`Delete "${name}"?`))) return;
   const all = getWorkouts();
   delete all[name];
@@ -2643,8 +2946,11 @@ function showExportScope(){
 
 /* ---------- Exportar a Excel ---------- */
 document.getElementById("wkExport").onclick = async ()=>{
+  console.log("BURN: Excel click fired");
+  try{
+  const EN = lang === "en";
   if(typeof ExcelJS === "undefined"){
-    alert(LL("No se pudo cargar el módulo de Excel.","Couldn't load the Excel module."));
+    toast(LL("No se pudo cargar el módulo de Excel.","Couldn't load the Excel module."));
     return;
   }
 
@@ -2847,8 +3153,7 @@ document.getElementById("wkExport").onclick = async ()=>{
   const safeUser = (_userName||"athlete").replace(/[^a-zA-Z0-9_\-áéíóúÁÉÍÓÚñÑüÜ]/g,"_").slice(0,30);
   const fileName = `${safeUser}_${stamp}_BURN.xlsx`;
 
-  try{
-    const buf = await wb.xlsx.writeBuffer();
+  const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -2857,7 +3162,8 @@ document.getElementById("wkExport").onclick = async ()=>{
     document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(url), 1000);
   }catch(err){
-    alert(LL("Error al generar el Excel: ","Error generating Excel: ") + err.message);
+    toast(LL("Error al generar el Excel: ","Error generating Excel: ") + err.message, 4000);
+    console.error("BURN Excel export error:", err);
   }
 };
 
@@ -2865,9 +3171,10 @@ document.getElementById("wkExport").onclick = async ()=>{
 document.getElementById("wkShare").onclick = ()=>{
   const payload = {
     app: "entrenamiento-rojo",
-    version: 1,
+    version: 2,
     exported: new Date().toISOString(),
-    days: data
+    days: data,
+    modes: dayModes
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
   const url = URL.createObjectURL(blob);
@@ -2890,22 +3197,56 @@ document.getElementById("wkImportInput").onchange = (e)=>{
     try{
       const parsed = JSON.parse(reader.result);
       const incoming = parsed.days || parsed;
-      if(typeof incoming !== "object" || Array.isArray(incoming) || !Object.keys(incoming).length){
-        alert(LL("El archivo no parece una rutina válida","Not a valid routine file"));
+
+      /* ── Importar un DÍA SUELTO (array de ejercicios) ── */
+      if(Array.isArray(incoming)){
+        if(!incoming.length){ toast(LL("El archivo está vacío","File is empty")); return; }
+        const defaultName = file.name.replace(/\.json$/i,"").replace(/_/g," ");
+        const dayName = prompt(
+          LL("Nombre del día para esta importación:","Day name for this import:"),
+          defaultName
+        );
+        if(!dayName || !dayName.trim()) return;
+        const trimmed = dayName.trim();
+        const modeChoice = confirm(
+          LL(
+            "¿Es un circuito (OK) o series normales (Cancelar)?",
+            "Is this a circuit (OK) or straight sets (Cancel)?"
+          )
+        );
+        if(data[trimmed] && !confirm(LL(`"${trimmed}" ya existe. ¿Reemplazar?`,`"${trimmed}" already exists. Replace?`))) return;
+        pushUndo();
+        data[trimmed] = structuredClone(incoming);
+        dayModes[trimmed] = modeChoice ? "circuit" : "straight";
+        localStorage.setItem(MODE_KEY, JSON.stringify(dayModes));
+        currentDay = trimmed;
+        save(); renderDays(); renderList();
         return;
       }
+
+      /* ── Importar rutina completa (objeto con días) ── */
+      if(typeof incoming !== "object" || !Object.keys(incoming).length){
+        toast(LL("El archivo no parece una rutina válida","Not a valid routine file"));
+        return;
+      }
+      const badDay = Object.keys(incoming).find(k=> !Array.isArray(incoming[k]));
+      if(badDay){ toast(LL("El archivo no parece una rutina válida","Not a valid routine file")); return; }
       const ok = confirm(LL("¿Reemplazar tu rutina actual por la importada?\n(Tip: guardá la actual antes si no querés perderla)","Replace your current routine with the imported one?\n(Tip: save yours first if you don't want to lose it)"));
       if(!ok) return;
+      pushUndo();
       data = structuredClone(incoming);
+      if(parsed.modes && typeof parsed.modes==="object" && !Array.isArray(parsed.modes)){
+        dayModes = structuredClone(parsed.modes);
+        try{ localStorage.setItem(MODE_KEY, JSON.stringify(dayModes)); }catch(e2){}
+      }
       currentDay = Object.keys(data)[0];
       save(); renderDays(); renderList();
-      alert(LL("Rutina importada ✔","Routine imported ✔"));
     }catch(err){
-      alert(LL("No se pudo leer el archivo","Could not read file"));
+      toast(LL("No se pudo leer el archivo","Could not read file"));
     }
-    e.target.value = "";
   };
   reader.readAsText(file);
+  e.target.value = "";
 };
 
 /* ---------- Helpers de almacenamiento de historial ---------- */
@@ -2928,9 +3269,11 @@ function logSession(ex){
   const hist = getHistory();
   const key = exKey(ex);
   hist[key] = hist[key] || [];
-  hist[key].push({ date: new Date().toISOString().slice(0,10), weight: bestW, reps: repsAt });
+  const _today = new Date().toISOString().slice(0,10);
+  const _last = hist[key][hist[key].length-1];
+  if(_last && _last.date === _today){ _last.weight = bestW; _last.reps = repsAt; }
+  else hist[key].push({ date: _today, weight: bestW, reps: repsAt });
   setHistory(hist);
-  alert(LL(`Sesión registrada:\n${ex.es}\n${bestW} kg × ${repsAt} reps`,`Logged:\n${ex.en||ex.es}\n${bestW} kg × ${repsAt} reps`));
 }
 
 /* ---------- Calculadora 1RM ---------- */
@@ -2980,9 +3323,9 @@ histModal.onclick = e=>{ if(e.target===histModal) histModal.classList.remove("sh
 function openHistory(ex){
   const hist = getHistory();
   const entries = hist[exKey(ex)] || [];
-  histBody.innerHTML = `<h3 style="color:var(--violet-deep);margin-bottom:10px">${ex.es}</h3>`;
+  histBody.innerHTML = `<h3 style="color:var(--violet-deep);margin-bottom:10px">${lang==="en"?(ex.en||ex.es):(ex.es||ex.en)}</h3>`;
   if(!entries.length){
-    histBody.innerHTML += `<div class="hist-empty">Sin registros todavía.<br>Usá "✔ Registrar sesión" para empezar a guardar tu progreso.</div>`;
+    histBody.innerHTML += `<div class="hist-empty">${LL('Sin registros todavía.<br>Usá "✔ Registrar sesión" para empezar a guardar tu progreso.','No records yet.<br>Use "✔ Log session" to start tracking your progress.')}</div>`;
     histModal.classList.add("show");
     return;
   }
@@ -2998,11 +3341,11 @@ function openHistory(ex){
   const dots = entries.map((e,i)=>{
     const x = pad + i*stepX;
     const y = H-pad - (e.weight/maxW)*(H-2*pad);
-    return `<circle cx="${x}" cy="${y}" r="4" fill="#6a3fb0"/>`;
+    return `<circle cx="${x}" cy="${y}" r="4" fill="var(--violet-deep)"/>`;
   }).join("");
   histBody.innerHTML += `
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;margin-bottom:12px">
-      <polyline points="${pts}" fill="none" stroke="#6a3fb0" stroke-width="2.5"/>
+      <polyline points="${pts}" fill="none" stroke="var(--violet-deep)" stroke-width="2.5"/>
       ${dots}
     </svg>
   `;
@@ -3033,12 +3376,12 @@ let circRounds = 1;        // circuit: total de rondas
 let trainModeNow = "straight";
 
 document.getElementById("trainBtn").onclick = ()=>{
-  if(!data[currentDay].length){ alert(LL("Este día no tiene ejercicios todavía","No exercises yet")); return; }
+  if(!data[currentDay].length){ toast(LL("Este día no tiene ejercicios todavía","No exercises yet")); return; }
   trainModeNow = getDayMode(currentDay);
   trainIdx = 0; circRound = 0;
   // En circuito, las rondas = el máximo de "series" entre los ejercicios
   circRounds = Math.max(1, ...data[currentDay].map(e=>+e.sets||1));
-  document.getElementById("trainTitle").textContent = currentDay + (trainModeNow==="circuit" ? LL("  ·  ↻ Circuito","  ·  ↻ Circuit") : LL("  ·  ↓ Series seguidas","  ·  ↓ Straight sets"));
+  document.getElementById("trainTitle").textContent = dayLabel(currentDay) + (trainModeNow==="circuit" ? LL("  ·  ↻ Circuito","  ·  ↻ Circuit") : LL("  ·  ↓ Series seguidas","  ·  ↓ Straight sets"));
   renderTrain();
   trainOverlay.classList.add("show");
 };
@@ -3082,8 +3425,8 @@ function renderTrainStraight(){
   }
   trainContent.innerHTML = `
     <div>
-      <div class="train-ex-name">${LL(ex.es,ex.en||ex.es)}</div>
-      <div class="train-ex-en">${ex.en||""} · ${ex.muscle||""}</div>
+      <div class="train-ex-name">${esc(LL(ex.es,ex.en||ex.es))}</div>
+      <div class="train-ex-en">${esc(ex.en||"")} · ${esc(ex.muscle||"")}</div>
     </div>
     <div class="train-meta">
       <span>${ex.sets} ${LL("series","sets")}</span>
@@ -3102,7 +3445,10 @@ function renderTrainStraight(){
     const trestIn = row.querySelector(".trest");
     if(trestIn) trestIn.onchange = e=>{ log.rest=+e.target.value||0; save(); };
     row.querySelector(".tok").onclick = ()=>{
-      log.done = !log.done; save(); renderTrainStraight();
+      log.done = !log.done;
+      const _all = ex.sets > 0 && ex.setsDone.slice(0, ex.sets).every(x => x && x.done);
+      if(_all !== ex.done) ex.done = _all;
+      save(); renderTrainStraight();
       if(log.done){ warmAudio(); startTimer(ex.customRest ? (log.rest ?? ex.rest) : ex.rest); }
     };
   });
@@ -3124,7 +3470,7 @@ function renderTrainCircuit(){
     ex.setsDone[circRound] = log;
     rowsHtml += `
       <div class="train-set ${log.done?'done':''}" data-ei="${ei}">
-        <span class="tn" style="width:auto;flex:1;text-align:left">${LL(ex.es,ex.en||ex.es)}<br><span style="opacity:.7;font-size:.8rem">${ex.reps} reps · ${ex.weight||0} kg</span></span>
+        <span class="tn" style="width:auto;flex:1;text-align:left">${esc(LL(ex.es,ex.en||ex.es))}<br><span style="opacity:.7;font-size:.8rem">${ex.reps} reps · ${ex.weight||0} kg</span></span>
         <input type="number" class="tw" value="${log.w}" placeholder="kg" style="max-width:70px">
         <input type="number" class="tr" value="${log.r}" placeholder="reps" style="max-width:70px">
         <button class="tok"></button>
@@ -3157,7 +3503,10 @@ function renderTrainCircuit(){
     row.querySelector(".tw").onchange = e=>{ log.w=+e.target.value; save(); };
     row.querySelector(".tr").onchange = e=>{ log.r=+e.target.value; save(); };
     row.querySelector(".tok").onclick = ()=>{
-      log.done = !log.done; save(); renderTrainCircuit();
+      log.done = !log.done;
+      const _rounds = Math.max(1, +ex.sets||1);
+      ex.done = ex.setsDone.slice(0, _rounds).filter(x=>x&&x.done).length >= _rounds;
+      save(); renderTrainCircuit();
       if(log.done) startTimer(rests.between);
     };
   });
@@ -3886,16 +4235,16 @@ function renderTpl(){
         currentDay = name;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
-        alert(`"${cname}" ${LL("agregado como día nuevo","added as a new day")}`);
+        toast(LL(`➕ "${name}" agregado como día`,`➕ "${name}" added as a day`));
       };
       card.querySelector(".q-del").onclick = ()=>{
-        if(!confirm("Esto reemplaza TODOS tus días por este circuito. ¿Seguir?")) return;
         pushUndo();
         data = { [cname]: structuredClone(exs) };
         dayModes = { [cname]: modeForCategory(tplType) };
         currentDay = cname;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
+        toast(LL("Rutina reemplazada — ↶ Deshacer para volver","Routine replaced — ↶ Undo to revert"));
       };
       tplBody.appendChild(card);
     });
@@ -3917,16 +4266,16 @@ document.getElementById("sessionToggle").onclick = function(){
   warmAudio();
   if(sessionInt){
     clearInterval(sessionInt); sessionInt=null;
-    this.textContent = "▶ Reanudar";
+    this.textContent = LL("▶ Reanudar","▶ Resume");
   }else{
     sessionInt = setInterval(()=>{ sessionSec++; updateSessionClock(); }, 1000);
-    this.textContent = "⏸ Pausar";
+    this.textContent = LL("⏸ Pausar","⏸ Pause");
   }
 };
 document.getElementById("sessionReset").onclick = ()=>{
   if(sessionInt){ clearInterval(sessionInt); sessionInt=null; }
   sessionSec=0; updateSessionClock();
-  document.getElementById("sessionToggle").textContent = "▶ Iniciar sesión";
+  document.getElementById("sessionToggle").textContent = LL("▶ Iniciar sesión","▶ Start session");
 };
 updateSessionClock();
 
@@ -3938,22 +4287,22 @@ updateUndoButtons();
 
 /* ---------- Importar desde Excel ---------- */
 document.getElementById("wkExcelImport").onclick = ()=>{
-  alert("Formato esperado:\n• Fila 1 (encabezados): los DÍAS (ej: Lunes, Miérc...).\n• Cada columna debajo de un día: un ejercicio por fila.\n• Celda: nombre y opcional series×reps. Ej:\n   \"Sentadilla 4x8 @30 r90\"\n   (4 series, 8 reps, 30 kg, 90 s descanso)\n\nElegí el archivo .xlsx/.csv a continuación.");
+  toast(LL('Fila 1 = días · Celda: "Sentadilla 4x8 @30 r90"','Row 1 = days · Cell: "Squat 4x8 @30 r90"'), 4500);
   document.getElementById("wkExcelInput").click();
 };
 document.getElementById("wkExcelInput").onchange = (e)=>{
   const file = e.target.files[0];
   if(!file) return;
-  if(typeof XLSX === "undefined"){ alert("Módulo Excel no disponible (¿sin conexión?)."); return; }
+  if(typeof XLSX === "undefined"){ toast(LL("Módulo Excel no disponible","Excel module unavailable")); return; }
   const reader = new FileReader();
   reader.onload = (ev)=>{
     try{
       const wb = XLSX.read(new Uint8Array(ev.target.result), {type:"array"});
       const ws = wb.Sheets[wb.SheetNames[0]];
       const grid = XLSX.utils.sheet_to_json(ws, {header:1, blankrows:false});
-      if(!grid.length){ alert("La hoja está vacía"); return; }
+      if(!grid.length){ toast(LL("La hoja está vacía","Sheet is empty")); return; }
       const headers = grid[0].map(h => String(h||"").trim()).filter(Boolean);
-      if(!headers.length){ alert("No encontré días en la primera fila"); return; }
+      if(!headers.length){ toast(LL("No encontré días en la primera fila","No days found in row 1")); return; }
       const newData = {};
       headers.forEach(h=> newData[h] = []);
       for(let r=1; r<grid.length; r++){
@@ -3965,19 +4314,18 @@ document.getElementById("wkExcelInput").onchange = (e)=>{
       }
       // descartar días vacíos
       Object.keys(newData).forEach(k=>{ if(!newData[k].length) delete newData[k]; });
-      if(!Object.keys(newData).length){ alert("No se encontraron ejercicios"); return; }
+      if(!Object.keys(newData).length){ toast(LL("No se encontraron ejercicios","No exercises found")); return; }
       if(!confirm("¿Reemplazar tu rutina actual por la importada del Excel?")) return;
       pushUndo();
       data = newData;
       currentDay = Object.keys(data)[0];
       save(); renderDays(); renderList();
-      alert("Rutina importada desde Excel ✔");
     }catch(err){
-      alert("No se pudo leer el Excel: " + err.message);
+      toast(LL("No se pudo leer el Excel: ","Could not read Excel: ") + err.message, 4000);
     }
-    e.target.value = "";
   };
   reader.readAsArrayBuffer(file);
+  e.target.value = "";
 };
 // Interpreta una celda tipo "Sentadilla 4x8 @30 r90"
 function parseExerciseCell(text){
@@ -4148,7 +4496,7 @@ document.getElementById("ivStart").onclick = async ()=>{
   await warmAudio();
   ivConf = ivConfig();
   ivPhases = buildIvPhases(ivConf);
-  if(!ivPhases.length){ alert(LL("Configurá al menos trabajo y series.","Set at least work and sets.")); return; }
+  if(!ivPhases.length){ toast(LL("Configurá al menos trabajo y series.","Set at least work and sets.")); return; }
   ivIdx = 0; ivPaused = false;
   intervalModal.classList.remove("show");
   ivRun.classList.add("show");
@@ -4239,10 +4587,11 @@ function ivFinish(){
 document.getElementById("ivPause").onclick = function(){
   ivPaused = !ivPaused;
   if(ivPaused) _cancelPendingAudio();
-  this.textContent = ivPaused ? "▶ Reanudar" : "⏸ Pausar";
+  this.textContent = ivPaused ? LL("▶ Reanudar","▶ Resume") : LL("⏸ Pausar","⏸ Pause");
 };
 document.getElementById("ivStop").onclick = ()=>{
   clearInterval(ivInt);
+  _cancelPendingAudio();
   ivRun.classList.remove("show");
 };
 
@@ -4252,11 +4601,11 @@ let lang = "es";
 // Diccionario de textos de interfaz por id de elemento
 const I18N = {
   es:{
-    trainBtn:"🏋️ Modo entrenar", motivBtn:"🔥 Frases motivacionales",
+    trainBtn:"🏋️ Entrenar", motivBtn:"🔥 Frases motivacionales",
     browseLib:"📚 Biblioteca de ejercicios", addEx:"＋ Añadir ejercicio en blanco",
     tplBtn:"🗂️ Plantillas", propagateBtn:"⚙️ Propagar config", intervalBtn:"⏲️ Intervalos",
-    modeStraight:"↓ Series seguidas", modeCircuit:"↻ Circuito ⏱",
-    wkLoad:"📂 Cargar", wkSave:"💾 Guardar", wkExport:"📊 Excel",
+    modeStraight:"↓ Series", modeCircuit:"↻ Circuito",
+    wkSave:"💾 Guardar", wkExport:"📊 Excel",
     wkExcelImport:"📗 Desde Excel", wkShare:"📤 Compartir", wkImport:"📥 Importar",
     sessionToggle:"▶ Iniciar sesión", undoBtn:"↶ Deshacer", redoBtn:"↷ Rehacer",
     bgPick:"🖼 Elegir imagen de fondo", bgClear:"✕ Sin imagen",
@@ -4273,11 +4622,11 @@ const I18N = {
     headerEn:"Be Unstoppable, Rise Now",
   },
   en:{
-    trainBtn:"🏋️ Train mode", motivBtn:"🔥 Motivation",
+    trainBtn:"🏋️ Train", motivBtn:"🔥 Motivation",
     browseLib:"📚 Exercise library", addEx:"＋ Add blank exercise",
     tplBtn:"🗂️ Templates", propagateBtn:"⚙️ Apply to all", intervalBtn:"⏲️ Interval timer",
-    modeStraight:"↓ Straight sets", modeCircuit:"↻ Circuit ⏱",
-    wkLoad:"📂 Load", wkSave:"💾 Save", wkExport:"📊 Excel",
+    modeStraight:"↓ Straight", modeCircuit:"↻ Circuit",
+    wkSave:"💾 Save", wkExport:"📊 Excel",
     wkExcelImport:"📗 From Excel", wkShare:"📤 Share", wkImport:"📥 Import",
     sessionToggle:"▶ Start session", undoBtn:"↶ Undo", redoBtn:"↷ Redo",
     bgPick:"🖼 Choose background", bgClear:"✕ No image",
@@ -4327,6 +4676,8 @@ function applyLang(l){
   Object.keys(map).forEach(id=>{ const el=document.getElementById(id); if(el&&map[id]) el.textContent=map[id]; });
   const srch = document.getElementById("libSearchInput");
   if(srch) srch.setAttribute("placeholder", dict.libSearchPh);
+  const nameInp = document.getElementById("userNameInput");
+  if(nameInp) nameInp.setAttribute("placeholder", lang==="en" ? "Your name…" : "Tu nombre…");
   // Dedicatoria: traducir el placeholder y, si está sin tocar, el texto visible
   const ded = document.getElementById("dedication");
   if(ded){
@@ -4345,7 +4696,7 @@ document.getElementById("langToggle").onclick = ()=> applyLang(lang==="es" ? "en
 updateVoiceBtn();
 try{
   const savedLang = localStorage.getItem(LANG_KEY);
-  if(savedLang){ lang = savedLang; applyLang(lang); }
+  if(savedLang){ lang = (savedLang==="en") ? "en" : "es"; } // applyLang(lang) se llama al final del init
 }catch(e){}
 
 /* ---------- Modo oscuro ---------- */
@@ -4371,6 +4722,7 @@ renderWorkoutList();
 renderDays();
 renderList();
 initUserInfoBar();
+restoreHeaderQuote();
 // ---- Instalar app (PWA) ----
 let deferredInstallPrompt = null;
 const installBtn = document.getElementById("installBtn");
@@ -4394,7 +4746,38 @@ if(installBtn){
 }
 window.addEventListener("appinstalled", ()=>{ if(installBtn) installBtn.style.display = "none"; });
 
+
+/* ──────────── App Mode (Pocket / God) ──────────── */
+const APP_MODE_KEY = "BURN.appMode";
+let appMode = "pocket";
+try{ const _m = localStorage.getItem(APP_MODE_KEY); if(_m==="god"||_m==="pocket") appMode=_m; }catch(e){}
+
+function setAppMode(m){
+  appMode = (m==="god") ? "god" : "pocket";
+  document.body.classList.toggle("pocket-mode", appMode==="pocket");
+  document.body.classList.toggle("god-mode",    appMode==="god");
+  const pb = document.getElementById("pocketModeBtn");
+  const gb = document.getElementById("godModeBtn");
+  if(pb){ pb.classList.toggle("active", appMode==="pocket"); }
+  if(gb){ gb.classList.toggle("active", appMode==="god"); }
+  try{ localStorage.setItem(APP_MODE_KEY, appMode); }catch(e){}
+}
+document.getElementById("pocketModeBtn").onclick = ()=> setAppMode("pocket");
+document.getElementById("godModeBtn").onclick    = ()=> setAppMode("god");
+setAppMode(appMode);
+
 applyLang(lang);
 </script>
+<!-- Export scope modal -->
+<div class="export-scope-overlay" id="exportScopeOverlay">
+  <div class="export-scope-dialog">
+    <h3 id="exportScopeTitle">📊</h3>
+    <div class="export-scope-btns">
+      <button class="scope-btn scope-btn-all"    id="exportScopeAll"></button>
+      <button class="scope-btn scope-btn-sel"    id="exportScopeSel"></button>
+      <button class="scope-btn scope-btn-cancel" id="exportScopeCancel"></button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
