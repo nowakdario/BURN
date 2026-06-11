@@ -782,7 +782,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .scope-btn-sel{background:#7e4fc0;color:#fff;}
   .scope-btn-cancel{background:rgba(0,0,0,0.09);color:var(--ink);}
 
-  #voiceToggleBtn{
+  #voiceToggleBtn,#wakeBtn,#bgAudioBtn{
     border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);
     color:var(--cream);width:38px;height:38px;border-radius:10px;cursor:pointer;
     font-size:1.1rem;display:grid;place-items:center;transition:transform .15s;
@@ -810,7 +810,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     header.app h1{ gap:6px;font-size:clamp(1.2rem,5vw,1.8rem); }
     header.app .en{ font-size:.55em; }
     .header-btns{ gap:5px; }
-    .theme-toggle,.lang-toggle,#voiceToggleBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
+    .theme-toggle,.lang-toggle,#voiceToggleBtn,#wakeBtn,#bgAudioBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
   }
 
   /* ── Credit email ── */
@@ -948,6 +948,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </h1>
     <div class="header-btns-right">
       <button id="voiceToggleBtn" onclick="toggleVoice()" title="Voz · Voice">🔊</button>
+      <button id="wakeBtn" title="Pantalla siempre encendida · Keep screen awake">🔆</button>
+      <button id="bgAudioBtn" title="Audio en segundo plano · Background audio">📻</button>
     </div>
   </div>
     <div class="user-info-bar">
@@ -1089,7 +1091,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="train-content" id="trainContent"></div>
   <div class="train-nav">
     <button id="trainPrev">◀ Anterior</button>
-    <span id="trainProgress"></span>
+    <span style="display:inline-flex;align-items:center;gap:8px"><canvas id="trainPie" width="72" height="72" style="width:44px;height:44px"></canvas><span id="trainProgress"></span></span>
     <button id="trainNext">Siguiente ▶</button>
   </div>
 </div>
@@ -1145,6 +1147,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="iv-phase" id="ivPhase">Preparación</div>
   <div class="iv-exercise" id="ivExercise"></div>
   <div class="iv-clock" id="ivClock">00:10</div>
+  <div style="display:flex;align-items:center;justify-content:center;margin:2px 0 4px"><canvas id="ivPie" width="72" height="72" style="width:52px;height:52px"></canvas></div>
   <div class="iv-info" id="ivInfo">Serie 1 / 8</div>
   <div class="iv-next" id="ivNext"></div>
   <div class="iv-controls">
@@ -1311,6 +1314,9 @@ const LIBRARY = {
     {es:"Elevación lateral en polea baja", en:"Low cable lateral raise", muscle:"Hombros"},
     {es:"Elevación lateral en polea alta", en:"High cable lateral raise", muscle:"Hombros"},
     {es:"Vuelo invertido en polea", en:"Cable reverse fly", muscle:"Hombros"},
+    {es:"Crunch en polea de pie", en:"Standing cable crunch", muscle:"Core"},
+    {es:"Pallof press arrodillado", en:"Kneeling Pallof press", muscle:"Core"},
+    {es:"Face pull arrodillado", en:"Kneeling face pull", muscle:"Hombros"},
   ],
   "Barra · Barbell": [
     {es:"Sentadilla con barra", en:"Barbell back squat", muscle:"Piernas"},
@@ -1339,6 +1345,10 @@ const LIBRARY = {
     {es:"Arranque", en:"Snatch", muscle:"Cuerpo completo"},
     {es:"Elevación de gemelos con barra", en:"Barbell calf raise", muscle:"Gemelos"},
     {es:"Press banca agarre cerrado", en:"Close-grip bench press", muscle:"Tríceps"},
+    {es:"Press militar sentado", en:"Seated overhead press", muscle:"Hombros"},
+    {es:"Press francés sentado", en:"Seated French press", muscle:"Tríceps"},
+    {es:"Press francés parado", en:"Standing French press", muscle:"Tríceps"},
+    {es:"Elevación de gemelos sentado con barra", en:"Seated barbell calf raise", muscle:"Gemelos"},
   ],
   "Mancuernas · Dumbbell": [
     {es:"Press de pecho con mancuernas", en:"Dumbbell bench press", muscle:"Pecho"},
@@ -1376,6 +1386,20 @@ const LIBRARY = {
     {es:"Vuelo lateral tumbado", en:"Side-lying lateral raise", muscle:"Hombros"},
     {es:"Elevaciones posteriores sentado", en:"Seated rear delt raise", muscle:"Hombros"},
     {es:"Vuelo posterior de pie", en:"Standing rear delt fly", muscle:"Hombros"},
+    {es:"Vuelos laterales parado", en:"Standing lateral raise", muscle:"Hombros"},
+    {es:"Vuelos frontales parado", en:"Standing front raise", muscle:"Hombros"},
+    {es:"Vuelos frontales sentado", en:"Seated front raise", muscle:"Hombros"},
+    {es:"Press de hombros parado", en:"Standing dumbbell shoulder press", muscle:"Hombros"},
+    {es:"Press de hombros sentado", en:"Seated dumbbell shoulder press", muscle:"Hombros"},
+    {es:"Press Arnold sentado", en:"Seated Arnold press", muscle:"Hombros"},
+    {es:"Curl de bíceps parado", en:"Standing dumbbell curl", muscle:"Bíceps"},
+    {es:"Curl de bíceps sentado", en:"Seated dumbbell curl", muscle:"Bíceps"},
+    {es:"Curl inclinado en banco", en:"Incline dumbbell curl", muscle:"Bíceps"},
+    {es:"Extensión de tríceps sentado", en:"Seated overhead triceps extension", muscle:"Tríceps"},
+    {es:"Extensión de tríceps acostado", en:"Lying dumbbell triceps extension", muscle:"Tríceps"},
+    {es:"Press de pecho en el piso", en:"Dumbbell floor press", muscle:"Pecho"},
+    {es:"Aperturas en el piso", en:"Floor dumbbell fly", muscle:"Pecho"},
+    {es:"Elevación de gemelos sentado con mancuerna", en:"Seated dumbbell calf raise", muscle:"Gemelos"},
   ],
   "Bandas · Bands": [
     {es:"Sentadilla con banda", en:"Banded squat", muscle:"Piernas"},
@@ -1400,6 +1424,9 @@ const LIBRARY = {
     {es:"Rotación externa de hombro", en:"Band external rotation", muscle:"Manguito rotador"},
     {es:"Extensión de cadera de pie", en:"Standing hip extension", muscle:"Glúteos"},
     {es:"Monster walk", en:"Monster walk", muscle:"Glúteos"},
+    {es:"Elevación lateral con banda sentado", en:"Seated banded lateral raise", muscle:"Hombros"},
+    {es:"Press de hombros con banda sentado", en:"Seated banded shoulder press", muscle:"Hombros"},
+    {es:"Curl con banda sentado", en:"Seated banded curl", muscle:"Bíceps"},
   ],
   "Peso corporal · Bodyweight": [
     {es:"Flexiones", en:"Push-ups", muscle:"Pecho"},
@@ -1625,7 +1652,7 @@ try{
 // Circuit por defecto si el nombre sugiere cardio/intervalo/hiit/tabata/circuito; si no, straight
 function defaultModeFor(dayName){
   const n = (dayName||"").toLowerCase();
-  if(/(circuit|circuito|tabata|hiit|amrap|emom|cardio|interval|sprint|fartlek|tempo|carrera|trote|metaból|chipper)/.test(n)) return "circuit";
+  if(/(circuit|circuito|tabata|hiit|amrap|emom|cardio|interval|sprint|fartlek|tempo|carrera|trote|metaból|chipper|bici|bike|spinning|×|pirámide|piramide|cuesta|vo2|funcional|metcon|continu)/.test(n)) return "circuit";
   return "straight";
 }
 function getDayMode(dayName){
@@ -2116,9 +2143,33 @@ function drawWorkoutPie(done, total){
   if(pctEl) pctEl.style.display = "none"; // text is drawn on canvas
 }
 
+/* Anillo de progreso genérico (overlays oscuros) */
+function drawRingPie(canvas, pct){
+  if(!canvas) return;
+  const c = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height, cx = W/2, cy = H/2;
+  const r = Math.min(W,H)/2 - 6, lw = 10;
+  c.clearRect(0,0,W,H);
+  c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2);
+  c.strokeStyle = "rgba(255,255,255,0.25)"; c.lineWidth = lw; c.stroke();
+  if(pct > 0){
+    c.beginPath(); c.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.min(pct,1)*Math.PI*2);
+    c.strokeStyle = pct >= 1 ? "#4ade80" : "#fff";
+    c.lineWidth = lw; c.lineCap = "round"; c.stroke();
+  }
+  c.fillStyle = "#fff"; c.font = "bold 16px sans-serif";
+  c.textAlign = "center"; c.textBaseline = "middle";
+  c.fillText(Math.round(Math.min(pct,1)*100)+"%", cx, cy);
+}
+function updateTrainPie(){
+  const list = data[currentDay] || [];
+  const done = list.filter(e=>e.done).length;
+  drawRingPie(document.getElementById("trainPie"), list.length ? done/list.length : 0);
+}
+
 function modeForCategory(cat){
   const c = (cat||"").toLowerCase();
-  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance)/.test(c)) return "circuit";
+  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike)/.test(c)) return "circuit";
   return "straight";
 }
 
@@ -2669,6 +2720,7 @@ let _endVoiceSched = false;
 function startTimer(seconds){
   cancelPendingBeeps();
   if(!seconds || seconds<=0) return; // sin descanso configurado: no mostrar timer
+  if(typeof startBgAudio === "function") startBgAudio();
   _endVoiceSched = false;
   timeLeft = seconds;
   timerEl.classList.add("show");
@@ -3456,6 +3508,7 @@ function renderTrainStraight(){
     const first = ex.setsDone[0];
     startTimer(ex.customRest && first ? (first.rest ?? ex.rest) : ex.rest);
   };
+  updateTrainPie();
 }
 
 /* ---- Modo CIRCUITO (circuit): una serie de cada ejercicio por ronda ---- */
@@ -3516,6 +3569,7 @@ function renderTrainCircuit(){
     startTimer(rests.round);
     if(circRound < circRounds-1){ circRound++; setTimeout(renderTrainCircuit, 300); }
   };
+  updateTrainPie();
 }
 
 /* ============================================================
@@ -3877,89 +3931,64 @@ const TEMPLATES = {
   ],
   "Intervalos · Intervals": [
     {
-      "Ritmo 5k":[E("Sprint 100m","Sprint 100m","Carrera",6,18,0,90),E("Sprint en subida","Hill sprint","Carrera",6,20,0,90),E("Saltos de cuerda","Jump rope","Cardio",6,60,0,45),E("Carrera ritmo 10k","10k pace run","Carrera",6,300,0,60)],
-      "Ritmo 10k":[E("Sprint 200m","Sprint 200m","Carrera",6,35,0,120),E("Carrera tempo","Tempo run","Carrera",6,180,0,60),E("Sprint 50m","Sprint 50m","Carrera",6,15,0,75)],
-      "Cuestas":[E("Zancadas de carrera","Running strides","Carrera",6,20,0,60),E("Rodillas altas","High knees","Cardio",6,30,0,40),E("Sprint en subida","Hill sprint","Carrera",6,20,0,90)],
-      "Velocidad pura":[E("Sprint 100m","Sprint 100m","Carrera",6,18,0,90),E("Rodillas altas","High knees","Cardio",6,30,0,40),E("Sprint en bajada","Downhill stride","Carrera",6,20,0,90),E("Trote de recuperación","Recovery jog","Carrera",6,90,0,0)],
-      "Pirámide de sprint":[E("Trote de recuperación","Recovery jog","Carrera",6,90,0,0),E("Saltos de cuerda","Jump rope","Cardio",6,60,0,45),E("Sprint en subida","Hill sprint","Carrera",6,20,0,90)],
-      "Fartlek":[E("Saltos al cajón","Box jumps","Piernas",6,20,0,60),E("Saltos de cuerda","Jump rope","Cardio",6,60,0,45),E("Sprint","Sprint","Carrera",6,15,0,75),E("Sprint 400m","Sprint 400m","Carrera",6,80,0,180)],
-      "Intervalos 400m":[E("Saltos al cajón","Box jumps","Piernas",6,20,0,60),E("Sprint en subida","Hill sprint","Carrera",6,20,0,90),E("Salto largo","Broad jumps","Piernas",6,20,0,60),E("Sprint","Sprint","Carrera",6,15,0,75)],
-      "Tempo intervalos":[E("Salto largo","Broad jumps","Piernas",6,20,0,60),E("Zancadas de carrera","Running strides","Carrera",6,20,0,60)],
-      "Sprints cortos":[E("Sprint 50m","Sprint 50m","Carrera",6,15,0,75),E("Sprint en bajada","Downhill stride","Carrera",6,20,0,90)],
-      "Repeticiones de carrera":[E("Saltos de cuerda","Jump rope","Cardio",6,60,0,45),E("Sprint en bajada","Downhill stride","Carrera",6,20,0,90)],
-      "Sprints largos":[E("Sprint 400m","Sprint 400m","Carrera",6,80,0,180),E("Saltos al cajón","Box jumps","Piernas",6,20,0,60),E("Sprint en bajada","Downhill stride","Carrera",6,20,0,90),E("Sentadilla con salto","Jump squat","Piernas",6,20,0,60)],
-      "Sprint escalera":[E("Talones al glúteo","Butt kicks","Cardio",6,30,0,40),E("Sprint","Sprint","Carrera",6,15,0,75),E("Rodillas altas","High knees","Cardio",6,30,0,40)],
-      "Series mixtas":[E("Sentadilla con salto","Jump squat","Piernas",6,20,0,60),E("Carrera ritmo 5k","5k pace run","Carrera",6,240,0,60),E("Salto largo","Broad jumps","Piernas",6,20,0,60)],
-      "Intervalos 200m":[E("Rodillas altas","High knees","Cardio",6,30,0,40),E("Sprint en bajada","Downhill stride","Carrera",6,20,0,90),E("Saltos de cuerda","Jump rope","Cardio",6,60,0,45)],
-      "Sprint+core":[E("Sprint 50m","Sprint 50m","Carrera",6,15,0,75),E("Sprint 100m","Sprint 100m","Carrera",6,18,0,90),E("Sprint","Sprint","Carrera",6,15,0,75),E("Trote de recuperación","Recovery jog","Carrera",6,90,0,0)]
+      "Caminata-trote (60×60) × 8":[E("Trote suave","Easy jog","Carrera",8,60,0,60)],
+      "Fartlek suave (30×90) × 6":[E("Aceleración suave","Easy surge","Carrera",6,30,0,90)],
+      "Zancadas técnicas (20×60) × 6":[E("Zancadas de carrera","Running strides","Carrera",6,20,0,60)],
+      "(45×75) × 6 · ritmo cómodo":[E("Carrera ritmo cómodo","Comfortable pace run","Carrera",6,45,0,75)],
+      "Técnica (30×30) × 6 · rodillas + talones":[E("Rodillas altas","High knees","Cardio",6,30,0,30),E("Talones al glúteo","Butt kicks","Cardio",6,30,0,30)],
+      "Trote continuo 15 min":[E("Trote continuo","Steady jog","Carrera",1,15,0,0)],
+      "Trote continuo 20 min":[E("Trote continuo","Steady jog","Carrera",1,20,0,0)],
+      "Pirámide (100-200-100) × 2":[E("Repetición 100","100m rep","Carrera",2,20,0,60),E("Repetición 200","200m rep","Carrera",2,45,0,90),E("Repetición 100","100m rep","Carrera",2,20,0,60)],
+      "Cuesta suave (15×75) × 6":[E("Sprint en subida","Hill sprint","Carrera",6,15,0,75)],
+      "Progresivos (30×60) × 8":[E("Progresivo","Progression stride","Carrera",8,30,0,60)]
     },
     {
-      "Tempo intervalos 2":[E("Sentadilla con salto","Jump squat","Piernas",8,20,0,50),E("Sprint en bajada","Downhill stride","Carrera",8,20,0,75),E("Carrera ritmo 5k","5k pace run","Carrera",8,240,0,60),E("Rodillas altas","High knees","Cardio",8,30,0,35)],
-      "Ritmo 5k 2":[E("Skipping","Skipping","Cardio",8,30,0,35),E("Sprint","Sprint","Carrera",8,15,0,75)],
-      "Sprints cortos 2":[E("Sprint 100m","Sprint 100m","Carrera",8,18,0,90),E("Sentadilla con salto","Jump squat","Piernas",8,20,0,50),E("Saltos al cajón","Box jumps","Piernas",8,20,0,50),E("Rodillas altas","High knees","Cardio",8,30,0,35)],
-      "Fartlek 2":[E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0),E("Talones al glúteo","Butt kicks","Cardio",8,30,0,35),E("Sprint en subida","Hill sprint","Carrera",8,20,0,90)],
-      "Intervalos 200m 2":[E("Saltos al cajón","Box jumps","Piernas",8,20,0,50),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0),E("Rodillas altas","High knees","Cardio",8,30,0,35)],
-      "Sprints largos 2":[E("Sprint en bajada","Downhill stride","Carrera",8,20,0,75),E("Carrera tempo","Tempo run","Carrera",8,180,0,60),E("Sprint en subida","Hill sprint","Carrera",8,20,0,90)],
-      "Repeticiones de carrera 2":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,50),E("Rodillas altas","High knees","Cardio",8,30,0,35),E("Carrera ritmo 10k","10k pace run","Carrera",8,300,0,45),E("Saltos al cajón","Box jumps","Piernas",8,20,0,50)],
-      "Series mixtas 2":[E("Sprint en bajada","Downhill stride","Carrera",8,20,0,75),E("Talones al glúteo","Butt kicks","Cardio",8,30,0,35),E("Sprint 100m","Sprint 100m","Carrera",8,18,0,90)],
-      "Intervalos 400m 2":[E("Sprint en bajada","Downhill stride","Carrera",8,20,0,75),E("Salto largo","Broad jumps","Piernas",8,20,0,50),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0)],
-      "Sprint+core 2":[E("Saltos de cuerda","Jump rope","Cardio",8,60,0,40),E("Carrera ritmo 10k","10k pace run","Carrera",8,300,0,45)],
-      "Pirámide de sprint 2":[E("Rodillas altas","High knees","Cardio",8,30,0,35),E("Skipping","Skipping","Cardio",8,30,0,35),E("Talones al glúteo","Butt kicks","Cardio",8,30,0,35)],
-      "Ritmo 10k 2":[E("Skipping","Skipping","Cardio",8,30,0,35),E("Carrera ritmo 5k","5k pace run","Carrera",8,240,0,60),E("Sentadilla con salto","Jump squat","Piernas",8,20,0,50),E("Saltos de cuerda","Jump rope","Cardio",8,60,0,40)],
-      "Cuestas 2":[E("Skipping","Skipping","Cardio",8,30,0,35),E("Salto largo","Broad jumps","Piernas",8,20,0,50),E("Saltos de cuerda","Jump rope","Cardio",8,60,0,40)],
-      "Sprint escalera 2":[E("Saltos de cuerda","Jump rope","Cardio",8,60,0,40),E("Sprint en subida","Hill sprint","Carrera",8,20,0,90),E("Carrera tempo","Tempo run","Carrera",8,180,0,60)],
-      "Velocidad pura 2":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,50),E("Cuestas","Hill repeats","Carrera",8,45,0,110)]
+      "200m (40×80) × 6":[E("Sprint 200m","Sprint 200m","Carrera",6,40,0,80)],
+      "100m (20×70) × 8":[E("Sprint 100m","Sprint 100m","Carrera",8,20,0,70)],
+      "Fartlek (60×120) × 6":[E("Aceleración","Surge","Carrera",6,60,0,120)],
+      "Cuestas (20×90) × 6":[E("Sprint en subida","Hill sprint","Carrera",6,20,0,90)],
+      "Tempo (300×120) × 2":[E("Carrera tempo","Tempo run","Carrera",2,300,0,120)],
+      "Ritmo 10k (300×90) × 3":[E("Carrera ritmo 10k","10k pace run","Carrera",3,300,0,90)],
+      "Progresivos (30×60) × 8":[E("Progresivo","Progression stride","Carrera",8,30,0,60)],
+      "Sprints (15×45) × 10":[E("Sprint","Sprint","Carrera",10,15,0,45)],
+      "Trote continuo 25 min":[E("Trote continuo","Steady jog","Carrera",1,25,0,0)],
+      "Pirámide (100-200-400-200-100) × 2":[E("Repetición 100","100m rep","Carrera",2,20,0,60),E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 100","100m rep","Carrera",2,20,0,60)]
     },
     {
-      "Cuestas 3":[E("Saltos de cuerda","Jump rope","Cardio",8,60,0,35),E("Cuestas","Hill repeats","Carrera",8,45,0,100),E("Rodillas altas","High knees","Cardio",8,30,0,30)],
-      "Tempo intervalos 3":[E("Sprint en subida","Hill sprint","Carrera",8,20,0,75),E("Saltos al cajón","Box jumps","Piernas",8,20,0,45),E("Sprint","Sprint","Carrera",8,15,0,60)],
-      "Intervalos 400m 3":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,45),E("Cuestas","Hill repeats","Carrera",8,45,0,100),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0)],
-      "Sprints cortos 3":[E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0),E("Sprint en subida","Hill sprint","Carrera",8,20,0,75),E("Saltos al cajón","Box jumps","Piernas",8,20,0,45)],
-      "Pirámide de sprint 3":[E("Sprint en subida","Hill sprint","Carrera",8,20,0,75),E("Carrera ritmo 10k","10k pace run","Carrera",8,300,0,45),E("Sprint 200m","Sprint 200m","Carrera",8,35,0,100),E("Sprint 400m","Sprint 400m","Carrera",8,80,0,150)],
-      "Ritmo 5k 3":[E("Sentadilla con salto","Jump squat","Piernas",8,20,0,45),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0)],
-      "Sprint+core 3":[E("Talones al glúteo","Butt kicks","Cardio",8,30,0,30),E("Skipping","Skipping","Cardio",8,30,0,30),E("Carrera ritmo 5k","5k pace run","Carrera",8,240,0,45),E("Zancadas de carrera","Running strides","Carrera",8,20,0,45)],
-      "Series mixtas 3":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,45),E("Saltos al cajón","Box jumps","Piernas",8,20,0,45)],
-      "Repeticiones de carrera 3":[E("Skipping","Skipping","Cardio",8,30,0,30),E("Sprint 200m","Sprint 200m","Carrera",8,35,0,100),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0)],
-      "Sprint escalera 3":[E("Cuestas","Hill repeats","Carrera",8,45,0,100),E("Salto largo","Broad jumps","Piernas",8,20,0,45),E("Carrera ritmo 5k","5k pace run","Carrera",8,240,0,45)],
-      "Ritmo 10k 3":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,45),E("Cuestas","Hill repeats","Carrera",8,45,0,100)],
-      "Intervalos 200m 3":[E("Zancadas de carrera","Running strides","Carrera",8,20,0,45),E("Saltos al cajón","Box jumps","Piernas",8,20,0,45)],
-      "Velocidad pura 3":[E("Carrera ritmo 5k","5k pace run","Carrera",8,240,0,45),E("Trote de recuperación","Recovery jog","Carrera",8,90,0,0)],
-      "Fartlek 3":[E("Skipping","Skipping","Cardio",8,30,0,30),E("Sprint en subida","Hill sprint","Carrera",8,20,0,75),E("Cuestas","Hill repeats","Carrera",8,45,0,100)],
-      "Sprints largos 3":[E("Sprint 100m","Sprint 100m","Carrera",8,18,0,75),E("Sprint en bajada","Downhill stride","Carrera",8,20,0,75)]
+      "400m (90×120) × 6":[E("Sprint 400m","Sprint 400m","Carrera",6,90,0,120)],
+      "200m (40×60) × 8":[E("Sprint 200m","Sprint 200m","Carrera",8,40,0,60)],
+      "100m (18×60) × 10":[E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60)],
+      "Cuestas (30×90) × 8":[E("Sprint en subida","Hill sprint","Carrera",8,30,0,90)],
+      "Tempo (600×120) × 2":[E("Carrera tempo","Tempo run","Carrera",2,600,0,120)],
+      "Fartlek (60×60) × 10":[E("Aceleración","Surge","Carrera",10,60,0,60)],
+      "Ritmo 5k (240×90) × 3":[E("Carrera ritmo 5k","5k pace run","Carrera",3,240,0,90)],
+      "Sprints (15×45) × 12":[E("Sprint","Sprint","Carrera",12,15,0,45)],
+      "Trote continuo 40 min":[E("Trote continuo","Steady jog","Carrera",1,40,0,0)],
+      "Pirámide (200-400-600-400-200) × 2":[E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 600","600m rep","Carrera",2,135,0,150),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 200","200m rep","Carrera",2,40,0,90)]
     },
     {
-      "Sprints largos 4":[E("Saltos al cajón","Box jumps","Piernas",10,20,0,40),E("Sentadilla con salto","Jump squat","Piernas",10,20,0,40),E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60)],
-      "Intervalos 200m 4":[E("Rodillas altas","High knees","Cardio",10,30,0,25),E("Sprint en bajada","Downhill stride","Carrera",10,20,0,60),E("Sprint 50m","Sprint 50m","Carrera",10,15,0,60)],
-      "Repeticiones de carrera 4":[E("Cuestas","Hill repeats","Carrera",10,45,0,90),E("Rodillas altas","High knees","Cardio",10,30,0,25),E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60),E("Sprint en subida","Hill sprint","Carrera",10,20,0,75)],
-      "Fartlek 4":[E("Carrera ritmo 10k","10k pace run","Carrera",10,300,0,30),E("Sprint 50m","Sprint 50m","Carrera",10,15,0,60),E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60)],
-      "Series mixtas 4":[E("Sprint en subida","Hill sprint","Carrera",10,20,0,75),E("Sprint 200m","Sprint 200m","Carrera",10,35,0,90)],
-      "Tempo intervalos 4":[E("Sprint","Sprint","Carrera",10,15,0,60),E("Trote de recuperación","Recovery jog","Carrera",10,90,0,0)],
-      "Ritmo 10k 4":[E("Sprint 200m","Sprint 200m","Carrera",10,35,0,90),E("Talones al glúteo","Butt kicks","Cardio",10,30,0,25),E("Sprint en subida","Hill sprint","Carrera",10,20,0,75)],
-      "Sprint+core 4":[E("Sprint en subida","Hill sprint","Carrera",10,20,0,75),E("Sprint en bajada","Downhill stride","Carrera",10,20,0,60)],
-      "Velocidad pura 4":[E("Sprint en bajada","Downhill stride","Carrera",10,20,0,60),E("Zancadas de carrera","Running strides","Carrera",10,20,0,40),E("Sprint 200m","Sprint 200m","Carrera",10,35,0,90)],
-      "Intervalos 400m 4":[E("Trote de recuperación","Recovery jog","Carrera",10,90,0,0),E("Cuestas","Hill repeats","Carrera",10,45,0,90),E("Rodillas altas","High knees","Cardio",10,30,0,25),E("Carrera ritmo 5k","5k pace run","Carrera",10,240,0,45)],
-      "Ritmo 5k 4":[E("Carrera tempo","Tempo run","Carrera",10,180,0,45),E("Skipping","Skipping","Cardio",10,30,0,25),E("Sprint","Sprint","Carrera",10,15,0,60),E("Sprint en subida","Hill sprint","Carrera",10,20,0,75)],
-      "Cuestas 4":[E("Sprint en subida","Hill sprint","Carrera",10,20,0,75),E("Sprint 400m","Sprint 400m","Carrera",10,80,0,150),E("Zancadas de carrera","Running strides","Carrera",10,20,0,40)],
-      "Sprint escalera 4":[E("Talones al glúteo","Butt kicks","Cardio",10,30,0,25),E("Saltos de cuerda","Jump rope","Cardio",10,60,0,30)],
-      "Sprints cortos 4":[E("Talones al glúteo","Butt kicks","Cardio",10,30,0,25),E("Saltos al cajón","Box jumps","Piernas",10,20,0,40)],
-      "Pirámide de sprint 4":[E("Talones al glúteo","Butt kicks","Cardio",10,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",10,20,0,40)]
+      "400m (85×90) × 8":[E("Sprint 400m","Sprint 400m","Carrera",8,85,0,90)],
+      "800m (180×120) × 4":[E("Repetición 800m","800m rep","Carrera",4,180,0,120)],
+      "200m (35×45) × 10":[E("Sprint 200m","Sprint 200m","Carrera",10,35,0,45)],
+      "Cuestas (45×90) × 8":[E("Cuestas","Hill repeats","Carrera",8,45,0,90)],
+      "Tempo (900×180) × 2":[E("Carrera tempo","Tempo run","Carrera",2,900,0,180)],
+      "VO2 (120×90) × 5":[E("Intervalo VO2 máx","VO2 max interval","Carrera",5,120,0,90)],
+      "Fartlek (90×60) × 8":[E("Aceleración fuerte","Hard surge","Carrera",8,90,0,60)],
+      "Sprints máximos (12×60) × 12":[E("Sprint máximo","All-out sprint","Carrera",12,12,0,60)],
+      "Continuo 50 min · ritmo medio":[E("Carrera ritmo medio","Moderate pace run","Carrera",1,50,0,0)],
+      "Pirámide (400-800-1200-800-400) × 2":[E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 800","800m rep","Carrera",2,180,0,150),E("Repetición 1200","1200m rep","Carrera",2,280,0,180),E("Repetición 800","800m rep","Carrera",2,180,0,150),E("Repetición 400","400m rep","Carrera",2,85,0,120)]
     },
     {
-      "Tempo intervalos 5":[E("Sprint en subida","Hill sprint","Carrera",10,20,0,60),E("Sprint","Sprint","Carrera",10,15,0,45),E("Saltos de cuerda","Jump rope","Cardio",10,60,0,30),E("Saltos al cajón","Box jumps","Piernas",10,20,0,40)],
-      "Sprint escalera 5":[E("Zancadas de carrera","Running strides","Carrera",10,20,0,40),E("Rodillas altas","High knees","Cardio",10,30,0,20)],
-      "Pirámide de sprint 5":[E("Salto largo","Broad jumps","Piernas",10,20,0,40),E("Cuestas","Hill repeats","Carrera",10,45,0,90),E("Rodillas altas","High knees","Cardio",10,30,0,20)],
-      "Sprints largos 5":[E("Skipping","Skipping","Cardio",10,30,0,20),E("Salto largo","Broad jumps","Piernas",10,20,0,40),E("Sprint en subida","Hill sprint","Carrera",10,20,0,60)],
-      "Intervalos 400m 5":[E("Cuestas","Hill repeats","Carrera",10,45,0,90),E("Sprint en bajada","Downhill stride","Carrera",10,20,0,60),E("Carrera ritmo 5k","5k pace run","Carrera",10,240,0,30)],
-      "Ritmo 10k 5":[E("Sentadilla con salto","Jump squat","Piernas",10,20,0,40),E("Sprint","Sprint","Carrera",10,15,0,45),E("Trote de recuperación","Recovery jog","Carrera",10,90,0,0)],
-      "Ritmo 5k 5":[E("Saltos al cajón","Box jumps","Piernas",10,20,0,40),E("Carrera ritmo 5k","5k pace run","Carrera",10,240,0,30),E("Trote de recuperación","Recovery jog","Carrera",10,90,0,0)],
-      "Cuestas 5":[E("Salto largo","Broad jumps","Piernas",10,20,0,40),E("Saltos al cajón","Box jumps","Piernas",10,20,0,40),E("Skipping","Skipping","Cardio",10,30,0,20)],
-      "Sprint+core 5":[E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60),E("Skipping","Skipping","Cardio",10,30,0,20),E("Sprint 50m","Sprint 50m","Carrera",10,15,0,45)],
-      "Fartlek 5":[E("Rodillas altas","High knees","Cardio",10,30,0,20),E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60),E("Sentadilla con salto","Jump squat","Piernas",10,20,0,40)],
-      "Intervalos 200m 5":[E("Salto largo","Broad jumps","Piernas",10,20,0,40),E("Saltos de cuerda","Jump rope","Cardio",10,60,0,30),E("Rodillas altas","High knees","Cardio",10,30,0,20)],
-      "Series mixtas 5":[E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60),E("Salto largo","Broad jumps","Piernas",10,20,0,40)],
-      "Repeticiones de carrera 5":[E("Sprint 200m","Sprint 200m","Carrera",10,35,0,90),E("Cuestas","Hill repeats","Carrera",10,45,0,90),E("Carrera ritmo 5k","5k pace run","Carrera",10,240,0,30)],
-      "Sprints cortos 5":[E("Sentadilla con salto","Jump squat","Piernas",10,20,0,40),E("Rodillas altas","High knees","Cardio",10,30,0,20)],
-      "Velocidad pura 5":[E("Carrera ritmo 5k","5k pace run","Carrera",10,240,0,30),E("Sprint 100m","Sprint 100m","Carrera",10,18,0,60),E("Talones al glúteo","Butt kicks","Cardio",10,30,0,20),E("Zancadas de carrera","Running strides","Carrera",10,20,0,40)]
+      "400m (80×75) × 10":[E("Sprint 400m","Sprint 400m","Carrera",10,80,0,75)],
+      "1000m (240×120) × 4":[E("Repetición 1000m","1000m rep","Carrera",4,240,0,120)],
+      "200m (32×40) × 12":[E("Sprint 200m","Sprint 200m","Carrera",12,32,0,40)],
+      "Cuestas largas (60×90) × 8":[E("Cuestas","Hill repeats","Carrera",8,60,0,90)],
+      "Tempo (1200×180) × 2":[E("Carrera tempo","Tempo run","Carrera",2,1200,0,180)],
+      "VO2 (180×90) × 5":[E("Intervalo VO2 máx","VO2 max interval","Carrera",5,180,0,90)],
+      "Fartlek (120×60) × 8":[E("Aceleración fuerte","Hard surge","Carrera",8,120,0,60)],
+      "Sprints máximos (10×50) × 15":[E("Sprint máximo","All-out sprint","Carrera",15,10,0,50)],
+      "Continuo 60 min · tempo":[E("Carrera tempo","Tempo run","Carrera",1,60,0,0)],
+      "Pirámide (400-800-1600-800-400) × 2":[E("Repetición 400","400m rep","Carrera",2,80,0,90),E("Repetición 800","800m rep","Carrera",2,170,0,120),E("Repetición 1600","1600m rep","Carrera",2,360,0,180),E("Repetición 800","800m rep","Carrera",2,170,0,120),E("Repetición 400","400m rep","Carrera",2,80,0,90)]
     }
   ],
   "HIIT · HIIT": [
@@ -4051,89 +4080,136 @@ const TEMPLATES = {
   ],
   "Cardio · Cardio": [
     {
-      "Mixto":[E("Elíptica","Elliptical","Cardio",1,15,0,0)],
-      "Trote suave":[E("Escaladora","Stair climber","Cardio",1,15,0,0)],
-      "Escaladora":[E("Carrera de fondo","Long run","Cardio",1,15,0,0)],
-      "Cross-training":[E("Carrera continua","Steady run","Cardio",1,15,0,0)],
-      "Elíptica":[E("Natación","Swimming","Cardio",1,15,0,0),E("Carrera ritmo medio","Tempo run","Cardio",1,15,0,0)],
-      "Resistencia":[E("Carrera continua","Steady run","Cardio",1,15,0,0)],
-      "Cuerda":[E("Marcha en cinta","Treadmill walk","Cardio",1,15,0,0)],
-      "Bici larga":[E("Bicicleta","Cycling","Cardio",1,15,0,0)],
-      "Sesión larga":[E("Carrera ritmo medio","Tempo run","Cardio",1,15,0,0)],
-      "Fartlek":[E("Saltos de cuerda","Jump rope","Cardio",1,15,0,0)],
-      "Carrera continua":[E("Remo continuo","Steady rowing","Cardio",1,15,0,0)],
-      "Remo":[E("Trote ligero","Easy jog","Cardio",1,15,0,0)],
-      "Carrera larga":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,15,0,0)],
-      "Tempo":[E("Bicicleta","Cycling","Cardio",1,15,0,0),E("Remo ritmo fuerte","Hard rowing","Cardio",1,15,0,0)],
-      "Bici moderada":[E("Carrera continua","Steady run","Cardio",1,15,0,0)]
+      "Funcional A (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30)],
+      "Funcional B (20×30) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,20,0,30),E("Rodillas altas","High knees","Cardio",3,20,0,30),E("Talones al glúteo","Butt kicks","Cardio",3,20,0,30),E("Skipping","Skipping","Cardio",3,20,0,30)],
+      "Quema total (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30),E("Estocadas con salto","Jump lunges","Piernas",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30)],
+      "Sin equipo (20×30) × 3":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30),E("Rodillas altas","High knees","Cardio",3,20,0,30),E("Estocadas con salto","Jump lunges","Piernas",3,20,0,30),E("Plancha","Plank","Core",3,20,0,30)],
+      "Cuerda y saltos (20×30) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30),E("Skipping","Skipping","Cardio",3,20,0,30),E("Talones al glúteo","Butt kicks","Cardio",3,20,0,30)],
+      "Metcon (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Sprawl","Sprawl","Cuerpo completo",3,20,0,30),E("Saltos al cajón","Box jumps","Piernas",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30)],
+      "Piernas explosivas (20×30) × 3":[E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30),E("Estocadas con salto","Jump lunges","Piernas",3,20,0,30),E("Saltos al cajón","Box jumps","Piernas",3,20,0,30),E("Saltos rodillas al pecho","Tuck jumps","Piernas",3,20,0,30)],
+      "Core + cardio (20×30) × 3":[E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30),E("Plancha","Plank","Core",3,20,0,30),E("Sprawl","Sprawl","Cuerpo completo",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30)],
+      "Animal flow (20×30) × 3":[E("Bear crawl","Bear crawl","Cuerpo completo",3,20,0,30),E("Sprawl","Sprawl","Cuerpo completo",3,20,0,30),E("Saltos rodillas al pecho","Tuck jumps","Piernas",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30)],
+      "Tabata funcional (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30)]
     },
     {
-      "Tempo 2":[E("Elíptica","Elliptical","Cardio",1,25,0,0),E("Remo ritmo fuerte","Hard rowing","Cardio",1,25,0,0)],
-      "Cuerda 2":[E("Carrera ritmo medio","Tempo run","Cardio",1,25,0,0),E("Carrera variable","Fartlek run","Cardio",1,25,0,0)],
-      "Carrera larga 2":[E("Carrera ritmo medio","Tempo run","Cardio",1,25,0,0)],
-      "Remo 2":[E("Natación","Swimming","Cardio",1,25,0,0),E("Marcha en cinta","Treadmill walk","Cardio",1,25,0,0)],
-      "Escaladora 2":[E("Carrera ritmo medio","Tempo run","Cardio",1,25,0,0)],
-      "Cross-training 2":[E("Remo ritmo fuerte","Hard rowing","Cardio",1,25,0,0)],
-      "Mixto 2":[E("Marcha en cinta","Treadmill walk","Cardio",1,25,0,0),E("Carrera de fondo","Long run","Cardio",1,25,0,0)],
-      "Elíptica 2":[E("Carrera continua","Steady run","Cardio",1,25,0,0)],
-      "Trote suave 2":[E("Carrera de fondo","Long run","Cardio",1,25,0,0),E("Remo continuo","Steady rowing","Cardio",1,25,0,0)],
-      "Bici moderada 2":[E("Natación","Swimming","Cardio",1,25,0,0),E("Remo ritmo fuerte","Hard rowing","Cardio",1,25,0,0)],
-      "Carrera continua 2":[E("Remo continuo","Steady rowing","Cardio",1,25,0,0)],
-      "Resistencia 2":[E("Trote ligero","Easy jog","Cardio",1,25,0,0)],
-      "Fartlek 2":[E("Carrera ritmo medio","Tempo run","Cardio",1,25,0,0)],
-      "Sesión larga 2":[E("Carrera variable","Fartlek run","Cardio",1,25,0,0)],
-      "Bici larga 2":[E("Marcha en cinta","Treadmill walk","Cardio",1,25,0,0)]
+      "Funcional A (30×25) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,30,0,25),E("Rodillas altas","High knees","Cardio",3,30,0,25),E("Talones al glúteo","Butt kicks","Cardio",3,30,0,25),E("Skipping","Skipping","Cardio",3,30,0,25)],
+      "Funcional B (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25),E("Estocadas con salto","Jump lunges","Piernas",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25)],
+      "Quema total (30×25) × 3":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25),E("Rodillas altas","High knees","Cardio",3,30,0,25),E("Estocadas con salto","Jump lunges","Piernas",3,30,0,25),E("Plancha","Plank","Core",3,30,0,25)],
+      "Sin equipo (30×25) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,30,0,25),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25),E("Skipping","Skipping","Cardio",3,30,0,25),E("Talones al glúteo","Butt kicks","Cardio",3,30,0,25)],
+      "Cuerda y saltos (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Sprawl","Sprawl","Cuerpo completo",3,30,0,25),E("Saltos al cajón","Box jumps","Piernas",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25)],
+      "Metcon (30×25) × 3":[E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25),E("Estocadas con salto","Jump lunges","Piernas",3,30,0,25),E("Saltos al cajón","Box jumps","Piernas",3,30,0,25),E("Saltos rodillas al pecho","Tuck jumps","Piernas",3,30,0,25)],
+      "Piernas explosivas (30×25) × 3":[E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25),E("Plancha","Plank","Core",3,30,0,25),E("Sprawl","Sprawl","Cuerpo completo",3,30,0,25),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25)],
+      "Core + cardio (30×25) × 3":[E("Bear crawl","Bear crawl","Cuerpo completo",3,30,0,25),E("Sprawl","Sprawl","Cuerpo completo",3,30,0,25),E("Saltos rodillas al pecho","Tuck jumps","Piernas",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25)],
+      "Animal flow (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25)],
+      "Tabata funcional (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25)]
     },
     {
-      "Escaladora 3":[E("Saltos de cuerda","Jump rope","Cardio",1,35,0,0),E("Remo continuo","Steady rowing","Cardio",1,35,0,0)],
-      "Resistencia 3":[E("Carrera variable","Fartlek run","Cardio",1,35,0,0)],
-      "Cross-training 3":[E("Saltos de cuerda","Jump rope","Cardio",1,35,0,0)],
-      "Remo 3":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,35,0,0),E("Marcha en cinta","Treadmill walk","Cardio",1,35,0,0)],
-      "Carrera larga 3":[E("Carrera continua","Steady run","Cardio",1,35,0,0)],
-      "Fartlek 3":[E("Bicicleta","Cycling","Cardio",1,35,0,0),E("Bicicleta sostenida","Sustained cycling","Cardio",1,35,0,0)],
-      "Cuerda 3":[E("Remo ritmo fuerte","Hard rowing","Cardio",1,35,0,0)],
-      "Elíptica 3":[E("Caminata rápida","Brisk walk","Cardio",1,35,0,0),E("Saltos de cuerda","Jump rope","Cardio",1,35,0,0)],
-      "Mixto 3":[E("Natación","Swimming","Cardio",1,35,0,0),E("Bicicleta sostenida","Sustained cycling","Cardio",1,35,0,0)],
-      "Bici larga 3":[E("Bicicleta","Cycling","Cardio",1,35,0,0),E("Caminata rápida","Brisk walk","Cardio",1,35,0,0)],
-      "Sesión larga 3":[E("Carrera variable","Fartlek run","Cardio",1,35,0,0)],
-      "Trote suave 3":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,35,0,0),E("Trote ligero","Easy jog","Cardio",1,35,0,0)],
-      "Tempo 3":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,35,0,0)],
-      "Carrera continua 3":[E("Escaladora","Stair climber","Cardio",1,35,0,0)],
-      "Bici moderada 3":[E("Trote ligero","Easy jog","Cardio",1,35,0,0)]
+      "Funcional A (30×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,30,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,30,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20)],
+      "Funcional B (30×20) × 4":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20),E("Rodillas altas","High knees","Cardio",4,30,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,30,0,20),E("Plancha","Plank","Core",4,30,0,20)],
+      "Quema total (30×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,30,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20),E("Skipping","Skipping","Cardio",4,30,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,30,0,20)],
+      "Sin equipo (30×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,30,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,30,0,20),E("Saltos al cajón","Box jumps","Piernas",4,30,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20)],
+      "Cuerda y saltos (30×20) × 4":[E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,30,0,20),E("Saltos al cajón","Box jumps","Piernas",4,30,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,30,0,20)],
+      "Metcon (30×20) × 4":[E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20),E("Plancha","Plank","Core",4,30,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,30,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20)],
+      "Piernas explosivas (30×20) × 4":[E("Bear crawl","Bear crawl","Cuerpo completo",4,30,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,30,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,30,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20)],
+      "Core + cardio (30×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,30,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20)],
+      "Animal flow (30×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,30,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20)],
+      "Tabata funcional (30×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,30,0,20),E("Rodillas altas","High knees","Cardio",4,30,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,30,0,20),E("Skipping","Skipping","Cardio",4,30,0,20)]
     },
     {
-      "Resistencia 4":[E("Remo continuo","Steady rowing","Cardio",1,50,0,0)],
-      "Escaladora 4":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,50,0,0),E("Trote ligero","Easy jog","Cardio",1,50,0,0)],
-      "Tempo 4":[E("Carrera variable","Fartlek run","Cardio",1,50,0,0)],
-      "Carrera larga 4":[E("Carrera ritmo medio","Tempo run","Cardio",1,50,0,0),E("Marcha en cinta","Treadmill walk","Cardio",1,50,0,0)],
-      "Cross-training 4":[E("Carrera de fondo","Long run","Cardio",1,50,0,0)],
-      "Cuerda 4":[E("Remo ritmo fuerte","Hard rowing","Cardio",1,50,0,0)],
-      "Mixto 4":[E("Remo continuo","Steady rowing","Cardio",1,50,0,0),E("Remo ritmo fuerte","Hard rowing","Cardio",1,50,0,0)],
-      "Remo 4":[E("Carrera variable","Fartlek run","Cardio",1,50,0,0)],
-      "Elíptica 4":[E("Remo ritmo fuerte","Hard rowing","Cardio",1,50,0,0)],
-      "Bici larga 4":[E("Carrera de fondo","Long run","Cardio",1,50,0,0),E("Natación","Swimming","Cardio",1,50,0,0)],
-      "Carrera continua 4":[E("Carrera de fondo","Long run","Cardio",1,50,0,0)],
-      "Bici moderada 4":[E("Remo continuo","Steady rowing","Cardio",1,50,0,0),E("Elíptica","Elliptical","Cardio",1,50,0,0)],
-      "Fartlek 4":[E("Caminata rápida","Brisk walk","Cardio",1,50,0,0)],
-      "Sesión larga 4":[E("Elíptica","Elliptical","Cardio",1,50,0,0)],
-      "Trote suave 4":[E("Carrera de fondo","Long run","Cardio",1,50,0,0)]
+      "Funcional A (40×15) × 4":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Rodillas altas","High knees","Cardio",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Plancha","Plank","Core",4,40,0,15)],
+      "Funcional B (40×15) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Skipping","Skipping","Cardio",4,40,0,15),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,15)],
+      "Quema total (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Saltos al cajón","Box jumps","Piernas",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15)],
+      "Sin equipo (40×15) × 4":[E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Saltos al cajón","Box jumps","Piernas",4,40,0,15),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,15)],
+      "Cuerda y saltos (40×15) × 4":[E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Plancha","Plank","Core",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15)],
+      "Metcon (40×15) × 4":[E("Bear crawl","Bear crawl","Cuerpo completo",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15)],
+      "Piernas explosivas (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15)],
+      "Core + cardio (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15)],
+      "Animal flow (40×15) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,15),E("Rodillas altas","High knees","Cardio",4,40,0,15),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,15),E("Skipping","Skipping","Cardio",4,40,0,15)],
+      "Tabata funcional (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15)]
     },
     {
-      "Cross-training 5":[E("Carrera ritmo medio","Tempo run","Cardio",1,60,0,0)],
-      "Remo 5":[E("Saltos de cuerda","Jump rope","Cardio",1,60,0,0)],
-      "Elíptica 5":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,60,0,0),E("Caminata rápida","Brisk walk","Cardio",1,60,0,0)],
-      "Escaladora 5":[E("Natación","Swimming","Cardio",1,60,0,0)],
-      "Carrera larga 5":[E("Carrera continua","Steady run","Cardio",1,60,0,0),E("Marcha en cinta","Treadmill walk","Cardio",1,60,0,0)],
-      "Trote suave 5":[E("Carrera ritmo medio","Tempo run","Cardio",1,60,0,0)],
-      "Cuerda 5":[E("Elíptica","Elliptical","Cardio",1,60,0,0)],
-      "Sesión larga 5":[E("Elíptica","Elliptical","Cardio",1,60,0,0)],
-      "Mixto 5":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,60,0,0)],
-      "Resistencia 5":[E("Bicicleta sostenida","Sustained cycling","Cardio",1,60,0,0),E("Saltos de cuerda","Jump rope","Cardio",1,60,0,0)],
-      "Tempo 5":[E("Remo continuo","Steady rowing","Cardio",1,60,0,0)],
-      "Bici moderada 5":[E("Trote ligero","Easy jog","Cardio",1,60,0,0)],
-      "Carrera continua 5":[E("Caminata rápida","Brisk walk","Cardio",1,60,0,0),E("Escaladora","Stair climber","Cardio",1,60,0,0)],
-      "Bici larga 5":[E("Carrera variable","Fartlek run","Cardio",1,60,0,0)],
-      "Fartlek 5":[E("Remo continuo","Steady rowing","Cardio",1,60,0,0),E("Caminata rápida","Brisk walk","Cardio",1,60,0,0)]
+      "Funcional A (40×10) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Skipping","Skipping","Cardio",5,40,0,10),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,10)],
+      "Funcional B (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Saltos al cajón","Box jumps","Piernas",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10)],
+      "Quema total (40×10) × 5":[E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Saltos al cajón","Box jumps","Piernas",5,40,0,10),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,10)],
+      "Sin equipo (40×10) × 5":[E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Plancha","Plank","Core",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10)],
+      "Cuerda y saltos (40×10) × 5":[E("Bear crawl","Bear crawl","Cuerpo completo",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10)],
+      "Metcon (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10)],
+      "Piernas explosivas (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10)],
+      "Core + cardio (40×10) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,10),E("Rodillas altas","High knees","Cardio",5,40,0,10),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,10),E("Skipping","Skipping","Cardio",5,40,0,10)],
+      "Animal flow (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10)],
+      "Tabata funcional (40×10) × 5":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Rodillas altas","High knees","Cardio",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Plancha","Plank","Core",5,40,0,10)]
+    }
+  ],
+  "Bicicleta fija · Stationary bike": [
+    {
+      "(20×40) × 6 · arranque suave":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,20,0,40)],
+      "(20×30) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,20,0,30)],
+      "(30×30) × 6 · tempo suave":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",6,30,0,30)],
+      "(15×45) × 8 · primeros sprints":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",8,15,0,45)],
+      "(30×60) × 6 · recuperación amplia":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,30,0,60)],
+      "(20×20) × 6 · iniciación":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,20,0,20)],
+      "Cuesta suave (30×30) × 6":[E("Bici fija — cuesta / alta resistencia","Stationary bike — hill / high resistance","Piernas/Cardio",6,30,0,30)],
+      "Continua 15 min · Zona 2":[E("Bici fija — resistencia (Zona 2)","Stationary bike — endurance (Zone 2)","Cardio",1,15,0,0)],
+      "Continua 20 min · ritmo constante":[E("Bici fija — ritmo constante","Stationary bike — steady pace","Cardio",1,20,0,0)],
+      "Pirámide (15-30-45-30-15) × 2":[E("Bici fija — intervalos 15s","Stationary bike — intervals 15s","Cardio",2,15,0,30),E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,30),E("Bici fija — intervalos 45s","Stationary bike — intervals 45s","Cardio",2,45,0,30),E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,30),E("Bici fija — intervalos 15s","Stationary bike — intervals 15s","Cardio",2,15,0,30)],
+      "De pie (15×45) × 6 · climbing":[E("Bici fija — de pie (climbing)","Stationary bike — standing climb","Piernas/Cardio",6,15,0,45)],
+      "Spinning suave (30×30) × 8":[E("Spinning","Spinning / indoor cycling","Cardio",8,30,0,30)]
+    },
+    {
+      "(30×30) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,30,0,30)],
+      "(20×40) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,20,0,40)],
+      "(40×20) × 6":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,40,0,20)],
+      "(45×45) × 6 · tempo":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",6,45,0,45)],
+      "(15×30) × 10 · sprints":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",10,15,0,30)],
+      "Tabata suave (20×20) × 8":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",8,20,0,20)],
+      "(60×60) × 5 · base aeróbica":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",5,60,0,60)],
+      "Cuesta (40×40) × 6":[E("Bici fija — cuesta / alta resistencia","Stationary bike — hill / high resistance","Piernas/Cardio",6,40,0,40)],
+      "De pie (20×40) × 6 · climbing":[E("Bici fija — de pie (climbing)","Stationary bike — standing climb","Piernas/Cardio",6,20,0,40)],
+      "Continua 25 min · Zona 2":[E("Bici fija — resistencia (Zona 2)","Stationary bike — endurance (Zone 2)","Cardio",1,25,0,0)],
+      "Continua 30 min · ritmo constante":[E("Bici fija — ritmo constante","Stationary bike — steady pace","Cardio",1,30,0,0)],
+      "Pirámide (20-40-60-40-20) × 2":[E("Bici fija — intervalos 20s","Stationary bike — intervals 20s","Cardio",2,20,0,30),E("Bici fija — intervalos 40s","Stationary bike — intervals 40s","Cardio",2,40,0,30),E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,30),E("Bici fija — intervalos 40s","Stationary bike — intervals 40s","Cardio",2,40,0,30),E("Bici fija — intervalos 20s","Stationary bike — intervals 20s","Cardio",2,20,0,30)]
+    },
+    {
+      "(40×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,40,0,20)],
+      "(30×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,30,0,20)],
+      "(20×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,20,0,20)],
+      "(45×15) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,45,0,15)],
+      "Tabata (20×10) × 8":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",8,20,0,10)],
+      "(60×30) × 8 · VO2":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,60,0,30)],
+      "Sprints (15×45) × 12":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",12,15,0,45)],
+      "Tempo (300×60) × 3":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",3,300,0,60)],
+      "Cuesta (60×30) × 6 · alta resistencia":[E("Bici fija — cuesta / alta resistencia","Stationary bike — hill / high resistance","Piernas/Cardio",6,60,0,30)],
+      "De pie (30×30) × 8 · climbing":[E("Bici fija — de pie (climbing)","Stationary bike — standing climb","Piernas/Cardio",8,30,0,30)],
+      "Continua 40 min · Zona 2":[E("Bici fija — resistencia (Zona 2)","Stationary bike — endurance (Zone 2)","Cardio",1,40,0,0)],
+      "Pirámide (30-45-60-45-30) × 2":[E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,30),E("Bici fija — intervalos 45s","Stationary bike — intervals 45s","Cardio",2,45,0,30),E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,30),E("Bici fija — intervalos 45s","Stationary bike — intervals 45s","Cardio",2,45,0,30),E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,30)]
+    },
+    {
+      "(40×20) × 12":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",12,40,0,20)],
+      "(30×15) × 12":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",12,30,0,15)],
+      "(60×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,60,0,20)],
+      "(45×15) × 12":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",12,45,0,15)],
+      "Doble Tabata (20×10) × 16":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",16,20,0,10)],
+      "(90×30) × 6 · VO2 máx":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,90,0,30)],
+      "(120×60) × 5 · umbral":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",5,120,0,60)],
+      "Sprints máximos (10×50) × 12":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",12,10,0,50)],
+      "Cuesta (90×45) × 6":[E("Bici fija — cuesta / alta resistencia","Stationary bike — hill / high resistance","Piernas/Cardio",6,90,0,45)],
+      "De pie (40×20) × 10 · climbing":[E("Bici fija — de pie (climbing)","Stationary bike — standing climb","Piernas/Cardio",10,40,0,20)],
+      "Continua 50 min · tempo":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",1,50,0,0)],
+      "Pirámide (30-60-90-60-30) × 2":[E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,45),E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,45),E("Bici fija — intervalos 90s","Stationary bike — intervals 90s","Cardio",2,90,0,45),E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,45),E("Bici fija — intervalos 30s","Stationary bike — intervals 30s","Cardio",2,30,0,45)]
+    },
+    {
+      "(40×20) × 15":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",15,40,0,20)],
+      "(30×15) × 16":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",16,30,0,15)],
+      "(60×15) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,60,0,15)],
+      "Tabata doble (20×10) × 16":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",16,20,0,10)],
+      "(120×30) × 6 · umbral":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",6,120,0,30)],
+      "(180×60) × 4 · VO2 largo":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",4,180,0,60)],
+      "Sprints máximos (10×35) × 15":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",15,10,0,35)],
+      "Cuesta (120×60) × 6 · muro":[E("Bici fija — cuesta / alta resistencia","Stationary bike — hill / high resistance","Piernas/Cardio",6,120,0,60)],
+      "De pie (60×30) × 8 · climbing":[E("Bici fija — de pie (climbing)","Stationary bike — standing climb","Piernas/Cardio",8,60,0,30)],
+      "(300×90) × 4 · bloques de carrera":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",4,300,0,90)],
+      "Continua 60 min · tempo":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",1,60,0,0)],
+      "Pirámide (60-90-120-90-60) × 2":[E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,45),E("Bici fija — intervalos 90s","Stationary bike — intervals 90s","Cardio",2,90,0,45),E("Bici fija — intervalos 120s","Stationary bike — intervals 120s","Cardio",2,120,0,45),E("Bici fija — intervalos 90s","Stationary bike — intervals 90s","Cardio",2,90,0,45),E("Bici fija — intervalos 60s","Stationary bike — intervals 60s","Cardio",2,60,0,45)]
     }
   ]
 };
@@ -4490,13 +4566,17 @@ function buildIvPhases(c){
 }
 
 let ivPhases = [], ivIdx = 0, ivLeft = 0, ivInt = null, ivPaused = false, ivConf = null;
+let ivPhaseStarts = [], ivTotalSecs = 0;
 let ivExercises = [];   // ejercicios del día cuando se abre desde un circuito
 
 document.getElementById("ivStart").onclick = async ()=>{
   await warmAudio();
+  startBgAudio();
   ivConf = ivConfig();
   ivPhases = buildIvPhases(ivConf);
   if(!ivPhases.length){ toast(LL("Configurá al menos trabajo y series.","Set at least work and sets.")); return; }
+  ivPhaseStarts = []; ivTotalSecs = 0;
+  ivPhases.forEach(p=>{ ivPhaseStarts.push(ivTotalSecs); if(p.type!=="prep") ivTotalSecs += p.secs; });
   ivIdx = 0; ivPaused = false;
   intervalModal.classList.remove("show");
   ivRun.classList.add("show");
@@ -4574,6 +4654,12 @@ function renderIvClock(){
   const m = String(Math.floor(Math.max(ivLeft,0)/60)).padStart(2,"0");
   const s = String(Math.max(ivLeft,0)%60).padStart(2,"0");
   document.getElementById("ivClock").textContent = `${m}:${s}`;
+  // anillo de % transcurrido del total de la sesión (la preparación no cuenta)
+  const ph = ivPhases[ivIdx];
+  if(ivTotalSecs > 0 && ph){
+    const inPhase = ph.type==="prep" ? 0 : (ph.secs - Math.max(ivLeft,0));
+    drawRingPie(document.getElementById("ivPie"), (ivPhaseStarts[ivIdx] + inPhase)/ivTotalSecs);
+  }
 }
 function ivFinish(){
   clearInterval(ivInt);
@@ -4582,7 +4668,9 @@ function ivFinish(){
   document.getElementById("ivClock").textContent = "00:00";
   document.getElementById("ivInfo").textContent = LL("Buen trabajo","Well done");
   document.getElementById("ivNext").textContent = "";
+  drawRingPie(document.getElementById("ivPie"), 1);
   beep(1320);
+  setTimeout(stopBgAudio, 2500);
 }
 document.getElementById("ivPause").onclick = function(){
   ivPaused = !ivPaused;
@@ -4592,6 +4680,7 @@ document.getElementById("ivPause").onclick = function(){
 document.getElementById("ivStop").onclick = ()=>{
   clearInterval(ivInt);
   _cancelPendingAudio();
+  stopBgAudio();
   ivRun.classList.remove("show");
 };
 
@@ -4716,6 +4805,83 @@ try{
   const savedTheme = localStorage.getItem(THEME_KEY);
   if(savedTheme) applyTheme(savedTheme);
 }catch(e){}
+
+/* ────────── Pantalla encendida (Wake Lock) + audio en segundo plano ────────── */
+const KEEPAWAKE_KEY = "BURN.keepAwake";
+const BGAUDIO_KEY  = "BURN.bgAudio";
+let _keepAwake = JSON.parse(localStorage.getItem(KEEPAWAKE_KEY) ?? "true");
+let _bgAudioOn = JSON.parse(localStorage.getItem(BGAUDIO_KEY) ?? "true");
+let _wakeLock = null;
+
+async function _requestWakeLock(){
+  if(!_keepAwake || !("wakeLock" in navigator)) return;
+  try{ _wakeLock = await navigator.wakeLock.request("screen"); }catch(e){}
+}
+function _releaseWakeLock(){
+  try{ if(_wakeLock) _wakeLock.release(); }catch(e){}
+  _wakeLock = null;
+}
+function updateWakeBtn(){
+  const b = document.getElementById("wakeBtn");
+  if(b) b.style.opacity = _keepAwake ? "1" : ".4";
+}
+document.getElementById("wakeBtn").onclick = ()=>{
+  _keepAwake = !_keepAwake;
+  localStorage.setItem(KEEPAWAKE_KEY, JSON.stringify(_keepAwake));
+  if(_keepAwake) _requestWakeLock(); else _releaseWakeLock();
+  updateWakeBtn();
+  toast(_keepAwake ? LL("🔆 La pantalla no se apaga mientras la app esté abierta","🔆 Screen stays on while the app is open")
+                   : LL("La pantalla puede apagarse normalmente","Screen can turn off normally"));
+};
+
+/* Audio en segundo plano: un <audio> casi silencioso en loop mantiene viva la
+   sesión de audio cuando se bloquea la pantalla (el sonido se mezcla con otras apps,
+   no las interrumpe). */
+let _bgEl = null;
+function _ensureBgEl(){
+  if(_bgEl) return _bgEl;
+  _bgEl = document.createElement("audio");
+  _bgEl.loop = true;
+  _bgEl.volume = 0.02;
+  _bgEl.setAttribute("playsinline","");
+  _bgEl.src = "data:audio/wav;base64,UklGRoQJAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YWAJAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=";
+  document.body.appendChild(_bgEl);
+  return _bgEl;
+}
+function startBgAudio(){
+  if(!_bgAudioOn) return;
+  const el = _ensureBgEl();
+  el.play().catch(()=>{});
+  if("mediaSession" in navigator){
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({ title:"BURN — temporizador", artist:"Training Hub" });
+      navigator.mediaSession.setActionHandler("play", ()=>{ el.play().catch(()=>{}); });
+      navigator.mediaSession.setActionHandler("pause", ()=>{});
+    }catch(e){}
+  }
+}
+function stopBgAudio(){ if(_bgEl) _bgEl.pause(); }
+function updateBgBtn(){
+  const b = document.getElementById("bgAudioBtn");
+  if(b) b.style.opacity = _bgAudioOn ? "1" : ".4";
+}
+document.getElementById("bgAudioBtn").onclick = ()=>{
+  _bgAudioOn = !_bgAudioOn;
+  localStorage.setItem(BGAUDIO_KEY, JSON.stringify(_bgAudioOn));
+  if(_bgAudioOn){ startBgAudio(); } else { stopBgAudio(); }
+  updateBgBtn();
+  toast(_bgAudioOn ? LL("📻 El audio sigue con la pantalla bloqueada (durante timers)","📻 Audio keeps playing when the screen locks (during timers)")
+                   : LL("Audio en segundo plano desactivado","Background audio off"));
+};
+
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState === "visible"){
+    _requestWakeLock();
+    if(_audioCtx && _audioCtx.state === "suspended"){ try{ _audioCtx.resume(); }catch(e){} }
+  }
+});
+updateWakeBtn(); updateBgBtn();
+_requestWakeLock();
 
 /* ---------- Init ---------- */
 renderWorkoutList();
