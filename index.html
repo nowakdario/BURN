@@ -236,11 +236,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   body.god-mode #workoutPieWrap{display:flex;}
   #workoutPie{border-radius:50%;flex:0 0 auto;}
   .workout-pie-pct{display:none;}
-  .workout-pie-label{font-size:.7rem;color:var(--cream);opacity:.75;text-transform:uppercase;letter-spacing:.5px;}
-  .day-progress{margin:12px auto 2px;max-width:420px}
-  .day-progress-bar{height:10px;background:rgba(255,255,255,0.25);border-radius:999px;overflow:hidden}
+  .workout-pie-label{font-size:.7rem;color:var(--cream);opacity:.9;text-transform:uppercase;letter-spacing:.5px;}
+  .day-progress{margin:14px auto 6px;max-width:520px}
+  /* Regla anti-apelotonamiento: todo hijo consecutivo de una columna respira */
+  .dp-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .dp-col > * + *{margin-top:10px}
+  .day-progress-bar{height:10px;background:rgba(255,255,255,0.25);border-radius:999px;overflow:hidden;width:100%}
   .day-progress-bar span{display:block;height:100%;width:0;background:var(--cream);border-radius:999px;transition:width .4s ease}
-  .day-progress-txt{font-size:.78rem;font-weight:600;color:var(--cream);margin-top:5px;opacity:.9}
+  .day-progress-txt{font-size:.78rem;font-weight:600;color:var(--cream);opacity:.9}
   /* Cita motivacional */
   .quote{
     margin:14px auto 4px;
@@ -782,7 +785,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .scope-btn-sel{background:#7e4fc0;color:#fff;}
   .scope-btn-cancel{background:rgba(0,0,0,0.09);color:var(--ink);}
 
-  #voiceToggleBtn,#wakeBtn,#bgAudioBtn{
+  #voiceToggleBtn,#wakeBtn,#bgAudioBtn,#paletteBtn{
     border:2px solid rgba(255,255,255,0.5);background:rgba(255,255,255,0.15);
     color:var(--cream);width:38px;height:38px;border-radius:10px;cursor:pointer;
     font-size:1.1rem;display:grid;place-items:center;transition:transform .15s;
@@ -810,7 +813,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     header.app h1{ gap:6px;font-size:clamp(1.2rem,5vw,1.8rem); }
     header.app .en{ font-size:.55em; }
     .header-btns{ gap:5px; }
-    .theme-toggle,.lang-toggle,#voiceToggleBtn,#wakeBtn,#bgAudioBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
+    .theme-toggle,.lang-toggle,#voiceToggleBtn,#wakeBtn,#bgAudioBtn,#paletteBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
   }
 
   /* ── Credit email ── */
@@ -950,6 +953,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button id="voiceToggleBtn" onclick="toggleVoice()" title="Voz · Voice">🔊</button>
       <button id="wakeBtn" title="Pantalla siempre encendida · Keep screen awake">🔆</button>
       <button id="bgAudioBtn" title="Audio en segundo plano · Background audio">📻</button>
+      <button id="paletteBtn" title="Configuración · Settings" style="display:none">⚙️</button>
     </div>
   </div>
     <div class="user-info-bar">
@@ -963,9 +967,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <span class="small">— Wayne Gretzky</span>
     </div>
     <div class="days" id="days"></div>
-    <div class="day-progress" id="dayProgress">
+    <div class="day-progress" id="dayProgress" style="display:flex;align-items:center;justify-content:center;gap:14px">
+      <div id="workoutPieWrap">
+        <canvas id="workoutPie" width="72" height="72"></canvas>
+        <div class="workout-pie-label" id="workoutPieLabel">progreso</div>
+        <div class="workout-pie-pct" id="workoutPiePct"></div>
+      </div>
+      <div class="dp-col" style="flex:1;min-width:170px">
       <div class="day-progress-bar"><span id="dayProgressFill"></span></div>
       <div class="day-progress-txt" id="dayProgressTxt">0 / 0 completados</div>
+      <button id="dayResetBtn" style="border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:6px 14px;font-weight:bold;cursor:pointer;font-size:.8rem">↺ <span id="dayResetTxt">Reiniciar casillas</span></button>
+      </div>
     </div>
     <div class="session-bar">
       <div class="session-clock" id="sessionClock">⏱ 00:00:00</div>
@@ -979,11 +991,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <select id="workoutSelect" class="wk-select">
         <option value="">— Workouts guardados · Saved —</option>
       </select>
-      <button id="wkSave" class="wk-btn">💾 Guardar</button>
+      <button id="wkSave" class="wk-btn">💾 Mis workouts: guardar</button>
       <button id="wkDelete" class="wk-btn danger">🗑</button>
-      <button id="wkExport" class="wk-btn">📊 Excel</button>
-      <button id="wkExcelImport" class="wk-btn">📗 Desde Excel</button>
-      <button id="wkShare" class="wk-btn">📤 Compartir</button>
+      <button id="wkExport" class="wk-btn">📊 Exportar Excel</button>
+      <button id="wkExcelImport" class="wk-btn">📗 Importar Excel</button>
+      <button id="wkShare" class="wk-btn">📤 Exportar JSON</button>
       <button id="wkImport" class="wk-btn">📥 Importar</button>
       <input type="file" id="wkImportInput" accept=".json,application/json" hidden>
       <input type="file" id="wkExcelInput" accept=".xlsx,.xls,.csv" hidden>
@@ -1007,11 +1019,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </div>
   </div>
 
-  <div id="workoutPieWrap">
-    <canvas id="workoutPie" width="88" height="88"></canvas>
-    <div class="workout-pie-label" id="workoutPieLabel">progreso</div>
-    <div class="workout-pie-pct" id="workoutPiePct"></div>
-  </div>
   <div id="list"></div>
 
   <button class="add-ex" id="trainBtn" style="background:var(--violet);color:var(--cream);border-style:solid;margin-top:48px;">🏋️ Entrenar</button>
@@ -1091,7 +1098,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="train-content" id="trainContent"></div>
   <div class="train-nav">
     <button id="trainPrev">◀ Anterior</button>
-    <span style="display:inline-flex;align-items:center;gap:8px"><canvas id="trainPie" width="72" height="72" style="width:44px;height:44px"></canvas><span id="trainProgress"></span></span>
+    <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1"><canvas id="trainPie" width="72" height="72" style="width:38px;height:38px;display:block;flex:0 0 auto"></canvas><span id="trainProgress" style="white-space:nowrap"></span></span>
     <button id="trainNext">Siguiente ▶</button>
   </div>
 </div>
@@ -1147,7 +1154,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="iv-phase" id="ivPhase">Preparación</div>
   <div class="iv-exercise" id="ivExercise"></div>
   <div class="iv-clock" id="ivClock">00:10</div>
-  <div style="display:flex;align-items:center;justify-content:center;margin:2px 0 4px"><canvas id="ivPie" width="72" height="72" style="width:52px;height:52px"></canvas></div>
+  <div style="display:flex;align-items:center;justify-content:center;margin:4px auto"><canvas id="ivPie" width="72" height="72" style="width:52px;height:52px;display:block"></canvas></div>
   <div class="iv-info" id="ivInfo">Serie 1 / 8</div>
   <div class="iv-next" id="ivNext"></div>
   <div class="iv-controls">
@@ -1317,6 +1324,10 @@ const LIBRARY = {
     {es:"Crunch en polea de pie", en:"Standing cable crunch", muscle:"Core"},
     {es:"Pallof press arrodillado", en:"Kneeling Pallof press", muscle:"Core"},
     {es:"Face pull arrodillado", en:"Kneeling face pull", muscle:"Hombros"},
+    {es:"Extensión de tríceps sobre cabeza con cuerda", en:"Overhead rope triceps extension", muscle:"Tríceps"},
+    {es:"Jalón de tríceps a una mano", en:"One-arm cable pushdown", muscle:"Tríceps"},
+    {es:"Jalón de tríceps agarre invertido", en:"Reverse-grip pushdown", muscle:"Tríceps"},
+    {es:"Patada de tríceps en polea", en:"Cable triceps kickback", muscle:"Tríceps"},
   ],
   "Barra · Barbell": [
     {es:"Sentadilla con barra", en:"Barbell back squat", muscle:"Piernas"},
@@ -1349,6 +1360,8 @@ const LIBRARY = {
     {es:"Press francés sentado", en:"Seated French press", muscle:"Tríceps"},
     {es:"Press francés parado", en:"Standing French press", muscle:"Tríceps"},
     {es:"Elevación de gemelos sentado con barra", en:"Seated barbell calf raise", muscle:"Gemelos"},
+    {es:"Press francés con barra Z", en:"EZ-bar skull crusher", muscle:"Tríceps"},
+    {es:"Remo con barra en banco inclinado (apoyado)", en:"Chest-supported incline barbell row", muscle:"Espalda"},
   ],
   "Mancuernas · Dumbbell": [
     {es:"Press de pecho con mancuernas", en:"Dumbbell bench press", muscle:"Pecho"},
@@ -1365,7 +1378,7 @@ const LIBRARY = {
     {es:"Curl martillo", en:"Hammer curl", muscle:"Bíceps"},
     {es:"Curl concentrado", en:"Concentration curl", muscle:"Bíceps"},
     {es:"Extensión de tríceps sobre cabeza", en:"Overhead triceps extension", muscle:"Tríceps"},
-    {es:"Patada de tríceps", en:"Triceps kickback", muscle:"Tríceps"},
+    {es:"Patada de burro de tríceps con mancuerna", en:"Dumbbell triceps kickback", muscle:"Tríceps"},
     {es:"Sentadilla goblet", en:"Goblet squat", muscle:"Piernas"},
     {es:"Zancadas con mancuernas", en:"Dumbbell lunges", muscle:"Piernas"},
     {es:"Sentadilla búlgara", en:"Bulgarian split squat", muscle:"Piernas"},
@@ -1378,6 +1391,11 @@ const LIBRARY = {
     {es:"Press Arnold", en:"Arnold press", muscle:"Hombros"},
     {es:"Remo renegado", en:"Renegade row", muscle:"Espalda/Core"},
     {es:"Russian twist con mancuerna", en:"Weighted Russian twist", muscle:"Core"},
+    {es:"Crunch con disco en el pecho", en:"Weighted plate crunch", muscle:"Core"},
+    {es:"Crunch con disco brazos extendidos", en:"Plate crunch (arms extended)", muscle:"Core"},
+    {es:"Crunch declinado con disco", en:"Decline weighted crunch", muscle:"Core"},
+    {es:"Crunch en fitball con disco", en:"Weighted stability ball crunch", muscle:"Core"},
+    {es:"Sit-up con disco", en:"Weighted sit-up", muscle:"Core"},
     {es:"Aperturas inclinadas con mancuernas", en:"Incline dumbbell fly", muscle:"Pecho"},
     {es:"Aperturas declinadas con mancuernas", en:"Decline dumbbell fly", muscle:"Pecho"},
     {es:"Vuelo posterior inclinado con mancuernas", en:"Incline rear delt fly", muscle:"Hombros"},
@@ -1400,6 +1418,12 @@ const LIBRARY = {
     {es:"Press de pecho en el piso", en:"Dumbbell floor press", muscle:"Pecho"},
     {es:"Aperturas en el piso", en:"Floor dumbbell fly", muscle:"Pecho"},
     {es:"Elevación de gemelos sentado con mancuerna", en:"Seated dumbbell calf raise", muscle:"Gemelos"},
+    {es:"Press francés con mancuernas", en:"Dumbbell skull crushers", muscle:"Tríceps"},
+    {es:"Extensión de tríceps a una mano sobre cabeza", en:"One-arm overhead triceps extension", muscle:"Tríceps"},
+    {es:"Press cerrado con mancuernas (squeeze)", en:"Dumbbell squeeze press", muscle:"Tríceps/Pecho"},
+    {es:"Extensión de tríceps cruzada acostado", en:"Cross-body lying triceps extension", muscle:"Tríceps"},
+    {es:"Remo con mancuernas en banco inclinado", en:"Incline bench dumbbell row", muscle:"Espalda"},
+    {es:"Plancha lateral con mancuerna + abducción de pierna", en:"Side plank with dumbbell + leg abduction", muscle:"Core/Glúteos"},
   ],
   "Bandas · Bands": [
     {es:"Sentadilla con banda", en:"Banded squat", muscle:"Piernas"},
@@ -1427,13 +1451,15 @@ const LIBRARY = {
     {es:"Elevación lateral con banda sentado", en:"Seated banded lateral raise", muscle:"Hombros"},
     {es:"Press de hombros con banda sentado", en:"Seated banded shoulder press", muscle:"Hombros"},
     {es:"Curl con banda sentado", en:"Seated banded curl", muscle:"Bíceps"},
+    {es:"Patada de tríceps con banda", en:"Banded triceps kickback", muscle:"Tríceps"},
+    {es:"Extensión de tríceps sobre cabeza con banda", en:"Banded overhead triceps extension", muscle:"Tríceps"},
   ],
   "Peso corporal · Bodyweight": [
     {es:"Flexiones", en:"Push-ups", muscle:"Pecho"},
     {es:"Flexiones diamante", en:"Diamond push-ups", muscle:"Tríceps"},
     {es:"Dominadas", en:"Pull-ups", muscle:"Espalda"},
     {es:"Dominadas supinas", en:"Chin-ups", muscle:"Espalda/Bíceps"},
-    {es:"Fondos en paralelas", en:"Dips", muscle:"Tríceps/Pecho"},
+    {es:"Fondos de tríceps en paralelas", en:"Triceps dips (parallel bars)", muscle:"Tríceps/Pecho"},
     {es:"Sentadilla libre", en:"Bodyweight squat", muscle:"Piernas"},
     {es:"Sentadilla pistol", en:"Pistol squat", muscle:"Piernas"},
     {es:"Zancadas", en:"Lunges", muscle:"Piernas"},
@@ -1446,6 +1472,18 @@ const LIBRARY = {
     {es:"Subida a cajón", en:"Box step-ups", muscle:"Piernas"},
     {es:"Superman", en:"Superman", muscle:"Lumbares"},
     {es:"Nadadores en el suelo", en:"Swimmers", muscle:"Lumbares/Glúteos"},
+    {es:"Crunch abdominal", en:"Crunch", muscle:"Core"},
+    {es:"Crunch inverso", en:"Reverse crunch", muscle:"Core"},
+    {es:"Crunch bicicleta", en:"Bicycle crunch", muscle:"Core/Oblicuos"},
+    {es:"Crunch con piernas elevadas", en:"Vertical leg crunch", muscle:"Core"},
+    {es:"Crunch doble", en:"Double crunch", muscle:"Core"},
+    {es:"Crunch lateral", en:"Side crunch", muscle:"Oblicuos"},
+    {es:"Toques de talón", en:"Heel touches", muscle:"Oblicuos"},
+    {es:"Crunch en banco declinado", en:"Decline crunch", muscle:"Core"},
+    {es:"Crunch en fitball", en:"Stability ball crunch", muscle:"Core"},
+    {es:"Fondos de tríceps en banco", en:"Bench dips", muscle:"Tríceps"},
+    {es:"Extensión de tríceps en el suelo", en:"Bodyweight skull crusher", muscle:"Tríceps"},
+    {es:"Curl de isquiotibiales con toalla", en:"Towel hamstring curl", muscle:"Femoral"},
   ],
   "Calistenia · Calisthenics": [
     // --- Empuje horizontal ---
@@ -1536,7 +1574,6 @@ const LIBRARY = {
     {es:"Puente con salto", en:"Bridge jump", muscle:"Glúteos"},
     {es:"Talones a la cola", en:"Butt kicks", muscle:"Cardio"},
     {es:"Extensiones de brazos", en:"Push-ups", muscle:"Pecho"},
-    {es:"Abd paso tapa", en:"Bicycle crunch with plate pass", muscle:"Core/Oblicuos"},
     {es:"Plancha sacando apoyo", en:"Plank arm lift", muscle:"Core"},
     {es:"Rabietas", en:"Swimmers", muscle:"Espalda baja/Core"},
     {es:"Twist con disco", en:"Russian twist with disc", muscle:"Core/Oblicuos"},
@@ -1588,6 +1625,9 @@ function migrateData(){
     const list = data[dayName];
     if(!Array.isArray(list)) return;
     list.forEach(ex=>{
+      // renombrar ejercicio con nombre informal
+      if(ex.es === "Abd paso tapa"){ ex.es = "Abdominal bicicleta con pase de disco"; changed = true; }
+      if(Array.isArray(ex.mix)) ex.mix.forEach(m=>{ if(m.es === "Abd paso tapa"){ m.es = "Abdominal bicicleta con pase de disco"; changed = true; } });
       const reps = +ex.reps;
       // cardio continuo: 1 serie, sin peso, tiempo larguísimo en segundos
       if((+ex.sets===1) && (ex.weight===0 || ex.weight==null) && reps>120){
@@ -1726,6 +1766,55 @@ function propagateConfig(){
 
 /* ---------- Render días ---------- */
 const daysEl = document.getElementById("days");
+let _daySuppressClick = false;
+/* Arrastrar para reordenar — pointer events: funciona con mouse y con dedo */
+function attachDayDrag(wrap, day){
+  wrap.style.touchAction = "none";
+  wrap.addEventListener("pointerdown", (e)=>{
+    if(e.target.closest(".day-x")) return;            // el botón 🗑 no arrastra
+    const startX = e.clientX, startY = e.clientY;
+    let dragging = false, target = null;
+    const move = (ev)=>{
+      if(!dragging && Math.hypot(ev.clientX-startX, ev.clientY-startY) > 10){
+        dragging = true;
+        _daySuppressClick = true;
+        wrap.style.opacity = ".45";
+        if(navigator.vibrate) navigator.vibrate(20);
+      }
+      if(!dragging) return;
+      ev.preventDefault();
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const chip = el && el.closest ? el.closest(".day-chip") : null;
+      document.querySelectorAll(".day-chip").forEach(c=>{ c.style.outline=""; });
+      if(chip && chip !== wrap){
+        chip.style.outline = "3px dashed #fff";
+        target = chip._dayName;
+      } else target = null;
+    };
+    const up = ()=>{
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", up);
+      wrap.style.opacity = "";
+      document.querySelectorAll(".day-chip").forEach(c=>{ c.style.outline=""; });
+      if(dragging && target && target !== day) reorderDays(day, target);
+      setTimeout(()=>{ _daySuppressClick = false; }, 50);
+    };
+    document.addEventListener("pointermove", move, {passive:false});
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
+  });
+}
+function reorderDays(from, to){
+  if(!data[from] || !data[to] || from === to) return;
+  pushUndo();
+  const keys = Object.keys(data).filter(k=>k!==from);
+  keys.splice(keys.indexOf(to), 0, from);
+  const nd = {};
+  keys.forEach(k=> nd[k] = data[k]);
+  data = nd;
+  save(); renderDays(); renderList();
+}
 const DAY_MAP = [
   {es:"Lunes", en:"Mon", abbr:["lun","mon"]},
   {es:"Martes", en:"Tue", abbr:["mar","tue"]},
@@ -1760,10 +1849,13 @@ function renderDays(){
     b.className = "day-btn-inner";
     b.textContent = dayLabel(day);
     b.onclick = ()=>{
+      if(_daySuppressClick) return;
       if(day===currentDay){ renameDay(day); }
       else{ currentDay = day; renderDays(); renderList(); }
     };
     wrap.appendChild(b);
+    wrap._dayName = day;
+    attachDayDrag(wrap, day);
     {
       const x = document.createElement("button");
       x.className = "day-x";
@@ -2113,10 +2205,10 @@ function drawWorkoutPie(done, total){
   const r = Math.min(W,H)/2 - 7;
   const lw = 14;
   ctx2d.clearRect(0,0,W,H);
-  // background ring
+  // sobre el header de color: blanco siempre visible
   ctx2d.beginPath();
   ctx2d.arc(cx, cy, r, 0, Math.PI*2);
-  ctx2d.strokeStyle = "rgba(255,255,255,0.18)";
+  ctx2d.strokeStyle = "rgba(255,255,255,0.30)";
   ctx2d.lineWidth = lw;
   ctx2d.stroke();
   // progress arc
@@ -2124,15 +2216,15 @@ function drawWorkoutPie(done, total){
     const pct = done/total;
     ctx2d.beginPath();
     ctx2d.arc(cx, cy, r, -Math.PI/2, -Math.PI/2 + pct*Math.PI*2);
-    ctx2d.strokeStyle = done===total ? "#4ade80" : "#fff";
+    ctx2d.strokeStyle = done===total ? "#4ade80" : "#ffffff";
     ctx2d.lineWidth = lw;
     ctx2d.lineCap = "round";
     ctx2d.stroke();
   }
   // center pct text on canvas
   const pct = total > 0 ? Math.round(done/total*100) : 0;
-  ctx2d.fillStyle = "#fff";
-  ctx2d.font = "bold 18px sans-serif";
+  ctx2d.fillStyle = "#ffffff";
+  ctx2d.font = "bold 15px sans-serif";
   ctx2d.textAlign = "center";
   ctx2d.textBaseline = "middle";
   ctx2d.fillText((total > 0 ? pct+"%" : "—"), cx, cy);
@@ -2180,6 +2272,14 @@ function updateModeSwitch(){
   if(s) s.classList.toggle("active", mode==="straight");
   if(c) c.classList.toggle("active", mode==="circuit");
 }
+document.getElementById("dayResetBtn").onclick = ()=>{
+  const list = data[currentDay] || [];
+  if(!list.length){ toast(LL("Este día no tiene ejercicios","No exercises")); return; }
+  pushUndo();
+  list.forEach(ex=>{ ex.done = false; ex.setsDone = []; });
+  save(); renderList();
+  toast(LL("↺ Casillas reiniciadas — ↶ Deshacer para volver","↺ Boxes reset — ↶ Undo to revert"));
+};
 document.getElementById("modeStraight").onclick = ()=>{ setDayMode(currentDay,"straight"); renderList(); };
 document.getElementById("modeCircuit").onclick = ()=>{ setDayMode(currentDay,"circuit"); renderList(); };
 
@@ -2417,6 +2517,14 @@ document.getElementById("addEx").onclick = ()=>{
 
 /* ---------- Frases motivacionales ---------- */
 const MOTIV = [
+  // ===== CANCIONES · SONGS (títulos; agregá tus letras con "＋ Agregar frase") =====
+  {cat:"songs", text:"No pain, no gain.", src:""},
+  {cat:"songs", text:"Eye of the Tiger", src:"Survivor"},
+  {cat:"songs", text:"Stronger", src:"Kanye West"},
+  {cat:"songs", text:"Don't Stop Me Now", src:"Queen"},
+  {cat:"songs", text:"Harder, Better, Faster, Stronger", src:"Daft Punk"},
+  {cat:"songs", text:"Lose Yourself", src:"Eminem"},
+  {cat:"songs", text:"Butterflies and Hurricanes", src:"Muse"},
   // ===== PELÍCULAS · MOVIES =====
   {cat:"movies", text:"It ain't about how hard you hit. It's about how hard you can get hit and keep moving forward.", src:"Rocky Balboa (Rocky Balboa, 2006)"},
   {cat:"movies", text:"Get busy living, or get busy dying.", src:"The Shawshank Redemption (1994)"},
@@ -2494,6 +2602,7 @@ const MOTIV_CATS = {
   artists: {es:"🎨 Artistas", en:"🎨 Artists"},
   wisdom:  {es:"📜 Sabiduría popular", en:"📜 Wisdom"},
   books:   {es:"📚 Libros / Hábitos", en:"📚 Books / Habits"},
+  songs:   {es:"🎵 Canciones", en:"🎵 Songs"},
 };
 let motivFilter = "all";
 
@@ -2538,11 +2647,8 @@ function renderMotiv(){
   allQuotes().forEach((q, i)=>{
     const isCustom = i >= MOTIV.length;
     const customIdx = i - MOTIV.length;
-    // filtro por categoría (las custom se muestran solo en "Todas")
-    if(motivFilter!=="all"){
-      if(isCustom) return;
-      if(q.cat !== motivFilter) return;
-    }
+    // filtro por categoría (las custom guardan su propia categoría)
+    if(motivFilter!=="all" && q.cat !== motivFilter) return;
     const c = document.createElement("div");
     c.className = "quote-card";
     c.innerHTML = `
@@ -2580,7 +2686,7 @@ document.getElementById("addQuoteBtn").onclick = ()=>{
   const text = textEl.value.trim();
   if(!text){ toast(LL("Escribí una frase primero","Type a quote first")); return; }
   const arr = getCustomQuotes();
-  arr.push({text, src: srcEl.value.trim()});
+  arr.push({text, src: srcEl.value.trim(), cat: motivFilter!=="all" ? motivFilter : undefined});
   setCustomQuotes(arr);
   textEl.value = ""; srcEl.value = "";
   renderMotiv();
@@ -2974,19 +3080,18 @@ wkDeleteBtn.onclick = ()=>{
 };
 
 
-/* ---------- Export scope dialog ---------- */
-function showExportScope(){
+/* ---------- Diálogo de elección genérico (2 opciones + cancelar) ---------- */
+function showScopeDialog(title, label1, label2){
   return new Promise(resolve => {
-    const EN = lang === "en";
     const ov  = document.getElementById("exportScopeOverlay");
     const ttl = document.getElementById("exportScopeTitle");
     const bAll = document.getElementById("exportScopeAll");
     const bSel = document.getElementById("exportScopeSel");
     const bCan = document.getElementById("exportScopeCancel");
-    ttl.textContent  = EN ? "📊 Export scope"         : "📊 Alcance de exportación";
-    bAll.textContent = EN ? "📅 Complete week"         : "📅 Semana completa";
-    bSel.textContent = EN ? "📋 Selected workout"      : "📋 Workout seleccionado";
-    bCan.textContent = EN ? "✕  Cancel"                : "✕  Cancelar";
+    ttl.textContent  = title;
+    bAll.textContent = label1;
+    bSel.textContent = label2;
+    bCan.textContent = lang==="en" ? "✕  Cancel" : "✕  Cancelar";
     ov.style.display = "flex";
     const done = v => { ov.style.display = "none"; resolve(v); };
     bAll.onclick = () => done("all");
@@ -2994,6 +3099,19 @@ function showExportScope(){
     bCan.onclick = () => done(null);
     ov.onclick    = e => { if(e.target === ov) done(null); };
   });
+}
+function showExportScope(){
+  const EN = lang === "en";
+  return showScopeDialog(
+    EN ? "📊 Export scope" : "📊 Alcance de exportación",
+    EN ? "📅 Complete week" : "📅 Semana completa",
+    EN ? "📋 Selected workout" : "📋 Workout seleccionado"
+  );
+}
+/* nombre de archivo: minúsculas, sin acentos, con underscores */
+function fileSlug(s){
+  return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-zA-Z0-9]+/g,"_").replace(/^_+|_+$/g,"").toLowerCase() || "x";
 }
 
 /* ---------- Exportar a Excel ---------- */
@@ -3202,8 +3320,9 @@ document.getElementById("wkExport").onclick = async ()=>{
 
   /* ── Filename: userName_date_BURN.xlsx ── */
   const stamp = new Date().toISOString().slice(0,10);
-  const safeUser = (_userName||"athlete").replace(/[^a-zA-Z0-9_\-áéíóúÁÉÍÓÚñÑüÜ]/g,"_").slice(0,30);
-  const fileName = `${safeUser}_${stamp}_BURN.xlsx`;
+  const safeUser = fileSlug(_userName||"athlete").slice(0,30);
+  const scopePart = exportAll ? (EN?"full_week":"semana_completa") : fileSlug(dayLabel(currentDay));
+  const fileName = `${scopePart}_${safeUser}_${stamp}_BURN.xlsx`;
 
   const buf = await wb.xlsx.writeBuffer();
     const blob = new Blob([buf], { type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -3220,20 +3339,34 @@ document.getElementById("wkExport").onclick = async ()=>{
 };
 
 /* ---------- Compartir / Importar workout (.json) ---------- */
-document.getElementById("wkShare").onclick = ()=>{
+document.getElementById("wkShare").onclick = async ()=>{
+  const EN = lang==="en";
+  const choice = await showScopeDialog(
+    EN ? "📤 Share" : "📤 Compartir",
+    EN ? "📅 Complete week" : "📅 Semana completa",
+    EN ? "📋 Selected day" : "📋 Día seleccionado"
+  );
+  if(choice === null) return;
+  const all = choice === "all";
+  const days = all ? data : { [currentDay]: data[currentDay] };
+  const modes = {};
+  Object.keys(days).forEach(d=>{
+    if(dayModes[d]!==undefined) modes[d]=dayModes[d];
+    if(dayModes["__rest_"+d]!==undefined) modes["__rest_"+d]=dayModes["__rest_"+d];
+  });
   const payload = {
     app: "entrenamiento-rojo",
     version: 2,
     exported: new Date().toISOString(),
-    days: data,
-    modes: dayModes
+    days, modes
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   const stamp = new Date().toISOString().slice(0,10);
+  const scopePart = all ? (EN?"full_week":"semana_completa") : fileSlug(dayLabel(currentDay));
   a.href = url;
-  a.download = `rutina_${stamp}.json`;
+  a.download = `${scopePart}_${fileSlug(_userName||"atleta")}_${stamp}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3245,7 +3378,7 @@ document.getElementById("wkImportInput").onchange = (e)=>{
   const file = e.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = ()=>{
+  reader.onload = async ()=>{
     try{
       const parsed = JSON.parse(reader.result);
       const incoming = parsed.days || parsed;
@@ -3283,15 +3416,35 @@ document.getElementById("wkImportInput").onchange = (e)=>{
       }
       const badDay = Object.keys(incoming).find(k=> !Array.isArray(incoming[k]));
       if(badDay){ toast(LL("El archivo no parece una rutina válida","Not a valid routine file")); return; }
-      const ok = confirm(LL("¿Reemplazar tu rutina actual por la importada?\n(Tip: guardá la actual antes si no querés perderla)","Replace your current routine with the imported one?\n(Tip: save yours first if you don't want to lose it)"));
-      if(!ok) return;
+      const mode = await showScopeDialog(
+        LL("📥 Importar rutina","📥 Import routine"),
+        LL("➕ Combinar con la actual","➕ Merge with current"),
+        LL("♻ Reemplazar todo","♻ Replace everything")
+      );
+      if(mode === null) return;
       pushUndo();
-      data = structuredClone(incoming);
-      if(parsed.modes && typeof parsed.modes==="object" && !Array.isArray(parsed.modes)){
-        dayModes = structuredClone(parsed.modes);
+      const pm = (parsed.modes && typeof parsed.modes==="object" && !Array.isArray(parsed.modes)) ? parsed.modes : {};
+      if(mode === "all"){
+        // MERGE: agrega los días sin tocar los existentes (renombra si hay choque)
+        let firstAdded = null, added = 0;
+        Object.keys(incoming).forEach(day=>{
+          let nm = day, n = 2;
+          while(data[nm]) nm = `${day} (${n++})`;
+          data[nm] = structuredClone(incoming[day]);
+          if(pm[day]!==undefined) dayModes[nm] = pm[day];
+          if(pm["__rest_"+day]!==undefined) dayModes["__rest_"+nm] = pm["__rest_"+day];
+          if(!firstAdded) firstAdded = nm;
+          added++;
+        });
+        if(firstAdded) currentDay = firstAdded;
+        toast(LL(`➕ ${added} día(s) agregado(s)`,`➕ ${added} day(s) added`));
+      } else {
+        data = structuredClone(incoming);
+        dayModes = structuredClone(pm);
         try{ localStorage.setItem(MODE_KEY, JSON.stringify(dayModes)); }catch(e2){}
+        currentDay = Object.keys(data)[0];
+        toast(LL("♻ Rutina reemplazada — ↶ Deshacer para volver","♻ Routine replaced — ↶ Undo to revert"));
       }
-      currentDay = Object.keys(data)[0];
       save(); renderDays(); renderList();
     }catch(err){
       toast(LL("No se pudo leer el archivo","Could not read file"));
@@ -4694,8 +4847,8 @@ const I18N = {
     browseLib:"📚 Biblioteca de ejercicios", addEx:"＋ Añadir ejercicio en blanco",
     tplBtn:"🗂️ Plantillas", propagateBtn:"⚙️ Propagar config", intervalBtn:"⏲️ Intervalos",
     modeStraight:"↓ Series", modeCircuit:"↻ Circuito",
-    wkSave:"💾 Guardar", wkExport:"📊 Excel",
-    wkExcelImport:"📗 Desde Excel", wkShare:"📤 Compartir", wkImport:"📥 Importar",
+    wkSave:"💾 Mis workouts: guardar", wkExport:"📊 Exportar Excel",
+    wkExcelImport:"📗 Importar Excel", wkShare:"📤 Exportar JSON", wkImport:"📥 Importar",
     sessionToggle:"▶ Iniciar sesión", undoBtn:"↶ Deshacer", redoBtn:"↷ Rehacer",
     bgPick:"🖼 Elegir imagen de fondo", bgClear:"✕ Sin imagen",
     dataSavedTxt:"Los datos se guardan en tu dispositivo",
@@ -4715,8 +4868,8 @@ const I18N = {
     browseLib:"📚 Exercise library", addEx:"＋ Add blank exercise",
     tplBtn:"🗂️ Templates", propagateBtn:"⚙️ Apply to all", intervalBtn:"⏲️ Interval timer",
     modeStraight:"↓ Straight", modeCircuit:"↻ Circuit",
-    wkSave:"💾 Save", wkExport:"📊 Excel",
-    wkExcelImport:"📗 From Excel", wkShare:"📤 Share", wkImport:"📥 Import",
+    wkSave:"💾 My workouts: save", wkExport:"📊 Export Excel",
+    wkExcelImport:"📗 Import Excel", wkShare:"📤 Export JSON", wkImport:"📥 Import",
     sessionToggle:"▶ Start session", undoBtn:"↶ Undo", redoBtn:"↷ Redo",
     bgPick:"🖼 Choose background", bgClear:"✕ No image",
     dataSavedTxt:"Your data is saved on your device",
@@ -4805,6 +4958,59 @@ try{
   const savedTheme = localStorage.getItem(THEME_KEY);
   if(savedTheme) applyTheme(savedTheme);
 }catch(e){}
+
+/* ────────── Configuración god mode: paletas de colores ────────── */
+const PALETTE_KEY = "BURN.palette";
+const PALETTES = {
+  rojo:    {es:"🔴 Rojo BURN",  en:"🔴 BURN Red",   vars:null},
+  azul:    {es:"🔵 Azul",       en:"🔵 Blue",       vars:{"--violet":"#0a58d1","--violet-deep":"#00339a","--violet-soft":"#3373e8","--accent":"#0a58d1","--accent-2":"#00339a","--bg-grad-1":"rgba(10,88,209,0.22)","--bg-grad-2":"rgba(0,51,154,0.18)","--shadow":"0 8px 24px rgba(0,51,154,0.16)"}},
+  verde:   {es:"🟢 Verde",      en:"🟢 Green",      vars:{"--violet":"#0e9d4f","--violet-deep":"#006b33","--violet-soft":"#2fbd72","--accent":"#0e9d4f","--accent-2":"#006b33","--bg-grad-1":"rgba(14,157,79,0.20)","--bg-grad-2":"rgba(0,107,51,0.16)","--shadow":"0 8px 24px rgba(0,107,51,0.16)"}},
+  violeta: {es:"🟣 Violeta",    en:"🟣 Purple",     vars:{"--violet":"#7a3ff2","--violet-deep":"#4f1fae","--violet-soft":"#9a6cf6","--accent":"#7a3ff2","--accent-2":"#4f1fae","--bg-grad-1":"rgba(122,63,242,0.20)","--bg-grad-2":"rgba(79,31,174,0.16)","--shadow":"0 8px 24px rgba(79,31,174,0.16)"}},
+  naranja: {es:"🟠 Naranja",    en:"🟠 Orange",     vars:{"--violet":"#e8650a","--violet-deep":"#b34400","--violet-soft":"#f08a3c","--accent":"#e8650a","--accent-2":"#b34400","--bg-grad-1":"rgba(232,101,10,0.20)","--bg-grad-2":"rgba(179,68,0,0.16)","--shadow":"0 8px 24px rgba(179,68,0,0.16)"}},
+  acero:   {es:"⚫ Acero",      en:"⚫ Steel",       vars:{"--violet":"#2b2f36","--violet-deep":"#131519","--violet-soft":"#4a505a","--accent":"#2b2f36","--accent-2":"#131519","--bg-grad-1":"rgba(43,47,54,0.18)","--bg-grad-2":"rgba(19,21,25,0.14)","--shadow":"0 8px 24px rgba(19,21,25,0.18)"}},
+};
+const _PALETTE_VARS = ["--violet","--violet-deep","--violet-soft","--accent","--accent-2","--bg-grad-1","--bg-grad-2","--shadow"];
+function applyPalette(name){
+  const pal = PALETTES[name] || PALETTES.rojo;
+  const rootStyle = document.documentElement.style;
+  if(!pal.vars){ _PALETTE_VARS.forEach(v=> rootStyle.removeProperty(v)); }
+  else { Object.entries(pal.vars).forEach(([k,v])=> rootStyle.setProperty(k,v)); }
+  try{ localStorage.setItem(PALETTE_KEY, name); }catch(e){}
+  if(typeof updateDayProgress === "function") updateDayProgress(); // repinta el anillo
+}
+function openSettings(){
+  let ov = document.getElementById("settingsOverlay");
+  if(!ov){
+    ov = document.createElement("div");
+    ov.id = "settingsOverlay";
+    ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:flex;align-items:center;justify-content:center";
+    ov.innerHTML = `<div style="background:var(--panel-strong);border-radius:16px;padding:18px 20px;max-width:340px;width:90%;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <strong id="settingsTitle" style="color:var(--violet-deep)"></strong>
+        <button id="settingsClose" style="border:none;background:transparent;font-size:1.1rem;cursor:pointer">✕</button>
+      </div>
+      <div id="paletteList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>`;
+    document.body.appendChild(ov);
+    ov.onclick = e=>{ if(e.target===ov) ov.style.display="none"; };
+    ov.querySelector("#settingsClose").onclick = ()=> ov.style.display="none";
+  }
+  ov.querySelector("#settingsTitle").textContent = LL("⚙️ Configuración — Paleta de colores","⚙️ Settings — Color palette");
+  const listEl2 = ov.querySelector("#paletteList");
+  listEl2.innerHTML = "";
+  const current = localStorage.getItem(PALETTE_KEY) || "rojo";
+  Object.entries(PALETTES).forEach(([key,pal])=>{
+    const c = pal.vars ? pal.vars["--accent"] : "#d10a14";
+    const b = document.createElement("button");
+    b.style.cssText = `display:flex;align-items:center;gap:10px;border:2px solid ${key===current ? c : "var(--line)"};background:transparent;border-radius:12px;padding:9px 12px;cursor:pointer;font-weight:bold;color:var(--ink);font-size:.95rem`;
+    b.innerHTML = `<span style="width:20px;height:20px;border-radius:50%;background:${c};flex:0 0 auto"></span>${lang==="en"?pal.en:pal.es}${key===current ? " ✓" : ""}`;
+    b.onclick = ()=>{ applyPalette(key); openSettings(); };
+    listEl2.appendChild(b);
+  });
+  ov.style.display = "flex";
+}
+document.getElementById("paletteBtn").onclick = openSettings;
+try{ const _sp = localStorage.getItem(PALETTE_KEY); if(_sp && _sp!=="rojo") applyPalette(_sp); }catch(e){}
 
 /* ────────── Pantalla encendida (Wake Lock) + audio en segundo plano ────────── */
 const KEEPAWAKE_KEY = "BURN.keepAwake";
@@ -4926,6 +5132,8 @@ function setAppMode(m){
   const gb = document.getElementById("godModeBtn");
   if(pb){ pb.classList.toggle("active", appMode==="pocket"); }
   if(gb){ gb.classList.toggle("active", appMode==="god"); }
+  const palB = document.getElementById("paletteBtn");
+  if(palB) palB.style.display = (appMode==="god") ? "" : "none";
   try{ localStorage.setItem(APP_MODE_KEY, appMode); }catch(e){}
 }
 document.getElementById("pocketModeBtn").onclick = ()=> setAppMode("pocket");
