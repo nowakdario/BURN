@@ -241,6 +241,16 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* Regla anti-apelotonamiento: todo hijo consecutivo de una columna respira */
   .dp-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
   .dp-col > * + *{margin-top:10px}
+  /* sin spinners nativos: los botones − ＋ son el único control de subir/bajar */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
+  input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+  /* barra de datos adentro del menú ⚙️ (anula el display:none del modo pocket) */
+  #settingsOverlay .workout-bar{display:flex !important;flex-direction:column;align-items:stretch;gap:8px;margin:0}
+  #settingsOverlay .workout-bar .wk-btn,#settingsOverlay .wk-select{width:100%;margin:0}
+  #settingsOverlay #themeToggle{width:46px;height:46px;font-size:1.25rem;border:2px solid var(--line);background:var(--cream-2);color:var(--ink)}
+  .drag-h{cursor:grab;touch-action:none}
+  .drag-h:active{cursor:grabbing}
   .day-progress-bar{height:10px;background:rgba(255,255,255,0.25);border-radius:999px;overflow:hidden;width:100%}
   .day-progress-bar span{display:block;height:100%;width:0;background:var(--cream);border-radius:999px;transition:width .4s ease}
   .day-progress-txt{font-size:.78rem;font-weight:600;color:var(--cream);opacity:.9}
@@ -953,7 +963,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button id="voiceToggleBtn" onclick="toggleVoice()" title="Voz · Voice">🔊</button>
       <button id="wakeBtn" title="Pantalla siempre encendida · Keep screen awake">🔆</button>
       <button id="bgAudioBtn" title="Audio en segundo plano · Background audio">📻</button>
-      <button id="paletteBtn" title="Configuración · Settings" style="display:none">⚙️</button>
+      <button id="paletteBtn" title="Preferencias · Preferences">⚙️</button>
     </div>
   </div>
     <div class="user-info-bar">
@@ -1746,20 +1756,41 @@ function updateUndoButtons(){
 }
 
 /* ---------- Propagar configuración a todos los ejercicios del día ---------- */
+/* Garantiza que ex.setsDone tenga ex.sets entradas densas. Si se pasan valores,
+   los fija en TODAS las series (no solo en las ya materializadas). */
+function syncSetsDone(ex, vals){
+  const n = Math.max(0, +ex.sets||0);
+  ex.setsDone = ex.setsDone || [];
+  for(let i=0;i<n;i++){
+    let s = ex.setsDone[i];
+    if(!s){ s = {w:ex.weight, r:ex.reps, done:false, rest:ex.rest}; ex.setsDone[i] = s; }
+    if(vals){
+      if(vals.r   !== undefined) s.r = vals.r;
+      if(vals.w   !== undefined) s.w = vals.w;
+      if(vals.rest!== undefined && s.rest!=null) s.rest = vals.rest;
+    }
+  }
+  ex.setsDone.length = n; // descarta sobrantes
+}
 function propagateConfig(){
   const list = data[currentDay];
   if(!list || !list.length){ toast(LL("Este día no tiene ejercicios","No exercises")); return; }
-  const sets = prompt("Series para TODOS los ejercicios del día (vacío = no cambiar):", list[0].sets ?? "");
+  const sets = prompt(LL("Series para TODOS los ejercicios del día (vacío = no cambiar):","Sets for ALL exercises (empty = keep):"), list[0].sets ?? "");
   if(sets===null) return;
-  const reps = prompt("Reps para TODOS (vacío = no cambiar):", list[0].reps ?? "");
+  const reps = prompt(LL("Reps para TODOS (vacío = no cambiar):","Reps for ALL (empty = keep):"), list[0].reps ?? "");
   if(reps===null) return;
-  const rest = prompt("Descanso en segundos para TODOS (vacío = no cambiar):", list[0].rest ?? "");
+  const weight = prompt(LL("Peso (kg) para TODOS (vacío = no cambiar):","Weight (kg) for ALL (empty = keep):"), list[0].weight ?? "");
+  if(weight===null) return;
+  const rest = prompt(LL("Descanso en segundos para TODOS (vacío = no cambiar):","Rest in seconds for ALL (empty = keep):"), list[0].rest ?? "");
   if(rest===null) return;
   pushUndo();
   list.forEach(ex=>{
-    if(sets!=="" && !isNaN(+sets)){ ex.sets = +sets; ex.setsDone = (ex.setsDone||[]).slice(0,+sets); }
-    if(reps!=="" && !isNaN(+reps)) ex.reps = +reps;
-    if(rest!=="" && !isNaN(+rest)) ex.rest = +rest;
+    if(sets!=="" && !isNaN(+sets)) ex.sets = +sets;
+    const vals = {};
+    if(reps!=="" && !isNaN(+reps)){ ex.reps = +reps; vals.r = +reps; }
+    if(weight!=="" && !isNaN(+weight)){ ex.weight = +weight; vals.w = +weight; }
+    if(rest!=="" && !isNaN(+rest)){ ex.rest = +rest; vals.rest = +rest; }
+    syncSetsDone(ex, vals);
   });
   save(); renderList();
 }
@@ -1804,6 +1835,44 @@ function attachDayDrag(wrap, day){
     document.addEventListener("pointerup", up);
     document.addEventListener("pointercancel", up);
   });
+}
+/* Reordenar ejercicios arrastrando desde la manija ⠿ (mouse y táctil) */
+function attachExDrag(card, idx){
+  const h = card.querySelector(".drag-h");
+  if(!h) return;
+  card._exIdx = idx;
+  h.addEventListener("pointerdown", (e)=>{
+    e.preventDefault();
+    let target = null;
+    card.style.opacity = ".45";
+    const move = (ev)=>{
+      ev.preventDefault();
+      const el = document.elementFromPoint(ev.clientX, ev.clientY);
+      const c2 = el && el.closest ? el.closest("#list .card") : null;
+      document.querySelectorAll("#list .card").forEach(c=>{ c.style.outline=""; });
+      if(c2 && c2 !== card){ c2.style.outline = "3px dashed var(--accent)"; target = c2._exIdx; }
+      else target = null;
+    };
+    const up = ()=>{
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", up);
+      card.style.opacity = "";
+      document.querySelectorAll("#list .card").forEach(c=>{ c.style.outline=""; });
+      if(target != null && target !== idx) moveExercise(idx, target);
+    };
+    document.addEventListener("pointermove", move, {passive:false});
+    document.addEventListener("pointerup", up);
+    document.addEventListener("pointercancel", up);
+  });
+}
+function moveExercise(from, to){
+  const l = data[currentDay];
+  if(!l || from === to || l[from] == null) return;
+  pushUndo();
+  const [it] = l.splice(from, 1);
+  l.splice(to, 0, it);
+  save(); renderList();
 }
 function reorderDays(from, to){
   if(!data[from] || !data[to] || from === to) return;
@@ -2084,7 +2153,7 @@ function makeCircuitCard(ex, idx){
         </div>
       </div>
       <div class="reorder">
-        <button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
+        <button class="drag-h" title="${Lc('Arrastrar para reordenar','Drag to reorder')}">⠿</button><button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
         <button class="move-down" title="${Lc('Bajar','Move down')}" ${idx===data[currentDay].length-1?"disabled":""}>▼</button>
       </div>
       <button class="swap" title="${Lc('Cambiar ejercicio','Replace exercise')}">🔄</button>
@@ -2170,6 +2239,7 @@ function makeCircuitCard(ex, idx){
   card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
+  attachExDrag(card, idx);
   // steppers de tiempo/descanso
   card.querySelectorAll(".cc-m, .cc-p").forEach(btn=>{
     btn.onclick = ()=>{
@@ -2305,7 +2375,7 @@ function makeCard(ex, idx){
     <div class="card-right">
       <div class="card-btns">
         <div class="reorder">
-          <button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
+          <button class="drag-h" title="${Lc('Arrastrar para reordenar','Drag to reorder')}">⠿</button><button class="move-up" title="${Lc('Subir','Move up')}" ${idx===0?"disabled":""}>▲</button>
           <button class="move-down" title="${Lc('Bajar','Move down')}" ${idx===data[currentDay].length-1?"disabled":""}>▼</button>
         </div>
         <button class="swap" title="${Lc('Cambiar ejercicio','Replace exercise')}">🔄</button>
@@ -2346,6 +2416,7 @@ function makeCard(ex, idx){
     }
   };
   card.appendChild(head);
+  attachExDrag(card, idx);
 
   // Cuerpo
   const body = document.createElement("div");
@@ -2363,9 +2434,9 @@ function makeCard(ex, idx){
   const setsLabel = isCircuit ? LL("Rondas","Rounds") : LL("Series","Sets");
   const weightLabel = LL("Peso (kg)","Weight (kg)");
   const restLabel = LL("Descanso (s)","Rest (s)");
-  grid.appendChild(numField(setsLabel, ex.sets, 1, v=>{ ex.sets=v; ex.setsDone=(ex.setsDone||[]).slice(0,v); save(); renderList(); }));
-  grid.appendChild(numField(repsLabel, ex.reps, 1, v=>{ ex.reps=v; ex.setsDone.forEach(s=>{ if(s) s.r=v; }); save(); renderList(); }));
-  grid.appendChild(numField(weightLabel, ex.weight, 1, v=>{ ex.weight=v; ex.setsDone.forEach(s=>{ if(s) s.w=v; }); save(); renderList(); }, true));
+  grid.appendChild(numField(setsLabel, ex.sets, 1, v=>{ ex.sets=v; syncSetsDone(ex); save(); renderList(); }));
+  grid.appendChild(numField(repsLabel, ex.reps, 1, v=>{ ex.reps=v; syncSetsDone(ex,{r:v}); save(); renderList(); }));
+  grid.appendChild(numField(weightLabel, ex.weight, 1, v=>{ ex.weight=v; syncSetsDone(ex,{w:v}); save(); renderList(); }, true));
   grid.appendChild(numField(restLabel, ex.rest, 5, v=>{ ex.rest=v; save(); }));
   body.appendChild(grid);
 
@@ -4947,6 +5018,7 @@ const themeToggle = document.getElementById("themeToggle");
 function applyTheme(t){
   if(t==="dark"){ document.documentElement.setAttribute("data-theme","dark"); themeToggle.textContent="☀️"; }
   else{ document.documentElement.removeAttribute("data-theme"); themeToggle.textContent="🌙"; }
+  try{ applyPalette(localStorage.getItem("BURN.palette") || "rojo"); }catch(e){}
 }
 themeToggle.onclick = ()=>{
   const dark = document.documentElement.getAttribute("data-theme")==="dark";
@@ -4962,45 +5034,72 @@ try{
 /* ────────── Configuración god mode: paletas de colores ────────── */
 const PALETTE_KEY = "BURN.palette";
 const PALETTES = {
-  rojo:    {es:"🔴 Rojo BURN",  en:"🔴 BURN Red",   vars:null},
-  azul:    {es:"🔵 Azul",       en:"🔵 Blue",       vars:{"--violet":"#0a58d1","--violet-deep":"#00339a","--violet-soft":"#3373e8","--accent":"#0a58d1","--accent-2":"#00339a","--bg-grad-1":"rgba(10,88,209,0.22)","--bg-grad-2":"rgba(0,51,154,0.18)","--shadow":"0 8px 24px rgba(0,51,154,0.16)"}},
-  verde:   {es:"🟢 Verde",      en:"🟢 Green",      vars:{"--violet":"#0e9d4f","--violet-deep":"#006b33","--violet-soft":"#2fbd72","--accent":"#0e9d4f","--accent-2":"#006b33","--bg-grad-1":"rgba(14,157,79,0.20)","--bg-grad-2":"rgba(0,107,51,0.16)","--shadow":"0 8px 24px rgba(0,107,51,0.16)"}},
-  violeta: {es:"🟣 Violeta",    en:"🟣 Purple",     vars:{"--violet":"#7a3ff2","--violet-deep":"#4f1fae","--violet-soft":"#9a6cf6","--accent":"#7a3ff2","--accent-2":"#4f1fae","--bg-grad-1":"rgba(122,63,242,0.20)","--bg-grad-2":"rgba(79,31,174,0.16)","--shadow":"0 8px 24px rgba(79,31,174,0.16)"}},
-  naranja: {es:"🟠 Naranja",    en:"🟠 Orange",     vars:{"--violet":"#e8650a","--violet-deep":"#b34400","--violet-soft":"#f08a3c","--accent":"#e8650a","--accent-2":"#b34400","--bg-grad-1":"rgba(232,101,10,0.20)","--bg-grad-2":"rgba(179,68,0,0.16)","--shadow":"0 8px 24px rgba(179,68,0,0.16)"}},
-  acero:   {es:"⚫ Acero",      en:"⚫ Steel",       vars:{"--violet":"#2b2f36","--violet-deep":"#131519","--violet-soft":"#4a505a","--accent":"#2b2f36","--accent-2":"#131519","--bg-grad-1":"rgba(43,47,54,0.18)","--bg-grad-2":"rgba(19,21,25,0.14)","--shadow":"0 8px 24px rgba(19,21,25,0.18)"}},
+  rojo:    {es:"🔴 Rojo BURN", en:"🔴 BURN Red", light:null, dark:null},
+  azul:    {es:"🔵 Azul", en:"🔵 Blue",
+    light:{"--violet":"#0a58d1","--violet-deep":"#00339a","--violet-soft":"#3373e8","--accent":"#0a58d1","--accent-2":"#00339a","--bg-grad-1":"rgba(10,88,209,0.22)","--bg-grad-2":"rgba(0,51,154,0.18)","--shadow":"0 8px 24px rgba(0,51,154,0.16)"},
+    dark:{"--violet":"#6ea8ff","--violet-deep":"#9cc0ff","--violet-soft":"#4d86e8","--accent":"#6ea8ff","--accent-2":"#9cc0ff","--bg-grad-1":"rgba(110,168,255,0.14)","--bg-grad-2":"rgba(77,134,232,0.10)"}},
+  verde:   {es:"🟢 Verde", en:"🟢 Green",
+    light:{"--violet":"#0e9d4f","--violet-deep":"#006b33","--violet-soft":"#2fbd72","--accent":"#0e9d4f","--accent-2":"#006b33","--bg-grad-1":"rgba(14,157,79,0.20)","--bg-grad-2":"rgba(0,107,51,0.16)","--shadow":"0 8px 24px rgba(0,107,51,0.16)"},
+    dark:{"--violet":"#34d27b","--violet-deep":"#7fe7ae","--violet-soft":"#1f9d55","--accent":"#34d27b","--accent-2":"#7fe7ae","--bg-grad-1":"rgba(52,210,123,0.13)","--bg-grad-2":"rgba(31,157,85,0.10)"}},
+  violeta: {es:"🟣 Violeta", en:"🟣 Purple",
+    light:{"--violet":"#b14cf0","--violet-deep":"#8b2fc9","--violet-soft":"#cf8df7","--accent":"#b14cf0","--accent-2":"#8b2fc9","--bg-grad-1":"rgba(177,76,240,0.20)","--bg-grad-2":"rgba(139,47,201,0.15)","--shadow":"0 8px 24px rgba(139,47,201,0.16)"},
+    dark:{"--violet":"#c084fc","--violet-deep":"#d8b4fe","--violet-soft":"#a855f7","--accent":"#c084fc","--accent-2":"#d8b4fe","--bg-grad-1":"rgba(192,132,252,0.14)","--bg-grad-2":"rgba(168,85,247,0.10)"}},
+  naranja: {es:"🟠 Naranja", en:"🟠 Orange",
+    light:{"--violet":"#e8650a","--violet-deep":"#b34400","--violet-soft":"#f08a3c","--accent":"#e8650a","--accent-2":"#b34400","--bg-grad-1":"rgba(232,101,10,0.20)","--bg-grad-2":"rgba(179,68,0,0.16)","--shadow":"0 8px 24px rgba(179,68,0,0.16)"},
+    dark:{"--violet":"#fb923c","--violet-deep":"#fdba74","--violet-soft":"#ea7014","--accent":"#fb923c","--accent-2":"#fdba74","--bg-grad-1":"rgba(251,146,60,0.14)","--bg-grad-2":"rgba(234,112,20,0.10)"}},
+  acero:   {es:"⚫ Acero", en:"⚫ Steel",
+    light:{"--violet":"#2b2f36","--violet-deep":"#131519","--violet-soft":"#4a505a","--accent":"#2b2f36","--accent-2":"#131519","--bg-grad-1":"rgba(43,47,54,0.18)","--bg-grad-2":"rgba(19,21,25,0.14)","--shadow":"0 8px 24px rgba(19,21,25,0.18)"},
+    dark:{"--violet":"#aab3bf","--violet-deep":"#cfd6de","--violet-soft":"#7e8794","--accent":"#aab3bf","--accent-2":"#cfd6de","--bg-grad-1":"rgba(170,179,191,0.12)","--bg-grad-2":"rgba(126,135,148,0.10)"}},
 };
 const _PALETTE_VARS = ["--violet","--violet-deep","--violet-soft","--accent","--accent-2","--bg-grad-1","--bg-grad-2","--shadow"];
 function applyPalette(name){
   const pal = PALETTES[name] || PALETTES.rojo;
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const vars = isDark ? pal.dark : pal.light;
   const rootStyle = document.documentElement.style;
-  if(!pal.vars){ _PALETTE_VARS.forEach(v=> rootStyle.removeProperty(v)); }
-  else { Object.entries(pal.vars).forEach(([k,v])=> rootStyle.setProperty(k,v)); }
+  _PALETTE_VARS.forEach(v=> rootStyle.removeProperty(v));
+  if(vars) Object.entries(vars).forEach(([k,v])=> rootStyle.setProperty(k,v));
   try{ localStorage.setItem(PALETTE_KEY, name); }catch(e){}
   if(typeof updateDayProgress === "function") updateDayProgress(); // repinta el anillo
 }
-function openSettings(){
+function ensureSettingsOverlay(){
   let ov = document.getElementById("settingsOverlay");
-  if(!ov){
-    ov = document.createElement("div");
-    ov.id = "settingsOverlay";
-    ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:flex;align-items:center;justify-content:center";
-    ov.innerHTML = `<div style="background:var(--panel-strong);border-radius:16px;padding:18px 20px;max-width:340px;width:90%;box-shadow:var(--shadow)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <strong id="settingsTitle" style="color:var(--violet-deep)"></strong>
-        <button id="settingsClose" style="border:none;background:transparent;font-size:1.1rem;cursor:pointer">✕</button>
-      </div>
-      <div id="paletteList" style="display:flex;flex-direction:column;gap:8px"></div>
-    </div>`;
-    document.body.appendChild(ov);
-    ov.onclick = e=>{ if(e.target===ov) ov.style.display="none"; };
-    ov.querySelector("#settingsClose").onclick = ()=> ov.style.display="none";
-  }
-  ov.querySelector("#settingsTitle").textContent = LL("⚙️ Configuración — Paleta de colores","⚙️ Settings — Color palette");
+  if(ov) return ov;
+  ov = document.createElement("div");
+  ov.id = "settingsOverlay";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:28px 0";
+  ov.innerHTML = `<div style="background:var(--panel-strong);border-radius:16px;padding:18px 20px;max-width:390px;width:92%;box-shadow:var(--shadow)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <strong id="settingsTitle" style="color:var(--violet-deep)"></strong>
+      <button id="settingsClose" style="border:none;background:transparent;font-size:1.1rem;cursor:pointer">✕</button>
+    </div>
+    <h4 id="settingsDataTitle" style="margin:6px 0;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
+    <div id="settingsDataSlot"></div>
+    <h4 id="settingsLookTitle" style="margin:16px 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
+    <div id="settingsThemeRow" style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span id="settingsThemeLbl" style="font-weight:600;color:var(--ink);font-size:.92rem"></span></div>
+    <div id="paletteList" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>`;
+  document.body.appendChild(ov);
+  ov.onclick = e=>{ if(e.target===ov) ov.style.display="none"; };
+  ov.querySelector("#settingsClose").onclick = ()=> ov.style.display="none";
+  // mover la barra de workouts (guardar/importar/exportar) y el toggle de tema adentro del menú
+  const bar = document.querySelector(".workout-bar");
+  if(bar) ov.querySelector("#settingsDataSlot").appendChild(bar);
+  const th = document.getElementById("themeToggle");
+  if(th) ov.querySelector("#settingsThemeRow").appendChild(th);
+  return ov;
+}
+function openSettings(){
+  const ov = ensureSettingsOverlay();
+  ov.querySelector("#settingsTitle").textContent = LL("⚙️ Preferencias","⚙️ Preferences");
+  ov.querySelector("#settingsDataTitle").textContent = LL("📦 Datos — guardar · importar · exportar","📦 Data — save · import · export");
+  ov.querySelector("#settingsLookTitle").textContent = LL("🎨 Apariencia","🎨 Appearance");
+  ov.querySelector("#settingsThemeLbl").textContent = LL("Modo claro / oscuro:","Light / dark mode:");
   const listEl2 = ov.querySelector("#paletteList");
   listEl2.innerHTML = "";
   const current = localStorage.getItem(PALETTE_KEY) || "rojo";
   Object.entries(PALETTES).forEach(([key,pal])=>{
-    const c = pal.vars ? pal.vars["--accent"] : "#d10a14";
+    const c = pal.light ? pal.light["--accent"] : "#d10a14";
     const b = document.createElement("button");
     b.style.cssText = `display:flex;align-items:center;gap:10px;border:2px solid ${key===current ? c : "var(--line)"};background:transparent;border-radius:12px;padding:9px 12px;cursor:pointer;font-weight:bold;color:var(--ink);font-size:.95rem`;
     b.innerHTML = `<span style="width:20px;height:20px;border-radius:50%;background:${c};flex:0 0 auto"></span>${lang==="en"?pal.en:pal.es}${key===current ? " ✓" : ""}`;
@@ -5010,7 +5109,8 @@ function openSettings(){
   ov.style.display = "flex";
 }
 document.getElementById("paletteBtn").onclick = openSettings;
-try{ const _sp = localStorage.getItem(PALETTE_KEY); if(_sp && _sp!=="rojo") applyPalette(_sp); }catch(e){}
+try{ applyPalette(localStorage.getItem(PALETTE_KEY) || "rojo"); }catch(e){}
+ensureSettingsOverlay();
 
 /* ────────── Pantalla encendida (Wake Lock) + audio en segundo plano ────────── */
 const KEEPAWAKE_KEY = "BURN.keepAwake";
@@ -5132,8 +5232,7 @@ function setAppMode(m){
   const gb = document.getElementById("godModeBtn");
   if(pb){ pb.classList.toggle("active", appMode==="pocket"); }
   if(gb){ gb.classList.toggle("active", appMode==="god"); }
-  const palB = document.getElementById("paletteBtn");
-  if(palB) palB.style.display = (appMode==="god") ? "" : "none";
+
   try{ localStorage.setItem(APP_MODE_KEY, appMode); }catch(e){}
 }
 document.getElementById("pocketModeBtn").onclick = ()=> setAppMode("pocket");
