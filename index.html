@@ -183,8 +183,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     display:flex;align-items:center;width:100%;
   }
   .header-btns-left,.header-btns-right{
-    display:flex;gap:8px;align-items:center;flex-shrink:0;min-width:90px;
-    align-self:flex-start;padding-top:0;
+    display:flex;gap:6px;align-items:center;flex-shrink:1;min-width:0;
+    align-self:flex-start;padding-top:0;overflow:hidden;
   }
   .header-btns-right{ justify-content:flex-end; }
   .theme-toggle{
@@ -230,14 +230,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* Barra de progreso del día */
   #workoutPieWrap{
     display:none;
-    flex-direction:row;align-items:center;gap:10px;
-    padding:8px 16px 4px;justify-content:center;
+    flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    padding:0;
   }
   body.god-mode #workoutPieWrap{display:flex;}
   #workoutPie{border-radius:50%;flex:0 0 auto;}
   .workout-pie-pct{display:none;}
   .workout-pie-label{font-size:.7rem;color:var(--cream);opacity:.9;text-transform:uppercase;letter-spacing:.5px;}
-  .day-progress{margin:14px auto 6px;max-width:520px}
+  .day-progress{margin:14px auto;max-width:520px}
   /* Regla anti-apelotonamiento: todo hijo consecutivo de una columna respira */
   .dp-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
   .dp-col > * + *{margin-top:10px}
@@ -247,7 +247,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
   /* barra de datos adentro del menú ⚙️ (anula el display:none del modo pocket) */
   #settingsOverlay .workout-bar{display:flex !important;flex-direction:column;align-items:stretch;gap:8px;margin:0}
-  #settingsOverlay .workout-bar .wk-btn,#settingsOverlay .wk-select{width:100%;margin:0}
+  #settingsOverlay .workout-bar .wk-btn,#settingsOverlay .wk-select{width:100%;margin:0;background:var(--panel-strong);border-color:var(--line);color:var(--violet-deep)}
   #settingsOverlay #themeToggle{width:46px;height:46px;font-size:1.25rem;border:2px solid var(--line);background:var(--cream-2);color:var(--ink)}
   .drag-h{cursor:grab;touch-action:none}
   .drag-h:active{cursor:grabbing}
@@ -281,15 +281,20 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   #settingsOverlay #voiceToggleBtn,#settingsOverlay #wakeBtn,#settingsOverlay #bgAudioBtn{width:46px;height:46px;font-size:1.25rem;border:2px solid var(--line);background:var(--cream-2);color:var(--ink)}
   /* atleta / última actualización arriba a la derecha */
   /* BURN + logo SIEMPRE centrados: grilla de 3 columnas iguales */
-  .header-top-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px}
+  .header-top-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
   .header-btns-left{justify-self:start}
   .header-top-row h1{grid-column:2;justify-self:center;text-align:center}
-  .header-btns-right{justify-self:end;flex-wrap:wrap;justify-content:flex-end;align-items:center;padding-right:42px}
+  .header-btns-right{justify-self:end;flex-wrap:wrap;justify-content:flex-end;align-items:center;min-width:0;overflow:hidden}
   /* gear clavado en la esquina superior derecha, a la altura exacta del botón de idioma */
   .header-top-row{position:relative}
-  #paletteBtn{position:absolute;top:0;right:0}
+  /* #paletteBtn: normal flow, no absolute */
   .header-btns-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .uib-group{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--cream);background:rgba(255,255,255,.10);padding:4px 10px;border-radius:10px}
+  .uib-group{display:inline-flex;align-items:center;gap:4px;font-size:.76rem;color:var(--cream);background:rgba(255,255,255,.10);padding:4px 8px;border-radius:10px;min-width:0;overflow:hidden;max-width:100%}
+  /* ══ ANTI-OVERLAP SAFEGUARD ══
+     All direct children of header grid/flex containers must respect their
+     column bounds. Nothing may bleed outside the header box. */
+  header.app{ overflow:hidden; }
+  .header-top-row > *{ min-width:0; overflow:hidden; }
   .uib-group label{font-weight:600;white-space:nowrap;opacity:.85}
   .uib-group input{max-width:110px;padding:3px 8px}
   .day-progress-bar{height:10px;background:rgba(255,255,255,0.25);border-radius:999px;overflow:hidden;width:100%}
@@ -351,6 +356,82 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
   .day-chip.active .day-x{color:var(--violet-deep)}
   .day-chip .day-x:hover{opacity:1;transform:scale(1.15)}
+
+  /* == Hand-drawn strikethrough for completed days == */
+  .day-chip.struck { position:relative; }
+  .day-chip.struck .day-btn-inner { opacity:0.45; }
+  .day-strike-svg {
+    position:absolute; top:50%; transform:translateY(-50%);
+    left:6px; width:calc(100% - 12px); height:22px;
+    pointer-events:none; overflow:visible;
+  }
+  .day-chip.active .day-strike-svg { color:var(--violet-deep); }
+  .day-strike-path {
+    stroke:currentColor; stroke-width:2.8; fill:none; stroke-linecap:round;
+    stroke-dasharray:140; stroke-dashoffset:0;
+  }
+  @keyframes strike-draw { from{stroke-dashoffset:140} to{stroke-dashoffset:0} }
+  .day-chip.struck .day-strike-path { animation:strike-draw .45s ease-out forwards; }
+  /* == All days done banner == */
+  #allDaysBanner {
+    display:none; text-align:center; padding:10px 14px;
+    color:var(--cream); font-weight:bold; font-size:1rem;
+    animation:fadeSlideIn .5s ease;
+  }
+  #allDaysBanner.show { display:block; }
+  @keyframes fadeSlideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  /* == Celebration full-screen overlay == */
+  .burn-celebration {
+    position:fixed; inset:0; z-index:700;
+    display:none; flex-direction:column;
+    align-items:center; justify-content:center;
+    background:linear-gradient(160deg,#0d1b2a,#1a1a2e);
+    color:#fff; text-align:center; padding:32px; overflow:hidden;
+  }
+  .burn-celebration.show { display:flex; animation:bc-pop .4s ease forwards; }
+  @keyframes bc-pop {
+    0%  {transform:scale(.85);opacity:0}
+    65% {transform:scale(1.04);opacity:1}
+    100%{transform:scale(1)}
+  }
+  .bc-title { font-size:2.2rem; font-weight:900; line-height:1.2; margin-bottom:14px; white-space:pre-line; }
+  .bc-sub   { font-size:1.05rem; opacity:.9; margin-bottom:20px; line-height:1.6; white-space:pre-line; }
+  .bc-close { border:2px solid #fff; background:transparent; color:#fff; border-radius:12px;
+               padding:12px 30px; font-weight:bold; font-size:1rem; cursor:pointer; margin-top:4px; }
+  .bc-close:hover { background:rgba(255,255,255,.15); }
+  .bc-rains { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .bc-drop  { position:absolute; top:-40px; font-size:1.8rem; animation:bc-rain linear forwards; opacity:.85; }
+  @keyframes bc-rain {
+    0%  {transform:translateY(0) rotate(0deg);opacity:.9}
+    100%{transform:translateY(110vh) rotate(360deg);opacity:0}
+  }
+  /* == Motivational phrase ticker in train mode == */
+  .train-motiv {
+    text-align:center; font-size:1.1rem; font-weight:700;
+    color:rgba(247,243,234,.85); min-height:1.6em;
+    transition:opacity .4s; opacity:1; padding:4px 0 2px;
+    font-style:italic; letter-spacing:.3px;
+  }
+  .train-motiv.fade { opacity:0; }
+  /* == Motivational phrase in iv-run work phase == */
+  .iv-motiv {
+    font-size:1.1rem; font-weight:700; min-height:1.4em;
+    opacity:.9; font-style:italic; letter-spacing:.3px;
+    transition:opacity .5s; max-width:85%; text-align:center;
+  }
+  .iv-motiv.fade { opacity:0; }
+  /* == Tooltip bubble == */
+  #burnTip {
+    position:fixed; z-index:9999; max-width:260px; width:max-content;
+    background:rgba(18,18,28,.94); color:#fff;
+    font-size:.79rem; line-height:1.45; font-weight:500;
+    border-radius:9px; padding:7px 11px;
+    pointer-events:none; opacity:0; transition:opacity .15s;
+    box-shadow:0 4px 16px rgba(0,0,0,.45);
+    border:1px solid rgba(255,255,255,.1);
+  }
+  #burnTip.show { opacity:1; }
+
   /* Barra de sesión: cronómetro + undo/redo */
   .session-bar{
     display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;
@@ -387,9 +468,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .iv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
   .iv-total{text-align:center;font-weight:bold;color:var(--violet-deep);margin:12px 0 4px;font-size:.9rem}
   .iv-run{
-    position:fixed;inset:0;z-index:300;display:none;flex-direction:column;
+    position:fixed;inset:0;z-index:500;display:none;flex-direction:column;
     align-items:center;justify-content:center;color:#fff;text-align:center;gap:10px;
-    transition:background .3s;
+    transition:background .3s;height:100dvh;height:100vh;overflow:hidden;
   }
   .iv-run.show{display:flex}
   .iv-run.phase-prep{background:linear-gradient(160deg,#6a3fb0,#4a2980)}
@@ -770,7 +851,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* Modo entrenar pantalla completa */
   .train-overlay{
     position:fixed;inset:0;background:linear-gradient(160deg,var(--violet),var(--violet-deep));
-    color:var(--cream);z-index:200;display:none;flex-direction:column;padding:16px;
+    color:var(--cream);z-index:400;display:none;flex-direction:column;padding:16px;
+    height:100dvh;height:100vh;overflow:hidden;
   }
   .train-overlay.show{display:flex}
   .train-top{display:flex;justify-content:space-between;align-items:center;font-size:1.1rem;font-weight:bold}
@@ -861,6 +943,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     body.god-mode .quick-btn{ font-size:.75rem;padding:7px 8px; }
     header.app{ padding:12px 10px 14px; }
     .header-top-row{ gap:6px; }
+    /* Anti-overlap: hide verbose label, truncate date on mobile */
+    #lastModLabel{ display:none !important; }
+    #lastModDisplay{ font-size:.7rem;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.85; }
+    .uib-group{ padding:3px 6px;font-size:.7rem;gap:3px; }
+    .uib-group input{ max-width:80px;font-size:.75rem; }
     .app-logo-img{ width:34px;height:34px; }
     header.app h1{ gap:6px;font-size:clamp(1.2rem,5vw,1.8rem); }
     header.app .en{ font-size:.55em; }
@@ -1019,6 +1106,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <span class="small">— Wayne Gretzky</span>
     </div>
     <div class="days" id="days"></div>
+    <div id="allDaysBanner"></div>
     <div class="day-progress" id="dayProgress" style="display:flex;align-items:center;justify-content:center;gap:14px">
       <div id="workoutPieWrap">
         <canvas id="workoutPie" width="72" height="72"></canvas>
@@ -1148,6 +1236,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     <button class="modal-close" id="trainExit">✕</button>
   </div>
   <div class="train-content" id="trainContent"></div>
+  <div id="trainMotiv" class="train-motiv"></div>
   <div class="train-nav">
     <button id="trainPrev">◀ Anterior</button>
     <span style="display:inline-flex;align-items:center;justify-content:center;gap:8px;line-height:1"><canvas id="trainPie" width="72" height="72" style="width:38px;height:38px;display:block;flex:0 0 auto"></canvas><span id="trainProgress" style="white-space:nowrap"></span></span>
@@ -1209,6 +1298,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div style="display:flex;align-items:center;justify-content:center;margin:4px auto"><canvas id="ivPie" width="72" height="72" style="width:52px;height:52px;display:block"></canvas></div>
   <div class="iv-info" id="ivInfo">Serie 1 / 8</div>
   <div class="iv-next" id="ivNext"></div>
+  <div class="iv-motiv" id="ivMotiv"></div>
   <div class="iv-controls">
     <button id="ivPause">⏸ Pausar</button>
     <button id="ivStop">■ Terminar</button>
@@ -1967,6 +2057,24 @@ function renderDays(){
     wrap.appendChild(b);
     wrap._dayName = day;
     attachDayDrag(wrap, day);
+    if(isDayComplete(day)){
+      wrap.classList.add("struck");
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns,"svg");
+      svg.setAttribute("class","day-strike-svg");
+      svg.setAttribute("viewBox","0 0 100 20");
+      svg.setAttribute("preserveAspectRatio","none");
+      const PATHS = [
+        "M2,10 C18,7 32,13 48,9 C62,6 76,13 98,10",
+        "M2,9  C20,12 38,7  54,11 C68,7 84,12 98,9",
+        "M2,11 C14,8  30,14 50,9  C68,5 82,13 98,11",
+      ];
+      const path = document.createElementNS(ns,"path");
+      path.setAttribute("class","day-strike-path");
+      path.setAttribute("d", PATHS[(day.charCodeAt(0)||0) % 3]);
+      svg.appendChild(path);
+      wrap.appendChild(svg);
+    }
     {
       const x = document.createElement("button");
       x.className = "day-x";
@@ -1998,6 +2106,17 @@ function renderDays(){
     if(v==="__custom__"){ addDay(); return; }
     addDayNamed(v);
   };
+  const _allDays = Object.keys(data);
+  const _allStruck = _allDays.length > 0 && _allDays.every(d=>isDayComplete(d));
+  const _banner = document.getElementById("allDaysBanner");
+  if(_banner){
+    _banner.classList.toggle("show", _allStruck);
+    if(_allStruck){
+      const _idx = Math.floor(Date.now()/86400000) % ALL_DAYS_DONE_MSGS.length;
+      const _msg = ALL_DAYS_DONE_MSGS[_idx];
+      _banner.textContent = lang==="en" ? _msg.en : _msg.es;
+    }
+  }
   daysEl.appendChild(sel);
 }
 
@@ -2073,7 +2192,7 @@ function renderList(){
   if(isCircuit && list.length){
     // ----- VISTA DE CIRCUITO -----
     const rounds = Math.max(1, ...list.map(e=>+e.sets||1));
-    const names = list.map(e=> lang==="en" ? (e.en||e.es) : e.es);
+    const names = list.map(notationName);
     const exWord = list.length===1 ? LL("ejercicio","exercise") : LL("ejercicios","exercises");
     const setWord = rounds===1 ? "round" : "rounds";
 
@@ -2145,6 +2264,13 @@ function mixCatShort(cat){
   return (lang==="en" && parts[1]) ? parts[1] : parts[0];
 }
 function mixLabel(e){ return lang==="en" ? (e.en||e.es) : (e.es||e.en); }
+/* Nombre para la notación del circuito: los ejercicios compuestos (contienen +)
+   se encierran entre paréntesis para que el + de estaciones no se confunda */
+function notationName(e){
+  let n = ((lang==="en" ? (e.en||e.es) : (e.es||e.en)) || "").trim();
+  if(n.includes("+") && !(n.startsWith("(") && n.endsWith(")"))) n = "(" + n + ")";
+  return n;
+}
 function mixOptions(currentLabel){
   const exs = mixAllExercises();
   // contar cuántas veces aparece cada nombre para saber si hay que desambiguar
@@ -2747,6 +2873,271 @@ function allQuotes(){
   return MOTIV.concat(getCustomQuotes());
 }
 
+
+
+/* ════════════════════════════════════════════════════════════════
+   TOOLTIP ENGINE
+   • Estáticos: data-tip-es / data-tip-en asignados por initStaticTips()
+   • Dinámicos: detectados por clase CSS (CLASS_TIPS)
+   • Desktop  : mouseenter con delay 400ms / mouseleave cancela
+   • Mobile   : touchstart long-press 650ms / touchend/move cancela
+   ════════════════════════════════════════════════════════════════ */
+const TOOLTIPS_KEY = "BURN.tooltips";
+let _tooltipsEnabled = JSON.parse(localStorage.getItem(TOOLTIPS_KEY) ?? "false");
+
+let _tipEl      = null;
+let _tipTimer   = null;
+
+function _getTipEl(){
+  if(!_tipEl){
+    _tipEl = document.createElement("div");
+    _tipEl.id = "burnTip";
+    document.body.appendChild(_tipEl);
+  }
+  return _tipEl;
+}
+
+const CLASS_TIPS = {
+  "check":       {es:"Marcar ejercicio como completado",            en:"Mark exercise as complete"},
+  "drag-h":      {es:"Mantener y arrastrar para reordenar",         en:"Hold & drag to reorder"},
+  "del-ex":      {es:"Eliminar este ejercicio",                     en:"Delete this exercise"},
+  "tok":         {es:"Marcar esta serie como hecha",                en:"Mark this set as done"},
+  "tw":          {es:"Peso en kg para esta serie",                  en:"Weight (kg) for this set"},
+  "tr":          {es:"Repeticiones para esta serie",                en:"Reps for this set"},
+  "trest":       {es:"Descanso personalizado en segundos",          en:"Custom rest in seconds"},
+  "train-rest":  {es:"Iniciar temporizador de descanso",            en:"Start rest timer"},
+  "q-use":       {es:"Usar esta frase como frase del encabezado",   en:"Set this as the header quote"},
+  "q-del":       {es:"Eliminar esta frase personalizada",           en:"Delete this custom quote"},
+  "day-btn-inner":{es:"Tocar para ir a este día · Tocar dos veces para renombrar", en:"Tap to go to this day · Tap again to rename"},
+  "day-x":       {es:"Eliminar este día",                          en:"Delete this day"},
+  "day-add-select":{es:"Agregar un día nuevo a la semana",         en:"Add a new day to the week"},
+  "lib-tab":     {es:"Filtrar ejercicios por categoría",            en:"Filter exercises by category"},
+  "scope-btn-all":{es:"Aplicar a todos los días de la semana",     en:"Apply to all days of the week"},
+  "scope-btn-sel":{es:"Aplicar solo al día seleccionado",          en:"Apply to selected day only"},
+  "scope-btn-cancel":{es:"Cancelar",                               en:"Cancel"},
+  "sb-btn":      {es:"Control del cronómetro de sesión",           en:"Session timer control"},
+  "add":         {es:"Agregar 15s al descanso",                    en:"Add 15s to rest"},
+};
+
+function _getTipText(el){
+  const es = el.getAttribute("data-tip-es");
+  const en = el.getAttribute("data-tip-en");
+  if(es||en) return lang==="en" ? (en||es) : (es||en);
+  // Walk up one level too (e.g. icon inside button)
+  const par = el.parentElement;
+  if(par){
+    const pes = par.getAttribute("data-tip-es");
+    const pen = par.getAttribute("data-tip-en");
+    if(pes||pen) return lang==="en" ? (pen||pes) : (pes||pen);
+  }
+  for(const cls of el.classList){
+    if(CLASS_TIPS[cls]){
+      const t = CLASS_TIPS[cls];
+      return lang==="en" ? t.en : t.es;
+    }
+  }
+  return null;
+}
+
+function _positionTip(el){
+  const tip = _getTipEl();
+  const rect = el.getBoundingClientRect();
+  tip.classList.add("show");
+  const tw = Math.min(260, tip.offsetWidth);
+  const th = tip.offsetHeight;
+  let x = rect.left + rect.width/2 - tw/2;
+  let y = rect.bottom + 8;
+  if(y + th > window.innerHeight - 8) y = rect.top - th - 8;
+  x = Math.max(8, Math.min(x, window.innerWidth - tw - 8));
+  tip.style.left = x+"px";
+  tip.style.top  = y+"px";
+}
+
+function _showTip(el){
+  if(!_tooltipsEnabled) return;
+  const txt = _getTipText(el);
+  if(!txt) return;
+  const tip = _getTipEl();
+  tip.textContent = txt;
+  tip.classList.remove("show");
+  tip.style.left = "-999px";
+  // force layout then position
+  requestAnimationFrame(()=>{ _positionTip(el); });
+}
+
+function _hideTip(){
+  clearTimeout(_tipTimer);
+  _tipTimer = null;
+  if(_tipEl) _tipEl.classList.remove("show");
+}
+
+/* ── Desktop: hover — bubble mode, Element guard ── */
+document.addEventListener("mouseover", e=>{
+  if(!_tooltipsEnabled) return;
+  if(!(e.target instanceof Element)) return;
+  // Fix operator precedence: closest first, then class fallback
+  const byAttr = e.target.closest("[data-tip-es],[data-tip-en]");
+  const byClass = !byAttr && Array.from(e.target.classList||[]).some(c=>CLASS_TIPS[c]) ? e.target : null;
+  const el = byAttr || byClass;
+  if(!el) return;
+  const txt = _getTipText(el); if(!txt) return;
+  clearTimeout(_tipTimer);
+  _tipTimer = setTimeout(()=>_showTip(el), 420);
+});
+document.addEventListener("mouseout", e=>{
+  if(!(e.target instanceof Element)) return;
+  clearTimeout(_tipTimer);
+  _tipTimer = null;
+  if(_tipEl) _tipEl.classList.remove("show");
+});
+
+/* ── Mobile: long-press — passive, Element guard ── */
+document.addEventListener("touchstart", e=>{
+  if(!_tooltipsEnabled) return;
+  if(!(e.target instanceof Element)) return;
+  const byAttr = e.target.closest("[data-tip-es],[data-tip-en]");
+  const byClass = !byAttr && Array.from(e.target.classList||[]).some(c=>CLASS_TIPS[c]) ? e.target : null;
+  const el = byAttr || byClass;
+  if(!el) return;
+  const txt = _getTipText(el); if(!txt) return;
+  clearTimeout(_tipTimer);
+  _tipTimer = setTimeout(()=>{ _showTip(el); }, 650);
+}, {passive:true});
+document.addEventListener("touchend",  ()=>_hideTip(), {passive:true});
+document.addEventListener("touchmove", ()=>_hideTip(), {passive:true});
+document.addEventListener("scroll",    ()=>_hideTip(), {passive:true});
+document.addEventListener("click",     ()=>_hideTip(), {passive:true});
+
+/* ── Assign data-tip attrs to static elements ── */
+function initStaticTips(){
+  const T = {
+    langToggle:    {es:"Cambiar idioma (ES / EN)",                                    en:"Switch language (ES / EN)"},
+    themeToggle:   {es:"Alternar tema claro / oscuro",                               en:"Toggle light / dark mode"},
+    paletteBtn:    {es:"Preferencias: colores, sonido, datos, visibilidad",          en:"Preferences: colors, sound, data, visibility"},
+    trainBtn:      {es:"Entrenar: ejercicio por ejercicio, a tu ritmo",              en:"Train: exercise by exercise, at your own pace"},
+    intervalBtn:   {es:"Intervalos: timer automático por rondas y series",           en:"Intervals: automatic timer for rounds & sets"},
+    motivBtn:      {es:"Frases motivadoras: cambiá la del encabezado",               en:"Motivational quotes: change the header quote"},
+    tplBtn:        {es:"Plantillas: cargar una rutina prediseñada",                  en:"Templates: load a pre-built routine"},
+    browseLib:     {es:"Biblioteca: agregar ejercicios del catálogo",                en:"Library: add exercises from the catalog"},
+    addEx:         {es:"Agregar un ejercicio en blanco a este día",                  en:"Add a blank exercise to this day"},
+    dayResetBtn:   {es:"Reiniciar todas las casillas del día (los datos se guardan)", en:"Reset all checkboxes today (data is kept)"},
+    undoBtn:       {es:"Deshacer el último cambio",                                  en:"Undo last change"},
+    redoBtn:       {es:"Rehacer el cambio deshecho",                                 en:"Redo last undone change"},
+    sessionToggle: {es:"Cronómetro de sesión: medí cuánto entrenás",                 en:"Session stopwatch: track how long you train"},
+    sessionReset:  {es:"Reiniciar cronómetro de sesión",                             en:"Reset session stopwatch"},
+    pocketModeBtn: {es:"Modo compacto: vista simplificada",                          en:"Pocket mode: simplified view"},
+    godModeBtn:    {es:"Modo completo: todas las opciones visibles",                 en:"God mode: all options visible"},
+    propagateBtn:  {es:"Aplicar peso y reps actuales a todos los ejercicios del día", en:"Apply current weight & reps to all exercises today"},
+    trainExit:     {es:"Salir del modo entrenamiento",                               en:"Exit training mode"},
+    trainPrev:     {es:"Ejercicio / ronda anterior",                                 en:"Previous exercise / round"},
+    trainNext:     {es:"Siguiente ejercicio / ronda",                                en:"Next exercise / round"},
+    ivPause:       {es:"Pausar / reanudar el temporizador",                          en:"Pause / resume timer"},
+    ivStop:        {es:"Terminar la sesión de intervalos",                           en:"Stop interval session"},
+    intervalClose: {es:"Cerrar configuración de intervalos",                         en:"Close interval config"},
+    ivStart:       {es:"Iniciar la sesión de intervalos",                            en:"Start interval session"},
+    timerSkip:     {es:"Saltear el descanso y continuar",                            en:"Skip rest and continue"},
+    timerAdd:      {es:"Agregar +15 segundos al descanso",                           en:"Add +15s to rest timer"},
+    bcClose:       {es:"Cerrar la pantalla de celebración",                          en:"Close celebration screen"},
+    ivPrep:        {es:"Tiempo de preparación antes de arrancar (segundos)",         en:"Preparation time before start (seconds)"},
+    ivWork:        {es:"Duración de la fase de trabajo (segundos)",                  en:"Work phase duration (seconds)"},
+    ivRest:        {es:"Duración del descanso entre rondas (segundos)",              en:"Rest between rounds (seconds)"},
+    ivRounds:      {es:"Cantidad de rondas por set",                                 en:"Number of rounds per set"},
+    ivSets:        {es:"Cantidad de sets (ciclos completos)",                        en:"Number of sets (full cycles)"},
+    ivSetRest:     {es:"Descanso entre sets (segundos)",                             en:"Rest between sets (seconds)"},
+  };
+  Object.entries(T).forEach(([id, tip])=>{
+    const el = document.getElementById(id);
+    if(el){ el.setAttribute("data-tip-es", tip.es); el.setAttribute("data-tip-en", tip.en); }
+  });
+}
+
+/* == Bank of 20 effervescent workout endings == */
+const BURN_ENDINGS = [
+  {es:"🏆 ¡DÍA GANADO!\n¡Rompiste todo, crack!", en:"🏆 DAY CONQUERED!\nYou absolutely smashed it!"},
+  {es:"🎉 ¡TREMENDO!\nCada serie fue oro puro 💪✨", en:"🎉 PHENOMENAL!\nEvery set was pure gold 💪✨"},
+  {es:"🌟 ¡INCREÍBLE!\n¿Quién te para? ¡Nadie! 🙌", en:"🌟 INCREDIBLE!\nWho can stop you? Nobody! 🙌"},
+  {es:"🔥 ¡BESTIA!\nHoy te superaste a vos mismo 🏅", en:"🔥 BEAST MODE!\nToday you surpassed yourself 🏅"},
+  {es:"💥 ¡EXPLOSIVO!\nEl gym te pertenece hoy 👑", en:"💥 EXPLOSIVE!\nThe gym belongs to you today 👑"},
+  {es:"🎊 ¡APLAUSOS!\nTe lo ganaste con creces 😤👏", en:"🎊 APPLAUSE!\nYou earned every second 😤👏"},
+  {es:"⚡ ¡ELÉCTRICO!\nNo podías parar y lo sabías 😈", en:"⚡ ELECTRIFYING!\nYou couldn't be stopped 😈"},
+  {es:"🏳️ ¡MÁQUINA!\n¡Así se entrena! 💯🔥", en:"🏳️ MACHINE!\nThat's how it's done! 💯🔥"},
+  {es:"🌊 ¡ARRASASTE!\nLas pesas no te vieron venir 😂💪", en:"🌊 UNSTOPPABLE!\nThe weights never saw you coming 😂💪"},
+  {es:"🎯 ¡EXACTO!\nObjetivo cumplido, sin excusas 🎉", en:"🎯 BULLSEYE!\nGoal achieved, no excuses 🎉"},
+  {es:"✨ ¡BRILLANTE!\nHoy sos imparable, de verdad 🌟", en:"✨ BRILLIANT!\nToday you are truly unstoppable 🌟"},
+  {es:"🚀 ¡LANZASTE!\n¡A las estrellas, crack! 🌠", en:"🚀 LAUNCHED!\nTo the stars, champion! 🌠"},
+  {es:"💎 ¡DIAMANTE!\nBajo presión brilla más 💎🔥", en:"💎 DIAMOND!\nPressure makes diamonds 💎🔥"},
+  {es:"🏆 ¡CAMPEÓN!\nHoy ganaste en todos los sentidos 🥇", en:"🏆 CHAMPION!\nYou won in every sense today 🥇"},
+  {es:"🎸 ¡ROMPISTE TODO!\n¡Vine, vi, vencí! ¡Así! 😂🔥", en:"🎸 SHREDDED IT!\nCame, saw, conquered! Just like that! 😂🔥"},
+  {es:"💪 ¡HERCÚBEO!\nCuerpo y mente a tope 🧠💪", en:"💪 HERCULEAN!\nBody and mind at their peak 🧠💪"},
+  {es:"🌈 ¡ÉPICO!\nEste entrenamiento ya es historia 📖", en:"🌈 EPIC!\nThis workout is now history 📖"},
+  {es:"🔑 ¡DESBLOQUEADO!\nNivel superado, sigue subiendo 🎮⬆️", en:"🔑 UNLOCKED!\nLevel cleared, keep climbing 🎮⬆️"},
+  {es:"🐉 ¡INVENCIBLE!\nNadie entrenó como vos hoy 🐉🔥", en:"🐉 INVINCIBLE!\nNobody trained like you today 🐉🔥"},
+  {es:"🎆 ¡FUEGOS ARTIFICIALES!\nMerecen un descanso épico 🛏️✨", en:"🎆 FIREWORKS!\nYou've earned an epic rest 🛏️✨"},
+];
+const BURN_MOTIV_SHORT = [
+  {es:"¡Dale, dale!",                        en:"Push it!"},
+  {es:"¡No te pares!",                       en:"Don't stop now!"},
+  {es:"¡Vos podés!",                    en:"You've got this!"},
+  {es:"¡Último esfuerzo!",              en:"Last push!"},
+  {es:"¡Cada rep cuenta!",                   en:"Every rep counts!"},
+  {es:"¡Eso es, fuerte!",                    en:"That's it, strong!"},
+  {es:"¡Vas muy bien!",                      en:"Looking great!"},
+  {es:"¡Sin excusas!",                       en:"No excuses!"},
+  {es:"¡Hoy es el día!",                en:"Today is the day!"},
+  {es:"¡Duele, pero vale!",                  en:"It hurts, it works!"},
+  {es:"¡Rompe tus límites!",            en:"Break your limits!"},
+  {es:"¡Más, más, más!",     en:"More, more, more!"},
+  {es:"¡El dolor pasa, el orgullo queda!",   en:"Pain fades, pride stays!"},
+  {es:"¡Respirá, enfocaté, dale!", en:"Breathe, focus, go!"},
+  {es:"¡Esta serie es tuya!",                en:"This set is yours!"},
+  {es:"¡Mente sobre músculo!",          en:"Mind over muscle!"},
+  {es:"¡Nunca te rindas!",                   en:"Never give up!"},
+  {es:"¡Sos más fuerte de lo que creés!", en:"You're stronger than you think!"},
+  {es:"¡Sin parar hasta el final!",          en:"No stopping until the end!"},
+  {es:"¡La bestia no descansa!",             en:"The beast doesn't rest!"},
+];
+const ALL_DAYS_DONE_MSGS = [
+  {es:"🏆 ¡SEMANA COMPLETADA! ¡Sos una máquina! 🔥",           en:"🏆 FULL WEEK DONE! You're an absolute machine! 🔥"},
+  {es:"💯 ¡SEMANA PERFECTA! ¡Ningún día te venció! 💪", en:"💯 PERFECT WEEK! Not a single day beat you! 💪"},
+  {es:"🌟 ¡SEMANA ÉPICA! El descanso lo merecés con creces 🛏️", en:"🌟 EPIC WEEK! You've more than earned your rest 🛏️"},
+  {es:"🎯 ¡SEMANA CONQUISTADA! ¿La próxima? 😈",                en:"🎯 WEEK CONQUERED! Ready for the next one? 😈"},
+  {es:"🚀 ¡IMPARABLE! Una semana más en el libro 📖🏅",    en:"🚀 UNSTOPPABLE! Another week in the books 📖🏅"},
+];
+function isDayComplete(day){
+  const list = data[day] || [];
+  if(!list.length) return false;
+  return list.every(ex=>{
+    if(Array.isArray(ex.setsDone) && +ex.sets > 0)
+      return ex.setsDone.slice(0, +ex.sets).filter(s=>s&&s.done).length >= +ex.sets;
+    return !!ex.done;
+  });
+}
+/* == Celebration overlay == */
+function showCelebration(ending){
+  const cel = document.getElementById("burnCelebration");
+  const txt = lang==="en" ? ending.en : ending.es;
+  const parts = txt.split("\n");
+  document.getElementById("bcTitle").textContent = parts[0] || txt;
+  document.getElementById("bcSub").textContent   = parts.slice(1).join("\n");
+  const rains = document.getElementById("bcRains");
+  rains.innerHTML = "";
+  const emojis = ["🔥","💪","🏆","🎉","✨","🥇","🌟","💥","🎊","⚡","🏅","🎯"];
+  for(let i=0;i<24;i++){
+    const d = document.createElement("span");
+    d.className = "bc-drop";
+    d.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    d.style.left = Math.random()*100+"%";
+    d.style.animationDuration = (2.5+Math.random()*2.5)+"s";
+    d.style.animationDelay    = (Math.random()*2)+"s";
+    d.style.fontSize           = (1.4+Math.random()*1.2)+"rem";
+    rains.appendChild(d);
+  }
+  cel.classList.add("show");
+  // wire close button lazily (bcClose element is after script block in HTML)
+  const _bcBtn = document.getElementById("bcClose");
+  if(_bcBtn && !_bcBtn._wired){ _bcBtn._wired=true; _bcBtn.onclick=()=>{ const _bcel=document.getElementById("burnCelebration"); if(_bcel) _bcel.classList.remove("show"); }; }
+}
+
 function setHeaderQuote(q){
   const el = document.getElementById("headerQuote");
   el.querySelector(".big").textContent = q.text;
@@ -3328,7 +3719,7 @@ document.getElementById("wkExport").onclick = async ()=>{
     ws.mergeCells(3,1,3,headers.length);
     const nCell = ws.getCell(3,1);
     if(isCircuit && list.length){
-      const names = list.map(e=> EN ? (e.en||e.es) : (e.es||e.en));
+      const names = list.map(notationName);
       nCell.value = "(" + names.join(" + ") + ") × " + rounds;
     } else {
       nCell.value = (EN?"Exported: ":"Exportado: ") + new Date().toLocaleDateString();
@@ -3701,6 +4092,33 @@ function openHistory(ex){
 }
 
 /* ---------- Modo entrenar (pantalla completa) ---------- */
+
+/* == Cycling motivational phrases in train mode == */
+let _trainPhraseTimer = null;
+let _trainPhraseIdx   = 0;
+function _showTrainPhrase(){
+  const el = document.getElementById("trainMotiv");
+  if(!el) return;
+  el.classList.add("fade");
+  setTimeout(()=>{
+    _trainPhraseIdx = (_trainPhraseIdx + 1 + Math.floor(Math.random()*(BURN_MOTIV_SHORT.length-1))) % BURN_MOTIV_SHORT.length;
+    const q = BURN_MOTIV_SHORT[_trainPhraseIdx];
+    el.textContent = lang==="en" ? q.en : q.es;
+    el.classList.remove("fade");
+  }, 420);
+}
+function startTrainPhrases(){
+  stopTrainPhrases();
+  _showTrainPhrase();
+  _trainPhraseTimer = setInterval(_showTrainPhrase, 8000);
+}
+function stopTrainPhrases(){
+  clearInterval(_trainPhraseTimer);
+  _trainPhraseTimer = null;
+  const el = document.getElementById("trainMotiv");
+  if(el) el.textContent = "";
+}
+
 const trainOverlay = document.getElementById("trainMode");
 const trainContent = document.getElementById("trainContent");
 let trainIdx = 0;          // straight: índice de ejercicio
@@ -3717,8 +4135,9 @@ document.getElementById("trainBtn").onclick = ()=>{
   document.getElementById("trainTitle").textContent = dayLabel(currentDay) + (trainModeNow==="circuit" ? LL("  ·  ↻ Circuito","  ·  ↻ Circuit") : LL("  ·  ↓ Series seguidas","  ·  ↓ Straight sets"));
   renderTrain();
   trainOverlay.classList.add("show");
+  startTrainPhrases();
 };
-document.getElementById("trainExit").onclick = ()=>{ trainOverlay.classList.remove("show"); renderList(); };
+document.getElementById("trainExit").onclick = ()=>{ stopTrainPhrases(); trainOverlay.classList.remove("show"); renderList(); };
 document.getElementById("trainPrev").onclick = ()=>{
   if(trainModeNow==="circuit"){ if(circRound>0){ circRound--; renderTrain(); } }
   else { if(trainIdx>0){ trainIdx--; renderTrain(); } }
@@ -3783,6 +4202,11 @@ function renderTrainStraight(){
       if(_all !== ex.done) ex.done = _all;
       save(); renderTrainStraight();
       if(log.done){ warmAudio(); startTimer(ex.customRest ? (log.rest ?? ex.rest) : ex.rest); }
+      if(isDayComplete(currentDay)){
+        stopTrainPhrases();
+        const _end = BURN_ENDINGS[Math.floor(Math.random()*BURN_ENDINGS.length)];
+        setTimeout(()=>{ showCelebration(_end); renderDays(); }, 500);
+      }
     };
   });
   trainContent.querySelector(".train-rest").onclick = ()=>{
@@ -3810,7 +4234,7 @@ function renderTrainCircuit(){
         <button class="tok"></button>
       </div>`;
   });
-  const circNames = list.map(e=> lang==="en" ? (e.en||e.es) : e.es);
+  const circNames = list.map(notationName);
   const circNotation = "(" + circNames.join(" + ") + ") × " + circRounds;
   trainContent.innerHTML = `
     <div>
@@ -4125,6 +4549,7 @@ const TEMPLATES = {
   ],
   "Resistencia · Endurance": [
     {
+      _setRest:60,
       "Circuito C":[E("Flexiones","Push-ups","Pecho",2,17,0,30),E("Box jumps","Box jumps","Piernas",2,13,0,20),E("Burpees","Burpees","Cuerpo completo",2,15,0,30),E("Thruster mancuernas","DB thruster","Cuerpo",2,15,0,30)],
       "Chipper":[E("Elevación de piernas","Leg raises","Core",2,13,0,45),E("Swing con mancuerna","DB swing","Glúteos",2,17,0,30),E("Dominadas","Pull-ups","Espalda",2,17,0,45),E("Sentadilla goblet","Goblet squat","Piernas",2,13,0,30),E("Mountain climbers","Mountain climbers","Cardio",2,15,0,45)],
       "Tren superior":[E("Sentadilla libre","Air squat","Piernas",2,13,0,20),E("Sentadilla goblet","Goblet squat","Piernas",2,17,0,45),E("Dominadas","Pull-ups","Espalda",2,17,0,30),E("Fondos","Dips","Tríceps",2,17,0,30)],
@@ -4142,6 +4567,7 @@ const TEMPLATES = {
       "AMRAP":[E("Wall balls","Wall balls","Cuerpo",2,13,0,45),E("Swing con mancuerna","DB swing","Glúteos",2,13,0,30),E("Zancadas","Walking lunges","Piernas",2,15,0,30),E("Box jumps","Box jumps","Piernas",2,13,0,45)]
     },
     {
+      _setRest:50,
       "AMRAP 2":[E("Sentadilla goblet","Goblet squat","Piernas",3,16,0,45),E("Puente de glúteo","Glute bridge","Glúteos",3,16,0,20),E("Thruster mancuernas","DB thruster","Cuerpo",3,18,0,45),E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,18,0,30)],
       "Circuito A 2":[E("Swing con mancuerna","DB swing","Glúteos",3,18,0,20),E("Elevación de piernas","Leg raises","Core",3,20,0,30),E("Remo invertido","Inverted row","Espalda",3,18,0,45),E("Box jumps","Box jumps","Piernas",3,18,0,20)],
       "Core/Cardio 2":[E("Thruster mancuernas","DB thruster","Cuerpo",3,18,0,20),E("Swing con mancuerna","DB swing","Glúteos",3,18,0,20),E("Sentadilla goblet","Goblet squat","Piernas",3,16,0,20),E("Flexiones","Push-ups","Pecho",3,18,0,30)],
@@ -4159,6 +4585,7 @@ const TEMPLATES = {
       "Metabólico 2":[E("Thruster mancuernas","DB thruster","Cuerpo",3,20,0,20),E("Sentadilla libre","Air squat","Piernas",3,16,0,30),E("Swing con mancuerna","DB swing","Glúteos",3,18,0,45),E("Remo invertido","Inverted row","Espalda",3,20,0,45),E("Burpees","Burpees","Cuerpo completo",3,16,0,20)]
     },
     {
+      _setRest:40,
       "Tren superior 3":[E("Swing con mancuerna","DB swing","Glúteos",4,22,10,25),E("Elevación de piernas","Leg raises","Core",4,20,5,40),E("Sentadilla libre","Air squat","Piernas",4,18,5,55)],
       "Fuerza-resistencia 3":[E("Sentadilla con salto","Jump squat","Piernas",4,18,15,40),E("Swing con mancuerna","DB swing","Glúteos",4,18,10,55),E("Fondos","Dips","Tríceps",4,18,15,25)],
       "Mixto 3":[E("Burpees","Burpees","Cuerpo completo",4,20,5,55),E("Puente de glúteo","Glute bridge","Glúteos",4,18,5,25),E("Elevación de piernas","Leg raises","Core",4,18,5,25)],
@@ -4176,6 +4603,7 @@ const TEMPLATES = {
       "Total 3":[E("Plancha","Plank","Core",4,20,5,40),E("Wall balls","Wall balls","Cuerpo",4,20,10,55),E("Elevación de piernas","Leg raises","Core",4,18,10,40),E("Burpees","Burpees","Cuerpo completo",4,20,15,40)]
     },
     {
+      _setRest:30,
       "Híbrido 4":[E("Dominadas","Pull-ups","Espalda",5,22,11,60),E("Remo invertido","Inverted row","Espalda",5,18,21,60),E("Fondos","Dips","Tríceps",5,20,16,60),E("Swing con mancuerna","DB swing","Glúteos",5,22,11,30),E("Wall balls","Wall balls","Cuerpo",5,20,11,45)],
       "Tren superior 4":[E("Box jumps","Box jumps","Piernas",5,20,11,30),E("Dominadas","Pull-ups","Espalda",5,20,21,45),E("Swing con mancuerna","DB swing","Glúteos",5,22,11,30),E("Elevación de piernas","Leg raises","Core",5,22,11,45)],
       "Full Body vol 4":[E("Fondos","Dips","Tríceps",5,18,21,45),E("Mountain climbers","Mountain climbers","Cardio",5,22,21,45),E("Thruster mancuernas","DB thruster","Cuerpo",5,18,21,45),E("Flexiones","Push-ups","Pecho",5,18,16,45)],
@@ -4193,6 +4621,7 @@ const TEMPLATES = {
       "AMRAP 4":[E("Swing con mancuerna","DB swing","Glúteos",5,20,11,30),E("Burpees","Burpees","Cuerpo completo",5,18,11,30),E("Wall balls","Wall balls","Cuerpo",5,20,16,60),E("Box jumps","Box jumps","Piernas",5,20,11,45)]
     },
     {
+      _setRest:20,
       "Full Body vol 5":[E("Wall balls","Wall balls","Cuerpo",5,25,25,45),E("Puente de glúteo","Glute bridge","Glúteos",5,25,15,45),E("Mountain climbers","Mountain climbers","Cardio",5,27,25,45)],
       "AMRAP 5":[E("Swing con mancuerna","DB swing","Glúteos",5,27,15,30),E("Sentadilla goblet","Goblet squat","Piernas",5,25,20,60),E("Zancadas","Walking lunges","Piernas",5,27,20,30)],
       "Mixto 5":[E("Remo con mancuerna","DB row","Espalda",5,25,15,60),E("Puente de glúteo","Glute bridge","Glúteos",5,25,20,60),E("Sentadilla libre","Air squat","Piernas",5,25,15,30),E("Remo invertido","Inverted row","Espalda",5,25,15,45),E("Sentadilla goblet","Goblet squat","Piernas",5,25,20,60)],
@@ -4274,6 +4703,7 @@ const TEMPLATES = {
   ],
   "HIIT · HIIT": [
     {
+      _setRest:90,
       "Cuerpo completo":[E("Wall balls","Wall balls","Cuerpo",8,20,0,40),E("Swing con mancuerna","KB swing","Glúteos",8,20,0,40),E("Plancha con toques","Plank shoulder taps","Core",8,20,0,40),E("Sentadilla con salto","Jump squat","Piernas",8,20,0,40),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,20,0,40)],
       "Full body HIIT":[E("Thruster","Thruster","Cuerpo",8,20,0,40),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,20,0,40),E("Sprint en el lugar","Sprint in place","Cardio",8,20,0,40),E("Zancadas con salto","Jumping lunges","Piernas",8,20,0,40)],
       "EMOM":[E("Swing con mancuerna","KB swing","Glúteos",8,20,0,40),E("Jumping jacks","Jumping jacks","Cardio",8,20,0,40),E("Flexiones explosivas","Clap push-ups","Pecho",8,20,0,40),E("Tuck jumps","Tuck jumps","Piernas",8,20,0,40)],
@@ -4291,6 +4721,7 @@ const TEMPLATES = {
       "HIIT 40/20":[E("Plancha con toques","Plank shoulder taps","Core",8,20,0,40),E("Flexiones explosivas","Clap push-ups","Pecho",8,20,0,40),E("Slam ball","Ball slams","Cuerpo",8,20,0,40),E("Sentadilla con salto","Jump squat","Piernas",8,20,0,40),E("Dominadas","Pull-ups","Espalda",8,20,0,40)]
     },
     {
+      _setRest:75,
       "Death by 2":[E("Wall balls","Wall balls","Cuerpo",8,30,0,30),E("Burpees","Burpees","Cuerpo completo",8,30,0,30),E("Dominadas","Pull-ups","Espalda",8,30,0,30),E("Escaladores cruzados","Cross-body climbers","Cardio",8,30,0,30)],
       "HIIT 50/10 2":[E("Sentadilla con salto","Jump squat","Piernas",8,30,0,30),E("Thruster","Thruster","Cuerpo",8,30,0,30),E("Saltos de patinador","Skater jumps","Cardio",8,30,0,30),E("Slam ball","Ball slams","Cuerpo",8,30,0,30),E("Tuck jumps","Tuck jumps","Piernas",8,30,0,30)],
       "Tabata x4 2":[E("Escaladores cruzados","Cross-body climbers","Cardio",8,30,0,30),E("Sprint en el lugar","Sprint in place","Cardio",8,30,0,30),E("Mountain climbers","Mountain climbers","Cardio",8,30,0,30),E("Slam ball","Ball slams","Cuerpo",8,30,0,30),E("Dominadas","Pull-ups","Espalda",8,30,0,30)],
@@ -4308,59 +4739,63 @@ const TEMPLATES = {
       "Full body HIIT 2":[E("Burpees","Burpees","Cuerpo completo",8,30,0,30),E("Dominadas","Pull-ups","Espalda",8,30,0,30),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,30,0,30),E("Saltos al cajón","Box jumps","Piernas",8,30,0,30)]
     },
     {
-      "HIIT 45/15 3":[E("Zancadas con salto","Jumping lunges","Piernas",6,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",6,40,0,20),E("Flexiones","Push-ups","Pecho",6,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",6,40,0,20)],
-      "HIIT 50/10 3":[E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Flexiones","Push-ups","Pecho",6,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",6,40,0,20),E("Plancha con toques","Plank shoulder taps","Core",6,40,0,20)],
-      "Tabata 3":[E("Saltos de patinador","Skater jumps","Cardio",6,40,0,20),E("Sprint en el lugar","Sprint in place","Cardio",6,40,0,20),E("Burpees","Burpees","Cuerpo completo",6,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",6,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",6,40,0,20)],
-      "HIIT 40/20 3":[E("Zancadas con salto","Jumping lunges","Piernas",6,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",6,40,0,20),E("Burpees","Burpees","Cuerpo completo",6,40,0,20),E("Flexiones","Push-ups","Pecho",6,40,0,20),E("Slam ball","Ball slams","Cuerpo",6,40,0,20)],
-      "Cuerpo completo 3":[E("Burpee lateral","Lateral burpee","Cuerpo completo",6,40,0,20),E("Plancha con toques","Plank shoulder taps","Core",6,40,0,20),E("Swing con mancuerna","KB swing","Glúteos",6,40,0,20),E("Saltos al cajón","Box jumps","Piernas",6,40,0,20)],
-      "HIIT burpees 3":[E("Plancha con toques","Plank shoulder taps","Core",6,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",6,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",6,40,0,20),E("Flexiones","Push-ups","Pecho",6,40,0,20)],
-      "Death by 3":[E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",6,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",6,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",6,40,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",6,40,0,20)],
-      "Full body HIIT 3":[E("Flexiones explosivas","Clap push-ups","Pecho",6,40,0,20),E("Burpee lateral","Lateral burpee","Cuerpo completo",6,40,0,20),E("Wall balls","Wall balls","Cuerpo",6,40,0,20)],
-      "Gauntlet 3":[E("Wall balls","Wall balls","Cuerpo",6,40,0,20),E("Burpee lateral","Lateral burpee","Cuerpo completo",6,40,0,20),E("Saltos al cajón","Box jumps","Piernas",6,40,0,20)],
-      "EMOM 3":[E("Burpee lateral","Lateral burpee","Cuerpo completo",6,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Saltos de patinador","Skater jumps","Cardio",6,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",6,40,0,20)],
-      "HIIT 30/30 3":[E("Mountain climbers","Mountain climbers","Cardio",6,40,0,20),E("Thruster","Thruster","Cuerpo",6,40,0,20),E("Saltos al cajón","Box jumps","Piernas",6,40,0,20),E("Wall balls","Wall balls","Cuerpo",6,40,0,20)],
-      "AMRAP 3":[E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Saltos al cajón","Box jumps","Piernas",6,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",6,40,0,20)],
-      "HIIT saltos 3":[E("Plancha con toques","Plank shoulder taps","Core",6,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",6,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",6,40,0,20)],
-      "Tabata x4 3":[E("Thruster","Thruster","Cuerpo",6,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",6,40,0,20)],
-      "Tabata combinado 3":[E("Burpee box jump","Burpee box jump","Cuerpo completo",6,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",6,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",6,40,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",6,40,0,20)]
+      _setRest:60,
+      "HIIT 45/15 3":[E("Zancadas con salto","Jumping lunges","Piernas",8,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,40,0,20),E("Flexiones","Push-ups","Pecho",8,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",8,40,0,20)],
+      "HIIT 50/10 3":[E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Flexiones","Push-ups","Pecho",8,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,40,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,40,0,20)],
+      "Tabata 3":[E("Saltos de patinador","Skater jumps","Cardio",8,40,0,20),E("Sprint en el lugar","Sprint in place","Cardio",8,40,0,20),E("Burpees","Burpees","Cuerpo completo",8,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,40,0,20)],
+      "HIIT 40/20 3":[E("Zancadas con salto","Jumping lunges","Piernas",8,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,40,0,20),E("Burpees","Burpees","Cuerpo completo",8,40,0,20),E("Flexiones","Push-ups","Pecho",8,40,0,20),E("Slam ball","Ball slams","Cuerpo",8,40,0,20)],
+      "Cuerpo completo 3":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,40,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,40,0,20),E("Swing con mancuerna","KB swing","Glúteos",8,40,0,20),E("Saltos al cajón","Box jumps","Piernas",8,40,0,20)],
+      "HIIT burpees 3":[E("Plancha con toques","Plank shoulder taps","Core",8,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,40,0,20),E("Flexiones","Push-ups","Pecho",8,40,0,20)],
+      "Death by 3":[E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",8,40,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",8,40,0,20)],
+      "Full body HIIT 3":[E("Flexiones explosivas","Clap push-ups","Pecho",8,40,0,20),E("Burpee lateral","Lateral burpee","Cuerpo completo",8,40,0,20),E("Wall balls","Wall balls","Cuerpo",8,40,0,20)],
+      "Gauntlet 3":[E("Wall balls","Wall balls","Cuerpo",8,40,0,20),E("Burpee lateral","Lateral burpee","Cuerpo completo",8,40,0,20),E("Saltos al cajón","Box jumps","Piernas",8,40,0,20)],
+      "EMOM 3":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Saltos de patinador","Skater jumps","Cardio",8,40,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,40,0,20)],
+      "HIIT 30/30 3":[E("Mountain climbers","Mountain climbers","Cardio",8,40,0,20),E("Thruster","Thruster","Cuerpo",8,40,0,20),E("Saltos al cajón","Box jumps","Piernas",8,40,0,20),E("Wall balls","Wall balls","Cuerpo",8,40,0,20)],
+      "AMRAP 3":[E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Saltos al cajón","Box jumps","Piernas",8,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",8,40,0,20)],
+      "HIIT saltos 3":[E("Plancha con toques","Plank shoulder taps","Core",8,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",8,40,0,20)],
+      "Tabata x4 3":[E("Thruster","Thruster","Cuerpo",8,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,40,0,20)],
+      "Tabata combinado 3":[E("Burpee box jump","Burpee box jump","Cuerpo completo",8,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,40,0,20),E("Tuck jumps","Tuck jumps","Piernas",8,40,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",8,40,0,20)]
     },
     {
-      "Full body HIIT 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,15),E("Sentadilla con salto","Jump squat","Piernas",8,45,0,15),E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,15),E("Saltos al cajón","Box jumps","Piernas",8,45,0,15)],
-      "Death by 4":[E("Sprint en el lugar","Sprint in place","Cardio",8,45,0,15),E("Thruster","Thruster","Cuerpo",8,45,0,15),E("Slam ball","Ball slams","Cuerpo",8,45,0,15)],
-      "Gauntlet 4":[E("Jumping jacks","Jumping jacks","Cardio",8,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,15),E("Wall balls","Wall balls","Cuerpo",8,45,0,15),E("Dominadas","Pull-ups","Espalda",8,45,0,15)],
-      "HIIT 40/20 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,15),E("Saltos al cajón","Box jumps","Piernas",8,45,0,15),E("Flexiones","Push-ups","Pecho",8,45,0,15)],
-      "Tabata 4":[E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,15),E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,15),E("Flexiones","Push-ups","Pecho",8,45,0,15)],
-      "Tabata combinado 4":[E("Sprint en el lugar","Sprint in place","Cardio",8,45,0,15),E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,15)],
-      "EMOM 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,15),E("Tuck jumps","Tuck jumps","Piernas",8,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,15)],
-      "HIIT 50/10 4":[E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,15),E("Sentadilla con salto","Jump squat","Piernas",8,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,15),E("Saltos de patinador","Skater jumps","Cardio",8,45,0,15)],
-      "Cuerpo completo 4":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,15),E("Flexiones","Push-ups","Pecho",8,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,15),E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,15)],
-      "HIIT burpees 4":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,15),E("Saltos al cajón","Box jumps","Piernas",8,45,0,15),E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,15)],
-      "HIIT saltos 4":[E("Mountain climbers","Mountain climbers","Cardio",8,45,0,15),E("Flexiones","Push-ups","Pecho",8,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,45,0,15)],
-      "HIIT 45/15 4":[E("Sentadilla con salto","Jump squat","Piernas",8,45,0,15),E("Wall balls","Wall balls","Cuerpo",8,45,0,15),E("Jumping jacks","Jumping jacks","Cardio",8,45,0,15)],
-      "HIIT 30/30 4":[E("Jumping jacks","Jumping jacks","Cardio",8,45,0,15),E("Flexiones","Push-ups","Pecho",8,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,15)],
-      "AMRAP 4":[E("Mountain climbers","Mountain climbers","Cardio",8,45,0,15),E("Slam ball","Ball slams","Cuerpo",8,45,0,15),E("Saltos al cajón","Box jumps","Piernas",8,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,15)],
-      "Tabata x4 4":[E("Saltos de patinador","Skater jumps","Cardio",8,45,0,15),E("Dominadas","Pull-ups","Espalda",8,45,0,15),E("Mountain climbers","Mountain climbers","Cardio",8,45,0,15),E("Burpees","Burpees","Cuerpo completo",8,45,0,15)]
+      _setRest:45,
+      "Full body HIIT 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,45,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,20),E("Saltos al cajón","Box jumps","Piernas",8,45,0,20)],
+      "Death by 4":[E("Sprint en el lugar","Sprint in place","Cardio",8,45,0,20),E("Thruster","Thruster","Cuerpo",8,45,0,20),E("Slam ball","Ball slams","Cuerpo",8,45,0,20)],
+      "Gauntlet 4":[E("Jumping jacks","Jumping jacks","Cardio",8,45,0,20),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,20),E("Wall balls","Wall balls","Cuerpo",8,45,0,20),E("Dominadas","Pull-ups","Espalda",8,45,0,20)],
+      "HIIT 40/20 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,20),E("Saltos al cajón","Box jumps","Piernas",8,45,0,20),E("Flexiones","Push-ups","Pecho",8,45,0,20)],
+      "Tabata 4":[E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,20),E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,20),E("Flexiones","Push-ups","Pecho",8,45,0,20)],
+      "Tabata combinado 4":[E("Sprint en el lugar","Sprint in place","Cardio",8,45,0,20),E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,20),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,20)],
+      "EMOM 4":[E("Swing con mancuerna","KB swing","Glúteos",8,45,0,20),E("Tuck jumps","Tuck jumps","Piernas",8,45,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,20)],
+      "HIIT 50/10 4":[E("Escaladores cruzados","Cross-body climbers","Cardio",8,45,0,20),E("Sentadilla con salto","Jump squat","Piernas",8,45,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,20),E("Saltos de patinador","Skater jumps","Cardio",8,45,0,20)],
+      "Cuerpo completo 4":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,20),E("Flexiones","Push-ups","Pecho",8,45,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,20),E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,20)],
+      "HIIT burpees 4":[E("Burpee lateral","Lateral burpee","Cuerpo completo",8,45,0,20),E("Plancha con toques","Plank shoulder taps","Core",8,45,0,20),E("Saltos al cajón","Box jumps","Piernas",8,45,0,20),E("Zancadas con salto","Jumping lunges","Piernas",8,45,0,20)],
+      "HIIT saltos 4":[E("Mountain climbers","Mountain climbers","Cardio",8,45,0,20),E("Flexiones","Push-ups","Pecho",8,45,0,20),E("Burpee box jump","Burpee box jump","Cuerpo completo",8,45,0,20)],
+      "HIIT 45/15 4":[E("Sentadilla con salto","Jump squat","Piernas",8,45,0,20),E("Wall balls","Wall balls","Cuerpo",8,45,0,20),E("Jumping jacks","Jumping jacks","Cardio",8,45,0,20)],
+      "HIIT 30/30 4":[E("Jumping jacks","Jumping jacks","Cardio",8,45,0,20),E("Flexiones","Push-ups","Pecho",8,45,0,20),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,20)],
+      "AMRAP 4":[E("Mountain climbers","Mountain climbers","Cardio",8,45,0,20),E("Slam ball","Ball slams","Cuerpo",8,45,0,20),E("Saltos al cajón","Box jumps","Piernas",8,45,0,20),E("Flexiones explosivas","Clap push-ups","Pecho",8,45,0,20)],
+      "Tabata x4 4":[E("Saltos de patinador","Skater jumps","Cardio",8,45,0,20),E("Dominadas","Pull-ups","Espalda",8,45,0,20),E("Mountain climbers","Mountain climbers","Cardio",8,45,0,20),E("Burpees","Burpees","Cuerpo completo",8,45,0,20)]
     },
     {
-      "Cuerpo completo 5":[E("Zancadas con salto","Jumping lunges","Piernas",10,50,0,10),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,50,0,10),E("Slam ball","Ball slams","Cuerpo",10,50,0,10)],
-      "Full body HIIT 5":[E("Thruster","Thruster","Cuerpo",10,50,0,10),E("Flexiones","Push-ups","Pecho",10,50,0,10),E("Wall balls","Wall balls","Cuerpo",10,50,0,10)],
-      "Death by 5":[E("Flexiones","Push-ups","Pecho",10,50,0,10),E("Sprint en el lugar","Sprint in place","Cardio",10,50,0,10),E("Escaladores cruzados","Cross-body climbers","Cardio",10,50,0,10),E("Thruster","Thruster","Cuerpo",10,50,0,10),E("Dominadas","Pull-ups","Espalda",10,50,0,10)],
-      "Tabata combinado 5":[E("Wall balls","Wall balls","Cuerpo",10,50,0,10),E("Zancadas con salto","Jumping lunges","Piernas",10,50,0,10),E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Sprint en el lugar","Sprint in place","Cardio",10,50,0,10),E("Jumping jacks","Jumping jacks","Cardio",10,50,0,10)],
-      "HIIT saltos 5":[E("Tuck jumps","Tuck jumps","Piernas",10,50,0,10),E("Zancadas con salto","Jumping lunges","Piernas",10,50,0,10),E("Dominadas","Pull-ups","Espalda",10,50,0,10),E("Burpees","Burpees","Cuerpo completo",10,50,0,10)],
-      "Tabata 5":[E("Saltos al cajón","Box jumps","Piernas",10,50,0,10),E("Mountain climbers","Mountain climbers","Cardio",10,50,0,10),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,50,0,10),E("Thruster","Thruster","Cuerpo",10,50,0,10),E("Flexiones explosivas","Clap push-ups","Pecho",10,50,0,10)],
-      "EMOM 5":[E("Saltos de patinador","Skater jumps","Cardio",10,50,0,10),E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Tuck jumps","Tuck jumps","Piernas",10,50,0,10)],
-      "HIIT 50/10 5":[E("Jumping jacks","Jumping jacks","Cardio",10,50,0,10),E("Tuck jumps","Tuck jumps","Piernas",10,50,0,10),E("Sprint en el lugar","Sprint in place","Cardio",10,50,0,10),E("Swing con mancuerna","KB swing","Glúteos",10,50,0,10),E("Thruster","Thruster","Cuerpo",10,50,0,10)],
-      "Gauntlet 5":[E("Swing con mancuerna","KB swing","Glúteos",10,50,0,10),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,50,0,10),E("Flexiones explosivas","Clap push-ups","Pecho",10,50,0,10),E("Plancha con toques","Plank shoulder taps","Core",10,50,0,10)],
-      "HIIT 45/15 5":[E("Escaladores cruzados","Cross-body climbers","Cardio",10,50,0,10),E("Saltos de patinador","Skater jumps","Cardio",10,50,0,10),E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Thruster","Thruster","Cuerpo",10,50,0,10)],
-      "AMRAP 5":[E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Burpee lateral","Lateral burpee","Cuerpo completo",10,50,0,10),E("Dominadas","Pull-ups","Espalda",10,50,0,10),E("Escaladores cruzados","Cross-body climbers","Cardio",10,50,0,10),E("Jumping jacks","Jumping jacks","Cardio",10,50,0,10)],
-      "HIIT burpees 5":[E("Flexiones explosivas","Clap push-ups","Pecho",10,50,0,10),E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Burpees","Burpees","Cuerpo completo",10,50,0,10),E("Dominadas","Pull-ups","Espalda",10,50,0,10),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,50,0,10)],
-      "Tabata x4 5":[E("Slam ball","Ball slams","Cuerpo",10,50,0,10),E("Saltos al cajón","Box jumps","Piernas",10,50,0,10),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,50,0,10),E("Flexiones","Push-ups","Pecho",10,50,0,10)],
-      "HIIT 40/20 5":[E("Jumping jacks","Jumping jacks","Cardio",10,50,0,10),E("Wall balls","Wall balls","Cuerpo",10,50,0,10),E("Flexiones","Push-ups","Pecho",10,50,0,10),E("Plancha con toques","Plank shoulder taps","Core",10,50,0,10)],
-      "HIIT 30/30 5":[E("Mountain climbers","Mountain climbers","Cardio",10,50,0,10),E("Plancha con toques","Plank shoulder taps","Core",10,50,0,10),E("Sentadilla con salto","Jump squat","Piernas",10,50,0,10)]
+      _setRest:30,
+      "Cuerpo completo 5":[E("Zancadas con salto","Jumping lunges","Piernas",10,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,45,0,15),E("Slam ball","Ball slams","Cuerpo",10,45,0,15)],
+      "Full body HIIT 5":[E("Thruster","Thruster","Cuerpo",10,45,0,15),E("Flexiones","Push-ups","Pecho",10,45,0,15),E("Wall balls","Wall balls","Cuerpo",10,45,0,15)],
+      "Death by 5":[E("Flexiones","Push-ups","Pecho",10,45,0,15),E("Sprint en el lugar","Sprint in place","Cardio",10,45,0,15),E("Escaladores cruzados","Cross-body climbers","Cardio",10,45,0,15),E("Thruster","Thruster","Cuerpo",10,45,0,15),E("Dominadas","Pull-ups","Espalda",10,45,0,15)],
+      "Tabata combinado 5":[E("Wall balls","Wall balls","Cuerpo",10,45,0,15),E("Zancadas con salto","Jumping lunges","Piernas",10,45,0,15),E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Sprint en el lugar","Sprint in place","Cardio",10,45,0,15),E("Jumping jacks","Jumping jacks","Cardio",10,45,0,15)],
+      "HIIT saltos 5":[E("Tuck jumps","Tuck jumps","Piernas",10,45,0,15),E("Zancadas con salto","Jumping lunges","Piernas",10,45,0,15),E("Dominadas","Pull-ups","Espalda",10,45,0,15),E("Burpees","Burpees","Cuerpo completo",10,45,0,15)],
+      "Tabata 5":[E("Saltos al cajón","Box jumps","Piernas",10,45,0,15),E("Mountain climbers","Mountain climbers","Cardio",10,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,45,0,15),E("Thruster","Thruster","Cuerpo",10,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",10,45,0,15)],
+      "EMOM 5":[E("Saltos de patinador","Skater jumps","Cardio",10,45,0,15),E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Tuck jumps","Tuck jumps","Piernas",10,45,0,15)],
+      "HIIT 50/10 5":[E("Jumping jacks","Jumping jacks","Cardio",10,45,0,15),E("Tuck jumps","Tuck jumps","Piernas",10,45,0,15),E("Sprint en el lugar","Sprint in place","Cardio",10,45,0,15),E("Swing con mancuerna","KB swing","Glúteos",10,45,0,15),E("Thruster","Thruster","Cuerpo",10,45,0,15)],
+      "Gauntlet 5":[E("Swing con mancuerna","KB swing","Glúteos",10,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,45,0,15),E("Flexiones explosivas","Clap push-ups","Pecho",10,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",10,45,0,15)],
+      "HIIT 45/15 5":[E("Escaladores cruzados","Cross-body climbers","Cardio",10,45,0,15),E("Saltos de patinador","Skater jumps","Cardio",10,45,0,15),E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Thruster","Thruster","Cuerpo",10,45,0,15)],
+      "AMRAP 5":[E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Burpee lateral","Lateral burpee","Cuerpo completo",10,45,0,15),E("Dominadas","Pull-ups","Espalda",10,45,0,15),E("Escaladores cruzados","Cross-body climbers","Cardio",10,45,0,15),E("Jumping jacks","Jumping jacks","Cardio",10,45,0,15)],
+      "HIIT burpees 5":[E("Flexiones explosivas","Clap push-ups","Pecho",10,45,0,15),E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Burpees","Burpees","Cuerpo completo",10,45,0,15),E("Dominadas","Pull-ups","Espalda",10,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,45,0,15)],
+      "Tabata x4 5":[E("Slam ball","Ball slams","Cuerpo",10,45,0,15),E("Saltos al cajón","Box jumps","Piernas",10,45,0,15),E("Burpee box jump","Burpee box jump","Cuerpo completo",10,45,0,15),E("Flexiones","Push-ups","Pecho",10,45,0,15)],
+      "HIIT 40/20 5":[E("Jumping jacks","Jumping jacks","Cardio",10,45,0,15),E("Wall balls","Wall balls","Cuerpo",10,45,0,15),E("Flexiones","Push-ups","Pecho",10,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",10,45,0,15)],
+      "HIIT 30/30 5":[E("Mountain climbers","Mountain climbers","Cardio",10,45,0,15),E("Plancha con toques","Plank shoulder taps","Core",10,45,0,15),E("Sentadilla con salto","Jump squat","Piernas",10,45,0,15)]
     }
   ],
   "Cardio · Cardio": [
     {
+      _setRest:60,
       "Funcional A (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30)],
       "Funcional B (20×30) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,20,0,30),E("Rodillas altas","High knees","Cardio",3,20,0,30),E("Talones al glúteo","Butt kicks","Cardio",3,20,0,30),E("Skipping","Skipping","Cardio",3,20,0,30)],
       "Quema total (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30),E("Estocadas con salto","Jump lunges","Piernas",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30)],
@@ -4373,6 +4808,7 @@ const TEMPLATES = {
       "Tabata funcional (20×30) × 3":[E("Burpees","Burpees","Cuerpo completo",3,20,0,30),E("Mountain climbers","Mountain climbers","Cardio",3,20,0,30),E("Sentadilla con salto","Jump squat","Piernas",3,20,0,30),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,20,0,30)]
     },
     {
+      _setRest:50,
       "Funcional A (30×25) × 3":[E("Saltos de cuerda","Jump rope","Cardio",3,30,0,25),E("Rodillas altas","High knees","Cardio",3,30,0,25),E("Talones al glúteo","Butt kicks","Cardio",3,30,0,25),E("Skipping","Skipping","Cardio",3,30,0,25)],
       "Funcional B (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25),E("Estocadas con salto","Jump lunges","Piernas",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25)],
       "Quema total (30×25) × 3":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25),E("Rodillas altas","High knees","Cardio",3,30,0,25),E("Estocadas con salto","Jump lunges","Piernas",3,30,0,25),E("Plancha","Plank","Core",3,30,0,25)],
@@ -4385,6 +4821,7 @@ const TEMPLATES = {
       "Tabata funcional (30×25) × 3":[E("Burpees","Burpees","Cuerpo completo",3,30,0,25),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",3,30,0,25),E("Mountain climbers","Mountain climbers","Cardio",3,30,0,25),E("Sentadilla con salto","Jump squat","Piernas",3,30,0,25)]
     },
     {
+      _setRest:45,
       "Funcional A (30×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,30,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,30,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,30,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,30,0,20)],
       "Funcional B (30×20) × 4":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20),E("Rodillas altas","High knees","Cardio",4,30,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,30,0,20),E("Plancha","Plank","Core",4,30,0,20)],
       "Quema total (30×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,30,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,30,0,20),E("Skipping","Skipping","Cardio",4,30,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,30,0,20)],
@@ -4397,28 +4834,30 @@ const TEMPLATES = {
       "Tabata funcional (30×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,30,0,20),E("Rodillas altas","High knees","Cardio",4,30,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,30,0,20),E("Skipping","Skipping","Cardio",4,30,0,20)]
     },
     {
-      "Funcional A (40×15) × 4":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Rodillas altas","High knees","Cardio",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Plancha","Plank","Core",4,40,0,15)],
-      "Funcional B (40×15) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Skipping","Skipping","Cardio",4,40,0,15),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,15)],
-      "Quema total (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Saltos al cajón","Box jumps","Piernas",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15)],
-      "Sin equipo (40×15) × 4":[E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Saltos al cajón","Box jumps","Piernas",4,40,0,15),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,15)],
-      "Cuerda y saltos (40×15) × 4":[E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Plancha","Plank","Core",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15)],
-      "Metcon (40×15) × 4":[E("Bear crawl","Bear crawl","Cuerpo completo",4,40,0,15),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,15),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15)],
-      "Piernas explosivas (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15)],
-      "Core + cardio (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15)],
-      "Animal flow (40×15) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,15),E("Rodillas altas","High knees","Cardio",4,40,0,15),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,15),E("Skipping","Skipping","Cardio",4,40,0,15)],
-      "Tabata funcional (40×15) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,15),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,15),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,15),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,15)]
+      _setRest:35,
+      "Funcional A (40×20) × 4":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,20),E("Rodillas altas","High knees","Cardio",4,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,20),E("Plancha","Plank","Core",4,40,0,20)],
+      "Funcional B (40×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,20),E("Skipping","Skipping","Cardio",4,40,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,20)],
+      "Quema total (40×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,20),E("Saltos al cajón","Box jumps","Piernas",4,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,20)],
+      "Sin equipo (40×20) × 4":[E("Sentadilla con salto","Jump squat","Piernas",4,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,20),E("Saltos al cajón","Box jumps","Piernas",4,40,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,20)],
+      "Cuerda y saltos (40×20) × 4":[E("Mountain climbers","Mountain climbers","Cardio",4,40,0,20),E("Plancha","Plank","Core",4,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,20)],
+      "Metcon (40×20) × 4":[E("Bear crawl","Bear crawl","Cuerpo completo",4,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",4,40,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",4,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,20)],
+      "Piernas explosivas (40×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,20)],
+      "Core + cardio (40×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",4,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,20)],
+      "Animal flow (40×20) × 4":[E("Saltos de cuerda","Jump rope","Cardio",4,40,0,20),E("Rodillas altas","High knees","Cardio",4,40,0,20),E("Talones al glúteo","Butt kicks","Cardio",4,40,0,20),E("Skipping","Skipping","Cardio",4,40,0,20)],
+      "Tabata funcional (40×20) × 4":[E("Burpees","Burpees","Cuerpo completo",4,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",4,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",4,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",4,40,0,20)]
     },
     {
-      "Funcional A (40×10) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Skipping","Skipping","Cardio",5,40,0,10),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,10)],
-      "Funcional B (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Saltos al cajón","Box jumps","Piernas",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10)],
-      "Quema total (40×10) × 5":[E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Saltos al cajón","Box jumps","Piernas",5,40,0,10),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,10)],
-      "Sin equipo (40×10) × 5":[E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Plancha","Plank","Core",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10)],
-      "Cuerda y saltos (40×10) × 5":[E("Bear crawl","Bear crawl","Cuerpo completo",5,40,0,10),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,10),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10)],
-      "Metcon (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10)],
-      "Piernas explosivas (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10)],
-      "Core + cardio (40×10) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,10),E("Rodillas altas","High knees","Cardio",5,40,0,10),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,10),E("Skipping","Skipping","Cardio",5,40,0,10)],
-      "Animal flow (40×10) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,10),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,10)],
-      "Tabata funcional (40×10) × 5":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,10),E("Rodillas altas","High knees","Cardio",5,40,0,10),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,10),E("Plancha","Plank","Core",5,40,0,10)]
+      _setRest:30,
+      "Funcional A (40×20) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,20),E("Skipping","Skipping","Cardio",5,40,0,20),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,20)],
+      "Funcional B (40×20) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,20),E("Saltos al cajón","Box jumps","Piernas",5,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,20)],
+      "Quema total (40×20) × 5":[E("Sentadilla con salto","Jump squat","Piernas",5,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,20),E("Saltos al cajón","Box jumps","Piernas",5,40,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,20)],
+      "Sin equipo (40×20) × 5":[E("Mountain climbers","Mountain climbers","Cardio",5,40,0,20),E("Plancha","Plank","Core",5,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,20)],
+      "Cuerda y saltos (40×20) × 5":[E("Bear crawl","Bear crawl","Cuerpo completo",5,40,0,20),E("Sprawl","Sprawl","Cuerpo completo",5,40,0,20),E("Saltos rodillas al pecho","Tuck jumps","Piernas",5,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,20)],
+      "Metcon (40×20) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,20)],
+      "Piernas explosivas (40×20) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,20),E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,20)],
+      "Core + cardio (40×20) × 5":[E("Saltos de cuerda","Jump rope","Cardio",5,40,0,20),E("Rodillas altas","High knees","Cardio",5,40,0,20),E("Talones al glúteo","Butt kicks","Cardio",5,40,0,20),E("Skipping","Skipping","Cardio",5,40,0,20)],
+      "Animal flow (40×20) × 5":[E("Burpees","Burpees","Cuerpo completo",5,40,0,20),E("Sentadilla con salto","Jump squat","Piernas",5,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,20),E("Mountain climbers","Mountain climbers","Cardio",5,40,0,20)],
+      "Tabata funcional (40×20) × 5":[E("Jumping jacks (saltos de tijera)","Jumping jacks","Cardio",5,40,0,20),E("Rodillas altas","High knees","Cardio",5,40,0,20),E("Estocadas con salto","Jump lunges","Piernas",5,40,0,20),E("Plancha","Plank","Core",5,40,0,20)]
     }
   ],
   "Bicicleta fija · Stationary bike": [
@@ -4439,7 +4878,7 @@ const TEMPLATES = {
     {
       "(30×30) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,30,0,30)],
       "(20×40) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,20,0,40)],
-      "(40×20) × 6":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",6,40,0,20)],
+      "(40×20) × 6":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,40,0,20)],
       "(45×45) × 6 · tempo":[E("Bici fija — tempo","Stationary bike — tempo","Cardio",6,45,0,45)],
       "(15×30) × 10 · sprints":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",10,15,0,30)],
       "Tabata suave (20×20) × 8":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",8,20,0,20)],
@@ -4454,7 +4893,7 @@ const TEMPLATES = {
       "(40×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,40,0,20)],
       "(30×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,30,0,20)],
       "(20×20) × 10":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",10,20,0,20)],
-      "(45×15) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,45,0,15)],
+      "(45×15) × 8":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,45,0,20)],
       "Tabata (20×10) × 8":[E("Bici fija — HIIT","Stationary bike — HIIT","Cardio",8,20,0,10)],
       "(60×30) × 8 · VO2":[E("Bici fija — intervalos","Stationary bike — intervals","Cardio",8,60,0,30)],
       "Sprints (15×45) × 12":[E("Bici fija — sprint","Stationary bike — sprint","Cardio (potencia)",12,15,0,45)],
@@ -4573,6 +5012,7 @@ function renderTpl(){
     tplBody.appendChild(intro);
     const lvlObj = TEMPLATES[tplType][tplLevel];
     Object.entries(lvlObj).forEach(([cname, exs])=>{
+      if(cname.startsWith('_')) return; // skip metadata keys (_setRest etc.)
       const card = document.createElement("div");
       card.className = "quote-card";
       const preview = exs.slice(0,3).map(e=>e.es).join(", ") + (exs.length>3 ? "…" : "");
@@ -4589,6 +5029,8 @@ function renderTpl(){
         while(data[name]) name = `${cname} (${n++})`;
         data[name] = structuredClone(exs);
         dayModes[name] = modeForCategory(tplType);
+        const _tplLvl = TEMPLATES[tplType]?.[tplLevel];
+        if(_tplLvl?._setRest) setCircuitRests(name, 20, _tplLvl._setRest);
         currentDay = name;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
@@ -4598,6 +5040,8 @@ function renderTpl(){
         pushUndo();
         data = { [cname]: structuredClone(exs) };
         dayModes = { [cname]: modeForCategory(tplType) };
+        const _tplLvlR = TEMPLATES[tplType]?.[tplLevel];
+        if(_tplLvlR?._setRest){ dayModes["__rest_"+cname]={between:20,round:_tplLvlR._setRest}; }
         currentDay = cname;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
@@ -4734,6 +5178,9 @@ document.getElementById("intervalBtn").onclick = ()=>{
     const maxSets = Math.max(1, ...list.map(e=>+e.sets||1));
     document.getElementById("ivRounds").value = list.length;
     document.getElementById("ivSets").value = maxSets;
+    // Pre-fill macro-rest from stored circuit rest for this day
+    const _cr = getCircuitRests(currentDay);
+    document.getElementById("ivSetRest").value = _cr.round;
     // Cada ejercicio tiene su propio tiempo/descanso: ocultar campos globales para no confundir
     document.getElementById("ivFieldWork").style.display = "none";
     document.getElementById("ivFieldRest").style.display = "none";
@@ -4805,7 +5252,7 @@ function updateIvTotal(){
     let total = c.prep + perSet*c.sets + c.setRest*(c.sets-1);
     const m = Math.floor(total/60), s = total%60;
     // notación expandida con nombres reales
-    const names = ivExercises.map(e=> lang==="en" ? (e.en||e.es) : e.es);
+    const names = ivExercises.map(notationName);
     const expanded = "(" + names.join(" + ") + ") × " + c.sets;
     el.innerHTML = `<div style="font-weight:700;margin-bottom:4px">${ivExercises.length} ${LL("ejercicios","exercises")} × ${c.sets} ${LL("series","sets")}</div>`
       + `<div style="font-size:.8rem;opacity:.85;line-height:1.4">${expanded}</div>`
@@ -4868,6 +5315,19 @@ function startIvPhase(){
   const ph = ivPhases[ivIdx];
   ivLeft = ph.secs;
   ivRun.className = "iv-run show phase-" + ph.type;
+  const _ivMotivEl = document.getElementById("ivMotiv");
+  if(_ivMotivEl){
+    if(ph.type==="work"){
+      _ivMotivEl.classList.add("fade");
+      setTimeout(()=>{
+        const _q = BURN_MOTIV_SHORT[Math.floor(Math.random()*BURN_MOTIV_SHORT.length)];
+        _ivMotivEl.textContent = lang==="en" ? _q.en : _q.es;
+        _ivMotivEl.classList.remove("fade");
+      }, 500);
+    } else {
+      _ivMotivEl.textContent = "";
+    }
+  }
   /* Phase start announcements only — ivTick handles 3/2/1 countdown */
   if(ph.type==="rest"||ph.type==="setrest") playVoice("rest");
   else if(ph.type==="prep") beep(550);
@@ -4947,10 +5407,13 @@ function ivFinish(){
   ivRun.className = "iv-run show phase-done";
   document.getElementById("ivPhase").textContent = LL("✅ ¡Completado!","✅ Done!");
   document.getElementById("ivClock").textContent = "00:00";
-  document.getElementById("ivInfo").textContent = LL("Buen trabajo","Well done");
+  document.getElementById("ivInfo").textContent = LL("Buen trabajo 💪","Well done 💪");
   document.getElementById("ivNext").textContent = "";
+  const _ivMotivDone = document.getElementById("ivMotiv");
+  if(_ivMotivDone) _ivMotivDone.textContent = "";
   drawRingPie(document.getElementById("ivPie"), 1);
-  beep(1320);
+  const _end = BURN_ENDINGS[Math.floor(Math.random()*BURN_ENDINGS.length)];
+  setTimeout(()=>{ showCelebration(_end); }, 700);
   setTimeout(stopBgAudio, 2500);
 }
 document.getElementById("ivPause").onclick = function(){
@@ -5152,19 +5615,31 @@ function ensureSettingsOverlay(){
   ov.id = "settingsOverlay";
   ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9990;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:28px 0";
   ov.innerHTML = `<div style="background:var(--panel-strong);border-radius:16px;padding:18px 20px;max-width:390px;width:92%;box-shadow:var(--shadow)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <strong id="settingsTitle" style="color:var(--violet-deep)"></strong>
-      <button id="settingsClose" style="border:none;background:transparent;font-size:1.1rem;cursor:pointer">✕</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <strong id="settingsTitle" style="color:var(--violet-deep);font-size:1rem"></strong>
+      <button id="settingsClose" style="border:none;background:transparent;font-size:1.1rem;cursor:pointer;color:var(--ink-soft)">✕</button>
     </div>
-    <h4 id="settingsDataTitle" style="margin:6px 0;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
-    <div id="settingsDataSlot"></div>
-    <h4 id="settingsGodVisTitle" style="margin:16px 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
-    <div id="settingsGodVisList" style="display:flex;flex-direction:column;gap:6px"></div>
-    <h4 id="settingsSoundTitle" style="margin:16px 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
-    <div id="settingsSoundRow" style="display:flex;align-items:center;gap:12px;margin-bottom:4px"></div>
-    <h4 id="settingsLookTitle" style="margin:16px 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px"></h4>
-    <div id="settingsThemeRow" style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><span id="settingsThemeLbl" style="font-weight:600;color:var(--ink);font-size:.92rem"></span></div>
-    <div id="paletteList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsDataTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsDataSlot"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsGodVisTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsGodVisList" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsSoundTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsSoundRow" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsLookTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsThemeRow" style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><span id="settingsThemeLbl" style="font-weight:600;color:var(--ink);font-size:.92rem"></span></div>
+      <div id="paletteList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;margin-bottom:0">
+      <h4 id="settingsHelpTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsHelpRow"></div>
+    </div>
   </div>`;
   document.body.appendChild(ov);
   ov.onclick = e=>{ if(e.target===ov) ov.style.display="none"; };
@@ -5218,11 +5693,37 @@ function openSettings(){
     b.onclick = ()=>{ applyPalette(key); openSettings(); };
     listEl2.appendChild(b);
   });
+  try{
+    const _ht = ov.querySelector("#settingsHelpTitle");
+    const _helpRow = ov.querySelector("#settingsHelpRow");
+    if(_ht) _ht.textContent = LL("❓ Ayuda / Tooltips","❓ Help / Tooltips");
+    if(_helpRow){
+      _helpRow.innerHTML = "";
+      const _helpLab = document.createElement("label");
+      _helpLab.style.cssText = "display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--ink);cursor:pointer";
+      const _helpCb = document.createElement("input");
+      _helpCb.type = "checkbox";
+      _helpCb.checked = _tooltipsEnabled;
+      _helpCb.style.cssText = "width:17px;height:17px;accent-color:var(--accent)";
+      _helpCb.onchange = ()=>{
+        _tooltipsEnabled = _helpCb.checked;
+        try{ localStorage.setItem(TOOLTIPS_KEY, JSON.stringify(_tooltipsEnabled)); }catch(e){}
+        if(!_tooltipsEnabled) _hideTip();
+      };
+      _helpLab.appendChild(_helpCb);
+      _helpLab.appendChild(document.createTextNode(LL(
+        "Mostrar explicaciones al pasar el cursor / mantener presionado",
+        "Show tooltips on hover / long press"
+      )));
+      _helpRow.appendChild(_helpLab);
+    }
+  }catch(e){ console.warn("Tooltip settings:", e); }
   ov.style.display = "flex";
 }
 document.getElementById("paletteBtn").onclick = openSettings;
 try{ applyPalette(localStorage.getItem(PALETTE_KEY) || "rojo"); }catch(e){}
 ensureSettingsOverlay();
+initStaticTips();
 // Atleta a un lado (junto al idioma), Última actualización al otro (junto al ⚙️)
 try{
   const left = document.querySelector(".header-btns-left");
@@ -5375,6 +5876,13 @@ setAppMode(appMode);
 
 applyLang(lang);
 </script>
+<!-- Celebration overlay -->
+<div id="burnCelebration" class="burn-celebration">
+  <div class="bc-rains" id="bcRains"></div>
+  <div class="bc-title" id="bcTitle"></div>
+  <div class="bc-sub"   id="bcSub"></div>
+  <button class="bc-close" id="bcClose">✕</button>
+</div>
 <!-- Export scope modal -->
 <div class="export-scope-overlay" id="exportScopeOverlay">
   <div class="export-scope-dialog">
