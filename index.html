@@ -950,9 +950,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     .uib-group input{ max-width:80px;font-size:.75rem; }
     .app-logo-img{ width:34px;height:34px; }
     header.app h1{ gap:6px;font-size:clamp(1.2rem,5vw,1.8rem); }
-    header.app .en{ font-size:.55em; }
+    /* MOBILE: Ocultar tagline para que h1 sea solo el logo BURN — evita solapamiento */
+    header.app .en{ display:none !important; }
+    /* MOBILE: Ocultar fecha — no hay espacio */
+    #lastModDisplay{ display:none !important; }
+    /* MOBILE: Botones del header se achican para caber sin wrap */
+    .header-btns-left,.header-btns-right{ flex-wrap:nowrap; }
+    .header-btns-left button,.header-btns-right button{ flex:1 1 0;min-width:0;max-width:34px; }
     .header-btns{ gap:5px; }
     .theme-toggle,.lang-toggle,#voiceToggleBtn,#wakeBtn,#bgAudioBtn,#paletteBtn{ width:30px;height:30px;font-size:.9rem;border-radius:8px; }
+    /* MOBILE: user-info-bar queda visible debajo del row de botones — compacta */
+    .user-info-bar{ margin-top:6px;padding:6px 10px;gap:8px;font-size:.8rem; }
+    .user-name-input{ min-width:0 !important;width:130px; }
   }
 
   /* ── Credit email ── */
@@ -5725,20 +5734,24 @@ try{ applyPalette(localStorage.getItem(PALETTE_KEY) || "rojo"); }catch(e){}
 ensureSettingsOverlay();
 initStaticTips();
 // Atleta a un lado (junto al idioma), Última actualización al otro (junto al ⚙️)
+// En mobile (≤480px): NO se reorganiza — user-info-bar permanece visible debajo del header-top-row.
+// En desktop (>480px): se mueven los elementos a las columnas de botones.
 try{
-  const left = document.querySelector(".header-btns-left");
-  const right = document.querySelector(".header-btns-right");
-  const mk = ()=>{ const s=document.createElement("span"); s.className="uib-group"; return s; };
-  const gA = mk();
-  gA.appendChild(document.getElementById("userNameLabel"));
-  gA.appendChild(document.getElementById("userNameInput"));
-  left.appendChild(gA);
-  const gU = mk();
-  gU.appendChild(document.getElementById("lastModLabel"));
-  gU.appendChild(document.getElementById("lastModDisplay"));
-  right.insertBefore(gU, document.getElementById("paletteBtn"));
-  const uib = document.querySelector(".user-info-bar");
-  if(uib) uib.style.display = "none";
+  if(!window.matchMedia("(max-width:480px)").matches){
+    const left = document.querySelector(".header-btns-left");
+    const right = document.querySelector(".header-btns-right");
+    const mk = ()=>{ const s=document.createElement("span"); s.className="uib-group"; return s; };
+    const gA = mk();
+    gA.appendChild(document.getElementById("userNameLabel"));
+    gA.appendChild(document.getElementById("userNameInput"));
+    left.appendChild(gA);
+    const gU = mk();
+    gU.appendChild(document.getElementById("lastModLabel"));
+    gU.appendChild(document.getElementById("lastModDisplay"));
+    right.insertBefore(gU, document.getElementById("paletteBtn"));
+    const uib = document.querySelector(".user-info-bar");
+    if(uib) uib.style.display = "none";
+  }
 }catch(e){}
 // "Reiniciar casillas" baja a la fila del cronómetro de sesión
 try{
