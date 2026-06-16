@@ -357,21 +357,29 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .day-chip.active .day-x{color:var(--violet-deep)}
   .day-chip .day-x:hover{opacity:1;transform:scale(1.15)}
 
-  /* == Hand-drawn strikethrough for completed days == */
+  /* == Hand-drawn X for completed days (two diagonals drawn sequentially) == */
   .day-chip.struck { position:relative; }
-  .day-chip.struck .day-btn-inner { opacity:0.45; }
+  .day-chip.struck .day-btn-inner { opacity:0.42; }
   .day-strike-svg {
     position:absolute; top:50%; transform:translateY(-50%);
-    left:6px; width:calc(100% - 12px); height:22px;
+    left:5px; width:calc(100% - 10px); height:26px;
     pointer-events:none; overflow:visible;
   }
   .day-chip.active .day-strike-svg { color:var(--violet-deep); }
   .day-strike-path {
     stroke:currentColor; stroke-width:2.8; fill:none; stroke-linecap:round;
-    stroke-dasharray:140; stroke-dashoffset:0;
   }
-  @keyframes strike-draw { from{stroke-dashoffset:140} to{stroke-dashoffset:0} }
-  .day-chip.struck .day-strike-path { animation:strike-draw .45s ease-out forwards; }
+  /* diagonal 1: top-left → bottom-right */
+  .day-strike-d1 {
+    stroke-dasharray:200; stroke-dashoffset:200;
+  }
+  /* diagonal 2: top-right → bottom-left, starts after d1 */
+  .day-strike-d2 {
+    stroke-dasharray:200; stroke-dashoffset:200;
+  }
+  @keyframes strike-draw { to { stroke-dashoffset:0; } }
+  .day-chip.struck .day-strike-d1 { animation:strike-draw .38s cubic-bezier(.4,0,.2,1) forwards; }
+  .day-chip.struck .day-strike-d2 { animation:strike-draw .38s cubic-bezier(.4,0,.2,1) .34s forwards; }
   /* == All days done banner == */
   #allDaysBanner {
     display:none; text-align:center; padding:10px 14px;
@@ -559,23 +567,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .card:hover{box-shadow:var(--shadow)}
   .card.done{opacity:.75}
-  .card-scratch{
-    position:absolute;top:0;left:0;width:100%;height:100%;
-    pointer-events:none;z-index:4;overflow:visible;
-  }
-  .card-scratch .sx1,.card-scratch .sx2{
-    stroke:var(--violet,#7c4dff);stroke-width:4px;stroke-linecap:round;
-    fill:none;opacity:.55;vector-effect:non-scaling-stroke;
-  }
-  .card-scratch .sx1{
-    stroke-dasharray:400;stroke-dashoffset:400;
-    animation:scratchDraw .38s cubic-bezier(.4,0,.2,1) forwards;
-  }
-  .card-scratch .sx2{
-    stroke-dasharray:400;stroke-dashoffset:400;
-    animation:scratchDraw .38s cubic-bezier(.4,0,.2,1) .33s forwards;
-  }
-  @keyframes scratchDraw{to{stroke-dashoffset:0}}
+
   .card-head{
     display:flex;align-items:flex-start;gap:12px;
     padding:14px 16px;
@@ -2715,17 +2707,20 @@ function renderDays(){
       const ns = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(ns,"svg");
       svg.setAttribute("class","day-strike-svg");
-      svg.setAttribute("viewBox","0 0 100 20");
+      svg.setAttribute("viewBox","0 0 100 26");
       svg.setAttribute("preserveAspectRatio","none");
-      const PATHS = [
-        "M2,10 C18,7 32,13 48,9 C62,6 76,13 98,10",
-        "M2,9  C20,12 38,7  54,11 C68,7 84,12 98,9",
-        "M2,11 C14,8  30,14 50,9  C68,5 82,13 98,11",
-      ];
-      const path = document.createElementNS(ns,"path");
-      path.setAttribute("class","day-strike-path");
-      path.setAttribute("d", PATHS[(day.charCodeAt(0)||0) % 3]);
-      svg.appendChild(path);
+      // diagonal 1: top-left → bottom-right (slight hand-drawn wobble)
+      const d1 = document.createElementNS(ns,"line");
+      d1.setAttribute("class","day-strike-path day-strike-d1");
+      d1.setAttribute("x1","4"); d1.setAttribute("y1","3");
+      d1.setAttribute("x2","96"); d1.setAttribute("y2","23");
+      // diagonal 2: top-right → bottom-left
+      const d2 = document.createElementNS(ns,"line");
+      d2.setAttribute("class","day-strike-path day-strike-d2");
+      d2.setAttribute("x1","96"); d2.setAttribute("y1","3");
+      d2.setAttribute("x2","4"); d2.setAttribute("y2","23");
+      svg.appendChild(d1);
+      svg.appendChild(d2);
       wrap.appendChild(svg);
     }
     {
@@ -3097,7 +3092,6 @@ function makeCircuitCard(ex, idx){
   card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
-  if(ex.done){ const _svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); _svg.setAttribute("class","card-scratch"); _svg.setAttribute("viewBox","0 0 100 100"); _svg.setAttribute("preserveAspectRatio","none"); _svg.innerHTML='<line class="sx1" x1="3" y1="3" x2="97" y2="97"/><line class="sx2" x1="97" y1="3" x2="3" y2="97"/>'; card.appendChild(_svg); }
   attachExDrag(card, idx);
   // steppers de tiempo/descanso
   card.querySelectorAll(".cc-m, .cc-p").forEach(btn=>{
@@ -3298,7 +3292,6 @@ function makeCard(ex, idx){
     }
   };
   card.appendChild(head);
-  if(ex.done){ const _svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); _svg.setAttribute("class","card-scratch"); _svg.setAttribute("viewBox","0 0 100 100"); _svg.setAttribute("preserveAspectRatio","none"); _svg.innerHTML='<line class="sx1" x1="3" y1="3" x2="97" y2="97"/><line class="sx2" x1="97" y1="3" x2="3" y2="97"/>'; card.appendChild(_svg); }
   attachExDrag(card, idx);
 
   // Cuerpo
