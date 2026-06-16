@@ -552,12 +552,30 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     margin-bottom:14px;
     box-shadow:var(--shadow-soft);
     overflow:hidden;
-    transition:opacity .25s, box-shadow .2s, transform .2s;
+    position:relative;
+    transition:box-shadow .2s, transform .2s;
     animation:cardIn .3s ease both;
   }
   @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .card:hover{box-shadow:var(--shadow)}
-  .card.done{opacity:.6}
+  .card.done{opacity:.75}
+  .card-scratch{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    pointer-events:none;z-index:4;overflow:visible;
+  }
+  .card-scratch .sx1,.card-scratch .sx2{
+    stroke:var(--violet,#7c4dff);stroke-width:4px;stroke-linecap:round;
+    fill:none;opacity:.55;vector-effect:non-scaling-stroke;
+  }
+  .card-scratch .sx1{
+    stroke-dasharray:400;stroke-dashoffset:400;
+    animation:scratchDraw .38s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  .card-scratch .sx2{
+    stroke-dasharray:400;stroke-dashoffset:400;
+    animation:scratchDraw .38s cubic-bezier(.4,0,.2,1) .33s forwards;
+  }
+  @keyframes scratchDraw{to{stroke-dashoffset:0}}
   .card-head{
     display:flex;align-items:flex-start;gap:12px;
     padding:14px 16px;
@@ -1296,6 +1314,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <div class="day-progress-bar"><span id="dayProgressFill"></span></div>
       <div class="day-progress-txt" id="dayProgressTxt">0 / 0 completados</div>
       <button id="dayResetBtn" style="border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:6px 14px;font-weight:bold;cursor:pointer;font-size:.8rem">↺ <span id="dayResetTxt">Reiniciar casillas</span></button>
+      <button id="clearDoneBtn" style="border:1.5px solid rgba(255,255,255,.75);background:rgba(255,255,255,.12);color:#fff;border-radius:10px;padding:6px 14px;font-weight:bold;cursor:pointer;font-size:.8rem">✕ <span id="clearDoneTxt">Limpiar tachado</span></button>
       </div>
     </div>
     <div class="session-bar">
@@ -1933,6 +1952,7 @@ const LIBRARY = {
   ],
   "Barra · Barbell": [
     {es:"Sentadilla con barra", en:"Barbell back squat", muscle:"Piernas"},
+    {es:"Sentadilla sumo con barra", en:"Sumo barbell squat", muscle:"Piernas/Aductores"},
     {es:"Sentadilla frontal", en:"Front squat", muscle:"Cuádriceps"},
     {es:"Peso muerto", en:"Deadlift", muscle:"Espalda/Piernas"},
     {es:"Peso muerto rumano", en:"Romanian deadlift", muscle:"Femoral"},
@@ -1982,6 +2002,7 @@ const LIBRARY = {
     {es:"Extensión de tríceps sobre cabeza", en:"Overhead triceps extension", muscle:"Tríceps"},
     {es:"Patada de burro de tríceps con mancuerna", en:"Dumbbell triceps kickback", muscle:"Tríceps"},
     {es:"Sentadilla goblet", en:"Goblet squat", muscle:"Piernas"},
+    {es:"Sentadilla sumo con mancuerna", en:"Sumo dumbbell squat", muscle:"Piernas/Aductores"},
     {es:"Zancadas con mancuernas", en:"Dumbbell lunges", muscle:"Piernas"},
     {es:"Sentadilla búlgara", en:"Bulgarian split squat", muscle:"Piernas"},
     {es:"Peso muerto rumano con mancuernas", en:"Dumbbell RDL", muscle:"Femoral"},
@@ -2063,6 +2084,7 @@ const LIBRARY = {
     {es:"Dominadas supinas", en:"Chin-ups", muscle:"Espalda/Bíceps"},
     {es:"Fondos de tríceps en paralelas", en:"Triceps dips (parallel bars)", muscle:"Tríceps/Pecho"},
     {es:"Sentadilla libre", en:"Bodyweight squat", muscle:"Piernas"},
+    {es:"Sentadilla sumo", en:"Sumo squat", muscle:"Piernas/Aductores"},
     {es:"Sentadilla pistol", en:"Pistol squat", muscle:"Piernas"},
     {es:"Zancadas", en:"Lunges", muscle:"Piernas"},
     {es:"Puente de glúteo", en:"Glute bridge", muscle:"Glúteos"},
@@ -2181,6 +2203,49 @@ const LIBRARY = {
     {es:"Twist con disco", en:"Russian twist with disc", muscle:"Core/Oblicuos"},
     {es:"Empuje (de pie con disco)", en:"Chest push (standing)", muscle:"Pecho/Hombros"},
     {es:"Press de hombros con disco", en:"Overhead press", muscle:"Hombros"},
+  ],
+  "Tobilleras · Ankle Weights": [
+    // ── Glúteos y cadena posterior ──
+    {es:"Patada trasera de pie con tobillera", en:"Standing kickback (ankle weight)", muscle:"Glúteos"},
+    {es:"Patada trasera en cuadrupedia con tobillera", en:"Quadruped kickback (ankle weight)", muscle:"Glúteos"},
+    {es:"Patada de mula (cuadrupedia) con tobillera", en:"Donkey kick (ankle weight)", muscle:"Glúteos"},
+    {es:"Patada diagonal en cuadrupedia con tobillera", en:"Diagonal kickback (ankle weight)", muscle:"Glúteos/Core"},
+    {es:"Extensión de cadera de pie con tobillera", en:"Standing hip extension (ankle weight)", muscle:"Glúteos/Femoral"},
+    {es:"Puente de glúteo unilateral con tobillera", en:"Single-leg glute bridge (ankle weight)", muscle:"Glúteos"},
+    {es:"Superman con tobillera", en:"Superman hold (ankle weight)", muscle:"Glúteos/Lumbares"},
+    {es:"Nadadores en suelo con tobillera", en:"Flutter kicks prone (ankle weight)", muscle:"Glúteos/Lumbares"},
+    // ── Abductores / aductores ──
+    {es:"Abducción lateral de pierna de pie con tobillera", en:"Standing leg abduction (ankle weight)", muscle:"Abductores"},
+    {es:"Abducción en suelo (tumbado lateral) con tobillera", en:"Side-lying leg raise (ankle weight)", muscle:"Abductores"},
+    {es:"Fire hydrant con tobillera", en:"Fire hydrant (ankle weight)", muscle:"Abductores/Glúteos"},
+    {es:"Clamshell con tobillera", en:"Clamshell (ankle weight)", muscle:"Abductores"},
+    {es:"Aducción en suelo (tumbado lateral) con tobillera", en:"Side-lying hip adduction (ankle weight)", muscle:"Aductores"},
+    {es:"Monster walk con tobillera", en:"Monster walk (ankle weight)", muscle:"Abductores/Glúteos"},
+    {es:"Paso lateral con tobillera", en:"Side step (ankle weight)", muscle:"Abductores"},
+    // ── Cuádriceps / isquiotibiales ──
+    {es:"Extensión de rodilla sentado con tobillera", en:"Seated knee extension (ankle weight)", muscle:"Cuádriceps"},
+    {es:"Extensión de rodilla en suelo con tobillera", en:"Lying knee extension (ankle weight)", muscle:"Cuádriceps"},
+    {es:"Patada frontal de pie con tobillera", en:"Standing front kick (ankle weight)", muscle:"Cuádriceps"},
+    {es:"Curl de isquiotibiales de pie con tobillera", en:"Standing hamstring curl (ankle weight)", muscle:"Femoral"},
+    {es:"Curl de isquiotibiales en suelo con tobillera", en:"Lying hamstring curl (ankle weight)", muscle:"Femoral"},
+    {es:"Elevación de pierna recta tumbado con tobillera", en:"Lying straight-leg raise (ankle weight)", muscle:"Cuádriceps/Core"},
+    // ── Core / estabilidad ──
+    {es:"Elevación de pierna en plancha con tobillera", en:"Plank leg raise (ankle weight)", muscle:"Core/Glúteos"},
+    {es:"Patada trasera en plancha con tobillera", en:"Plank kickback (ankle weight)", muscle:"Glúteos/Core"},
+    {es:"Patada lateral en plancha con tobillera", en:"Plank side kick (ankle weight)", muscle:"Abductores/Core"},
+    {es:"Dead bug con tobillera", en:"Dead bug (ankle weight)", muscle:"Core"},
+    {es:"Tijeras verticales tumbado con tobillera", en:"Vertical scissors (ankle weight)", muscle:"Core/Cuádriceps"},
+    {es:"Tijeras horizontales tumbado con tobillera", en:"Horizontal scissors (ankle weight)", muscle:"Core/Aductores"},
+    {es:"Elevación de pierna en V tumbado con tobillera", en:"V-up leg raise (ankle weight)", muscle:"Core"},
+    {es:"Mountain climber lento con tobillera", en:"Slow mountain climber (ankle weight)", muscle:"Core/Cardio"},
+    // ── Cardio / funcional ──
+    {es:"Marcha con rodillas altas con tobillera", en:"High-knee march (ankle weight)", muscle:"Cardio/Cuádriceps"},
+    {es:"Salto de tijera con tobillera (bajo impacto)", en:"Low-impact jumping jack (ankle weight)", muscle:"Cardio/Abductores"},
+    {es:"Step lateral con tobillera", en:"Lateral step-out (ankle weight)", muscle:"Cardio/Abductores"},
+    {es:"Patada circular (Roundhouse) con tobillera", en:"Roundhouse kick (ankle weight)", muscle:"Glúteos/Abductores"},
+    {es:"Bicicleta abdominal con tobillera", en:"Bicycle crunch (ankle weight)", muscle:"Core/Oblicuos"},
+    {es:"Elevación de talón de pie con tobillera", en:"Calf raise (ankle weight)", muscle:"Gemelos"},
+    {es:"Círculos de pierna de pie con tobillera", en:"Standing leg circles (ankle weight)", muscle:"Cadera/Core"},
   ],
   "Bicicleta fija · Stationary bike": [
     {es:"Bici fija — ritmo constante", en:"Stationary bike — steady pace", muscle:"Cardio"},
@@ -3032,6 +3097,7 @@ function makeCircuitCard(ex, idx){
   card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
+  if(ex.done){ const _svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); _svg.setAttribute("class","card-scratch"); _svg.setAttribute("viewBox","0 0 100 100"); _svg.setAttribute("preserveAspectRatio","none"); _svg.innerHTML='<line class="sx1" x1="3" y1="3" x2="97" y2="97"/><line class="sx2" x1="97" y1="3" x2="3" y2="97"/>'; card.appendChild(_svg); }
   attachExDrag(card, idx);
   // steppers de tiempo/descanso
   card.querySelectorAll(".cc-m, .cc-p").forEach(btn=>{
@@ -3149,6 +3215,15 @@ function updateModeSwitch(){
   if(s) s.classList.toggle("active", mode==="straight");
   if(c) c.classList.toggle("active", mode==="circuit");
 }
+document.getElementById("clearDoneBtn").onclick = ()=>{
+  const days = Object.keys(data);
+  const hasDone = days.some(d=>(data[d]||[]).some(e=>e.done));
+  if(!hasDone){ toast(LL("No hay ejercicios tachados","No crossed-out exercises")); return; }
+  pushUndo();
+  days.forEach(d=>{ (data[d]||[]).forEach(ex=>{ ex.done=false; }); });
+  save(); renderList();
+  toast(LL("✕ Tachado borrado del workout — ↶ Deshacer","✕ Crossed-out cleared — ↶ Undo"));
+};
 document.getElementById("dayResetBtn").onclick = ()=>{
   const list = data[currentDay] || [];
   if(!list.length){ toast(LL("Este día no tiene ejercicios","No exercises")); return; }
@@ -3223,6 +3298,7 @@ function makeCard(ex, idx){
     }
   };
   card.appendChild(head);
+  if(ex.done){ const _svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); _svg.setAttribute("class","card-scratch"); _svg.setAttribute("viewBox","0 0 100 100"); _svg.setAttribute("preserveAspectRatio","none"); _svg.innerHTML='<line class="sx1" x1="3" y1="3" x2="97" y2="97"/><line class="sx2" x1="97" y1="3" x2="3" y2="97"/>'; card.appendChild(_svg); }
   attachExDrag(card, idx);
 
   // Cuerpo
@@ -4101,6 +4177,7 @@ function initStaticTips(){
     browseLib:     {es:"Biblioteca: agregar ejercicios del catálogo",                en:"Library: add exercises from the catalog"},
     addEx:         {es:"Agregar un ejercicio en blanco a este día",                  en:"Add a blank exercise to this day"},
     dayResetBtn:   {es:"Reiniciar todas las casillas del día (los datos se guardan)", en:"Reset all checkboxes today (data is kept)"},
+    clearDoneBtn:  {es:"Limpiar el tachado (X) de todo el workout sin borrar datos", en:"Clear all done-marks (X) across the whole workout, keeping set data"},
     undoBtn:       {es:"Deshacer el último cambio",                                  en:"Undo last change"},
     redoBtn:       {es:"Rehacer el cambio deshecho",                                 en:"Redo last undone change"},
     sessionToggle: {es:"Cronómetro de sesión: medí cuánto entrenás",                 en:"Session stopwatch: track how long you train"},
@@ -7316,6 +7393,7 @@ const I18N = {
     installBtn:"📲 Instalar app",
     timerSkip:"Saltar",
     dayResetTxt:"Reiniciar casillas",
+    clearDoneTxt:"Limpiar tachado",
     trainPrev:"◀ Anterior", trainNext:"Siguiente ▶",
     userNameLabel:"👤 Atleta:",
     lastModLabel:"📅 Última actualización:",
@@ -7339,6 +7417,7 @@ const I18N = {
     installBtn:"📲 Install app",
     timerSkip:"Skip",
     dayResetTxt:"Reset checkboxes",
+    clearDoneTxt:"Clear done marks",
     trainPrev:"◀ Previous", trainNext:"Next ▶",
     userNameLabel:"👤 Athlete:",
     lastModLabel:"📅 Last updated:",
