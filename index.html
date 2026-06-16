@@ -335,14 +335,17 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .day-btn.day-add{border-style:dashed;font-size:.82rem;opacity:.9}
   .day-btn.day-del{border-style:dashed;font-size:.82rem;opacity:.9}
   .day-add-select{
+    -webkit-appearance:none;appearance:none;
     border:2px dashed var(--cream);background:rgba(247,243,234,0.15);color:var(--cream);
-    padding:8px 12px;border-radius:999px;font-weight:bold;font-size:.82rem;cursor:pointer;
+    padding:8px 28px 8px 14px;border-radius:999px;font-weight:bold;font-size:.82rem;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(247,243,234,.9)' stroke-width='1.7' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 11px center;
   }
   .day-add-select option{color:var(--ink);background:var(--cream)}
   /* Chip de día con tachito */
   .day-chip{
     display:inline-flex;align-items:center;border:2px solid var(--cream);
-    background:rgba(247,243,234,0.15);border-radius:999px;overflow:hidden;
+    background:rgba(247,243,234,0.15);border-radius:999px;
   }
   .day-chip.active{background:var(--cream)}
   .day-chip .day-btn-inner{
@@ -2771,15 +2774,16 @@ function renderDays(){
       svg.setAttribute("class","day-strike-svg");
       svg.setAttribute("viewBox","0 0 42 42");
       // diagonal 1: top-left → bottom-right
-      const d1 = document.createElementNS(ns,"line");
+      // diagonal 1 a mano alzada: top-left → bottom-right con leve arco
+      const d1 = document.createElementNS(ns,"path");
       d1.setAttribute("class","day-strike-path day-strike-d1");
-      d1.setAttribute("x1","4"); d1.setAttribute("y1","4");
-      d1.setAttribute("x2","38"); d1.setAttribute("y2","38");
-      // diagonal 2: top-right → bottom-left (empieza después de d1)
-      const d2 = document.createElementNS(ns,"line");
+      d1.setAttribute("d","M 5,4 C 12,10 19,22 27,31 C 31,35 35,37 38,38");
+      d1.setAttribute("pathLength","60");
+      // diagonal 2: top-right → bottom-left, leve arco opuesto
+      const d2 = document.createElementNS(ns,"path");
       d2.setAttribute("class","day-strike-path day-strike-d2");
-      d2.setAttribute("x1","38"); d2.setAttribute("y1","4");
-      d2.setAttribute("x2","4"); d2.setAttribute("y2","38");
+      d2.setAttribute("d","M 37,4 C 30,11 22,22 14,30 C 10,34 7,36 4,38");
+      d2.setAttribute("pathLength","60");
       svg.appendChild(d1);
       svg.appendChild(d2);
       wrap.appendChild(svg);
@@ -2789,7 +2793,7 @@ function renderDays(){
       menuWrap.className = "chip-menu-wrap";
       const dots = document.createElement("button");
       dots.className = "day-x";
-      dots.textContent = "⋯";
+      dots.textContent = "⋮";
       dots.title = LL("Opciones","Options");
       dots.onclick = (e)=>{ e.stopPropagation(); openChipMenu(day, menuWrap); };
       const menu = document.createElement("div");
@@ -4574,6 +4578,18 @@ function renderLibBody(){
         <button class="add-btn" title="${LL('Añadir','Add')}">＋</button>
         <button class="del-btn" style="background:transparent;border:1.5px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.8rem;margin-left:4px;" title="${LL('Borrar','Delete')}">🗑</button>
       `;
+/* helper: defaults según categoría de library */
+  function _libDefaults(cat){
+    const c=(cat||'').toLowerCase();
+    if(/bicicleta|stationary.?bike/.test(c)) return {sets:1,reps:20,weight:0,rest:0};
+    if(/movilidad|mobility/.test(c))         return {sets:3,reps:30,weight:0,rest:15};
+    if(/calentamiento|warm.?up/.test(c))     return {sets:2,reps:30,weight:0,rest:15};
+    if(/elongaci|stretching|cool.?down/.test(c)) return {sets:2,reps:30,weight:0,rest:10};
+    return {sets:3,reps:10,weight:0,rest:60};
+  }
+  function _isTimedCat(cat){
+    return /bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
+  }
       row.querySelector('.add-btn').onclick = ()=>{
         pushUndo();
         if(libReplaceIdx !== null){
@@ -4583,8 +4599,10 @@ function renderLibBody(){
             setsDone:[],done:false,customRest:old.customRest||false,notes:old.notes||''};
           libReplaceIdx=null; save(); renderList(); libModal.classList.remove('show'); return;
         }
+        const _d=_libDefaults(ex.cat||libCategory);
+        if(_isTimedCat(ex.cat||libCategory) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
         data[currentDay].push({es:ex.es,en:ex.en||ex.es,muscle:ex.muscle||'',
-          sets:3,reps:10,weight:0,rest:60,setsDone:[],done:false});
+          sets:_d.sets,reps:_d.reps,weight:_d.weight,rest:_d.rest,setsDone:[],done:false});
         save(); renderList();
         const btn=row.querySelector('.add-btn'); btn.textContent='✓'; btn.style.background='var(--accent)';
         setTimeout(()=>{ btn.textContent='＋'; btn.style.background=''; },700);
@@ -4659,9 +4677,11 @@ row.innerHTML = `
         libModal.classList.remove("show");
         return;
       }
+      const _d=_libDefaults(ex.cat);
+      if(_isTimedCat(ex.cat) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
       data[currentDay].push({
         es:ex.es, en:ex.en, muscle:ex.muscle,
-        sets:3, reps:10, weight:0, rest:60, setsDone:[], done:false,
+        sets:_d.sets, reps:_d.reps, weight:_d.weight, rest:_d.rest, setsDone:[], done:false,
         customRest:false, restNote:""
       });
       save(); renderList();
