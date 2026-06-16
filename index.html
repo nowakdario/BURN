@@ -352,10 +352,29 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .day-chip.active .day-btn-inner{color:var(--violet-deep)}
   .day-chip .day-x{
     border:none;background:transparent;color:var(--cream);
-    padding:8px 10px 8px 4px;cursor:pointer;font-size:.78rem;opacity:.85;
+    padding:8px 10px 8px 4px;cursor:pointer;font-size:.82rem;opacity:.85;
+    line-height:1;
   }
   .day-chip.active .day-x{color:var(--violet-deep)}
-  .day-chip .day-x:hover{opacity:1;transform:scale(1.15)}
+  .day-chip .day-x:hover{opacity:1}
+  /* Context menu */
+  .chip-menu-wrap{position:relative;display:inline-flex;}
+  .chip-menu{
+    position:absolute;top:calc(100% + 4px);right:0;z-index:999;
+    background:var(--card-bg);border:1.5px solid var(--line);
+    border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.18);
+    min-width:170px;padding:4px 0;display:none;
+  }
+  .chip-menu.open{display:block;animation:cardIn .15s ease both;}
+  .chip-menu-item{
+    display:block;width:100%;text-align:left;padding:9px 16px;
+    background:transparent;border:none;cursor:pointer;
+    font-size:.88rem;color:var(--ink);white-space:nowrap;
+  }
+  .chip-menu-item:hover{background:rgba(124,77,255,.09);color:var(--violet);}
+  .chip-menu-item.danger{color:#c0392b;}
+  .chip-menu-item.danger:hover{background:rgba(192,57,43,.08);}
+  .chip-menu-sep{height:1px;background:var(--line);margin:3px 10px;}
 
   /* == Hand-drawn X for completed days (two diagonals drawn sequentially) == */
   .day-chip.struck { position:relative; }
@@ -2683,6 +2702,51 @@ function dayLabel(day){
   if(hit) return lang==="en" ? hit.en : hit.es;
   return day;
 }
+// Cierra todos los chip-menus abiertos
+function closeAllChipMenus(){ document.querySelectorAll(".chip-menu.open").forEach(m=>m.classList.remove("open")); }
+document.addEventListener("click", ()=> closeAllChipMenus());
+
+function openChipMenu(day, wrap){
+  closeAllChipMenus();
+  const menu = wrap.querySelector(".chip-menu");
+  if(!menu) return;
+  menu.innerHTML = "";
+  const item = (icon, label, cls, fn)=>{
+    const b = document.createElement("button");
+    b.className = "chip-menu-item" + (cls?" "+cls:"");
+    b.textContent = icon+" "+label;
+    b.onclick = (e)=>{ e.stopPropagation(); closeAllChipMenus(); fn(); };
+    menu.appendChild(b);
+  };
+  const sep = ()=>{ const s=document.createElement("div"); s.className="chip-menu-sep"; menu.appendChild(s); };
+
+  item("✏️", LL("Renombrar","Rename"), "", ()=> renameDay(day));
+  item("📋", LL("Copiar workout","Copy workout"), "", ()=> copyDay(day));
+  item("📥", LL("Pegar aquí","Paste here"), "", ()=>{
+    if(!_clip){ toast(LL("Portapapeles vacío","Clipboard empty")); return; }
+    if(_clip.type==="day"){
+      pushUndo();
+      const exs = _clip.data.map(e=>({...structuredClone(e),setsDone:[],done:false,rpe:0}));
+      data[day] = [...(data[day]||[]), ...exs];
+      save(); currentDay=day; renderDays(); renderList();
+      toast(LL("📥 Pegado en "+day,"📥 Pasted into "+day));
+    } else {
+      toast(LL("Solo se puede pegar un workout completo aquí","Can only paste a full workout here"));
+    }
+  });
+  sep();
+  item("🔄", LL("Renovar (quitar tachado)","Renew (clear X)"), "", ()=>{
+    pushUndo();
+    (data[day]||[]).forEach(ex=>{ ex.done=false; ex.setsDone=[]; });
+    save(); renderDays(); if(currentDay===day) renderList();
+    toast(LL("🔄 Tachado renovado","🔄 Workout reset"));
+  });
+  sep();
+  item("🗑", LL("Borrar este workout","Delete this workout"), "danger", ()=> deleteDayNamed(day));
+
+  menu.classList.add("open");
+}
+
 function renderDays(){
   daysEl.innerHTML = "";
   const multiple = Object.keys(data).length > 1;
@@ -2721,12 +2785,19 @@ function renderDays(){
       wrap.appendChild(svg);
     }
     {
-      const x = document.createElement("button");
-      x.className = "day-x";
-      x.textContent = "🗑";
-      x.title = lang==="en" ? "Delete this day" : "Borrar este día";
-      x.onclick = (e)=>{ e.stopPropagation(); deleteDayNamed(day); };
-      wrap.appendChild(x);
+      const menuWrap = document.createElement("span");
+      menuWrap.className = "chip-menu-wrap";
+      const dots = document.createElement("button");
+      dots.className = "day-x";
+      dots.textContent = "⋯";
+      dots.title = LL("Opciones","Options");
+      dots.onclick = (e)=>{ e.stopPropagation(); openChipMenu(day, menuWrap); };
+      const menu = document.createElement("div");
+      menu.className = "chip-menu";
+      menu.dataset.day = day;
+      menuWrap.appendChild(dots);
+      menuWrap.appendChild(menu);
+      wrap.appendChild(menuWrap);
     }
     daysEl.appendChild(wrap);
   });
@@ -2908,13 +2979,6 @@ function renderList(){
     document.getElementById("circPlus").onclick = ()=> applyRounds(rounds+1);
 
     updateDayProgress();
-    // ── Copy day button (circuit) ──
-    if(list.length > 0){
-      const cpdc = document.createElement('button'); cpdc.className='copy-day-btn';
-      cpdc.textContent = LL(`📋 Copiar día "${currentDay}"`,`📋 Copy day "${currentDay}"`);
-      cpdc.onclick=()=>copyDay(currentDay);
-      listEl.appendChild(cpdc);
-    }
     return;
   }
 
@@ -2923,13 +2987,6 @@ function renderList(){
     listEl.appendChild(makeCard(ex, i));
   });
   updateDayProgress();
-  // ── Copy day button ──
-  if(list.length > 0){
-    const cpd = document.createElement('button'); cpd.className='copy-day-btn';
-    cpd.textContent = LL(`📋 Copiar día "${currentDay}"`,`📋 Copy day "${currentDay}"`);
-    cpd.onclick=()=>copyDay(currentDay);
-    listEl.appendChild(cpd);
-  }
 }
 
 // Tarjeta simplificada para circuito: nombre + tiempo de trabajo + descanso
@@ -3086,7 +3143,7 @@ function makeCircuitCard(ex, idx){
     window.open("https://www.youtube.com/results?search_query=" + term, "_blank");
   };
   card.querySelector(".del").onclick = ()=>{ if(confirm(Lc(`¿Eliminar "${primaryName}"?`,`Delete "${primaryName}"?`))){ pushUndo(); data[currentDay].splice(idx,1); save(); renderList(); } };
-  card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
+  card.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderDays(); renderList(); };
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
   attachExDrag(card, idx);
@@ -3258,7 +3315,7 @@ function makeCard(ex, idx){
       </div>
     </div>
   `;
-  head.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderList(); };
+  head.querySelector(".check").onclick = ()=>{ ex.done=!ex.done; save(); renderDays(); renderList(); };
   // El campo primario edita el idioma activo; el secundario, el otro
   head.querySelector(".es").onblur = e=>{ const v=e.target.textContent.trim(); if(lang==="en") ex.en=v; else ex.es=v; save(); };
   head.querySelector(".en").onblur = e=>{ const v=e.target.textContent.trim(); if(lang==="en") ex.es=v; else ex.en=v; save(); };
@@ -3359,9 +3416,8 @@ function makeCard(ex, idx){
       log.done = !log.done;
       // auto-completar ejercicio si todos los sets están hechos (o des-completar si alguno no)
       const _allDone = ex.sets > 0 && ex.setsDone.slice(0, ex.sets).every(s => s && s.done);
-      if(_allDone !== ex.done){ ex.done = _allDone; }
+      if(_allDone !== ex.done){ ex.done = _allDone; renderDays(); }
       save(); renderList();
-      // al marcar la serie, usa el descanso individual si está activo, si no el general
       if(log.done){ warmAudio(); startTimer(ex.customRest ? (log.rest ?? ex.rest) : ex.rest); }
     };
     rows.appendChild(row);
@@ -4941,8 +4997,32 @@ document.getElementById("wkExport").onclick = async ()=>{
     ? ["#","Exercise","Muscle","Sets / Rounds","Reps / Time","Weight (kg)","Rest (s)","Per-set rest","Notes","Done"]
     : ["#","Ejercicio","Músculo","Series / Rounds","Reps / Tiempo","Peso (kg)","Descanso (s)","Descanso x serie","Notas","Hecho"];
 
-  const COL = { brand:"FFD10A14", brandDark:"FF9A0009", white:"FFFFFFFF",
-                zebra:"FFFBE9EA", line:"FFE0B5B8", soft:"FFFFF4F4", grey:"FF888888", ink:"FF1A1A1A", ok:"FF1E8E3E" };
+  /* ── read current GUI palette for Excel colors ── */
+  function _cssToArgb(v,fb){
+    const s=(getComputedStyle(document.documentElement).getPropertyValue(v)||"").trim();
+    if(s.startsWith("#")){let h=s.slice(1);if(h.length===3)h=h.split("").map(c=>c+c).join("");if(h.length===6)return"FF"+h.toUpperCase();}
+    const m=s.match(/rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+    if(m)return"FF"+[+m[1],+m[2],+m[3]].map(n=>n.toString(16).padStart(2,"0").toUpperCase()).join("");
+    return fb||"FF888888";
+  }
+  function _tintArgb(a,t){
+    const r=parseInt(a.slice(2,4),16),g=parseInt(a.slice(4,6),16),b=parseInt(a.slice(6,8),16);
+    return"FF"+[Math.round(r*t+255*(1-t)),Math.round(g*t+255*(1-t)),Math.round(b*t+255*(1-t))].map(n=>n.toString(16).padStart(2,"0").toUpperCase()).join("");
+  }
+  function _darkArgb(a,f){
+    const r=parseInt(a.slice(2,4),16),g=parseInt(a.slice(4,6),16),b=parseInt(a.slice(6,8),16);
+    return"FF"+[r,g,b].map(n=>Math.round(n*f).toString(16).padStart(2,"0").toUpperCase()).join("");
+  }
+  const _brand=_cssToArgb("--violet","FFD10A14");
+  const _brandDeep=_cssToArgb("--violet-deep",_darkArgb(_brand,0.70));
+  const _ok=_cssToArgb("--ok","FF1E8E3E");
+  const _lum=(a)=>{const r=parseInt(a.slice(2,4),16)/255,g=parseInt(a.slice(4,6),16)/255,b=parseInt(a.slice(6,8),16)/255;return 0.2126*r+0.7152*g+0.0722*b;};
+  const COL={
+    brand:_brand, brandDark:_brandDeep, white:"FFFFFFFF",
+    zebra:_tintArgb(_brand,0.07), line:_tintArgb(_brand,0.22), soft:_tintArgb(_brand,0.04),
+    grey:"FF888888", ink:"FF1A1A1A", ok:_ok,
+    headerText:_lum(_brand)>0.35?"FF1A1A1A":"FFFFFFFF"
+  };
   const widths = [5,42,18,15,15,12,12,18,30,8];
 
   /* ── Determine which days to export ── */
@@ -4986,7 +5066,7 @@ document.getElementById("wkExport").onclick = async ()=>{
     ws.getRow(1).height = 38;
     const titleCell = ws.getCell(1,1);
     titleCell.value = "BURN — Be Unstoppable, Rise Now";
-    titleCell.font = { bold:true, size:16, color:{argb:COL.white} };
+    titleCell.font = { bold:true, size:16, color:{argb:COL.headerText} };
     titleCell.alignment = { horizontal:"center", vertical:"middle" };
     titleCell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:COL.brand} };
     ws.addImage(logoId, { tl:{ col:0.15, row:0.12 }, ext:{ width:46, height:46 } });
@@ -5011,18 +5091,18 @@ document.getElementById("wkExport").onclick = async ()=>{
     nCell.alignment = { horizontal:"center", vertical:"middle" };
     nCell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:COL.soft} };
     ws.getRow(3).height = 16;
-    ws.getRow(4).height = 6;
+    ws.getRow(4).height = 10;
 
     const headerRow = ws.getRow(5);
     headers.forEach((h,i)=>{
       const cell = headerRow.getCell(i+1);
       cell.value = h;
-      cell.font = { bold:true, color:{argb:COL.white}, size:11 };
+      cell.font = { bold:true, color:{argb:COL.headerText}, size:11 };
       cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:COL.brand} };
       cell.alignment = { horizontal:"center", vertical:"middle", wrapText:true };
       cell.border = { top:{style:"thin",color:{argb:COL.white}}, bottom:{style:"thin",color:{argb:COL.white}}, left:{style:"thin",color:{argb:COL.white}}, right:{style:"thin",color:{argb:COL.white}} };
     });
-    headerRow.height = 22;
+    headerRow.height = 32;
 
     list.forEach((ex, i)=>{
       const perSet = ex.customRest && Array.isArray(ex.setsDone)
@@ -5064,7 +5144,7 @@ document.getElementById("wkExport").onclick = async ()=>{
     infoWs.mergeCells(1,1,1,5);
     const iTitleCell = infoWs.getCell(1,1);
     iTitleCell.value = "BURN — Exercise Reference & How-To Links";
-    iTitleCell.font = { bold:true, size:14, color:{argb:COL.white} };
+    iTitleCell.font = { bold:true, size:14, color:{argb:COL.headerText} };
     iTitleCell.alignment = { horizontal:"center", vertical:"middle" };
     iTitleCell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:COL.brand} };
     infoWs.getRow(1).height = 30;
@@ -5084,12 +5164,12 @@ document.getElementById("wkExport").onclick = async ()=>{
     iHeaders.forEach((h,i)=>{
       const cell = iHeaderRow.getCell(i+1);
       cell.value = h;
-      cell.font = { bold:true, color:{argb:COL.white}, size:11 };
+      cell.font = { bold:true, color:{argb:COL.headerText}, size:11 };
       cell.fill = { type:"pattern", pattern:"solid", fgColor:{argb:COL.brand} };
       cell.alignment = { horizontal:"center", vertical:"middle", wrapText:true };
       cell.border = { top:{style:"thin",color:{argb:COL.white}}, bottom:{style:"thin",color:{argb:COL.white}}, left:{style:"thin",color:{argb:COL.white}}, right:{style:"thin",color:{argb:COL.white}} };
     });
-    iHeaderRow.height = 22;
+    iHeaderRow.height = 32;
 
     let iRow = 4;
     let iCount = 1;
