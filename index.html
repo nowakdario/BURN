@@ -360,26 +360,22 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* == Hand-drawn X for completed days (two diagonals drawn sequentially) == */
   .day-chip.struck { position:relative; }
   .day-chip.struck .day-btn-inner { opacity:0.42; }
+  /* SVG cuadrado fijo centrado — así las diagonales quedan a ~45° sea cual sea el ancho del chip */
   .day-strike-svg {
-    position:absolute; top:50%; transform:translateY(-50%);
-    left:5px; width:calc(100% - 10px); height:26px;
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:42px; height:42px;
     pointer-events:none; overflow:visible;
   }
   .day-chip.active .day-strike-svg { color:var(--violet-deep); }
   .day-strike-path {
-    stroke:currentColor; stroke-width:2.8; fill:none; stroke-linecap:round;
+    stroke:currentColor; stroke-width:3; fill:none; stroke-linecap:round;
   }
-  /* diagonal 1: top-left → bottom-right */
-  .day-strike-d1 {
-    stroke-dasharray:200; stroke-dashoffset:200;
-  }
-  /* diagonal 2: top-right → bottom-left, starts after d1 */
-  .day-strike-d2 {
-    stroke-dasharray:200; stroke-dashoffset:200;
-  }
+  .day-strike-d1 { stroke-dasharray:60; stroke-dashoffset:60; }
+  .day-strike-d2 { stroke-dasharray:60; stroke-dashoffset:60; }
   @keyframes strike-draw { to { stroke-dashoffset:0; } }
-  .day-chip.struck .day-strike-d1 { animation:strike-draw .38s cubic-bezier(.4,0,.2,1) forwards; }
-  .day-chip.struck .day-strike-d2 { animation:strike-draw .38s cubic-bezier(.4,0,.2,1) .34s forwards; }
+  .day-chip.struck .day-strike-d1 { animation:strike-draw .35s cubic-bezier(.4,0,.2,1) forwards; }
+  .day-chip.struck .day-strike-d2 { animation:strike-draw .35s cubic-bezier(.4,0,.2,1) .3s forwards; }
   /* == All days done banner == */
   #allDaysBanner {
     display:none; text-align:center; padding:10px 14px;
@@ -1224,6 +1220,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     color:var(--ink-soft);cursor:pointer;font-size:.78rem;text-align:center;}
   .copy-day-btn:hover{border-color:var(--violet);color:var(--violet);}
   /* ── Saved workouts in templates ── */
+  .tpl-pick-active{ border-color:var(--violet)!important; background:rgba(124,77,255,.08)!important; }
   .tpl-section-hdr{font-size:.72rem;font-weight:800;color:var(--ink-soft);
     letter-spacing:.09em;text-transform:uppercase;margin:20px 0 8px;
     padding-bottom:6px;border-bottom:2px solid var(--line);}
@@ -1492,7 +1489,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   <div class="iv-motiv" id="ivMotiv"></div>
   <div class="iv-controls">
     <button id="ivPause">⏸ Pausar</button>
-    <button id="ivStop">■ Terminar</button>
+    <button id="ivStop">■ Finalizar</button>
+    <button id="ivExit">✕ Salir</button>
   </div>
 
 
@@ -2707,18 +2705,17 @@ function renderDays(){
       const ns = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(ns,"svg");
       svg.setAttribute("class","day-strike-svg");
-      svg.setAttribute("viewBox","0 0 100 26");
-      svg.setAttribute("preserveAspectRatio","none");
-      // diagonal 1: top-left → bottom-right (slight hand-drawn wobble)
+      svg.setAttribute("viewBox","0 0 42 42");
+      // diagonal 1: top-left → bottom-right
       const d1 = document.createElementNS(ns,"line");
       d1.setAttribute("class","day-strike-path day-strike-d1");
-      d1.setAttribute("x1","4"); d1.setAttribute("y1","3");
-      d1.setAttribute("x2","96"); d1.setAttribute("y2","23");
-      // diagonal 2: top-right → bottom-left
+      d1.setAttribute("x1","4"); d1.setAttribute("y1","4");
+      d1.setAttribute("x2","38"); d1.setAttribute("y2","38");
+      // diagonal 2: top-right → bottom-left (empieza después de d1)
       const d2 = document.createElementNS(ns,"line");
       d2.setAttribute("class","day-strike-path day-strike-d2");
-      d2.setAttribute("x1","96"); d2.setAttribute("y1","3");
-      d2.setAttribute("x2","4"); d2.setAttribute("y2","23");
+      d2.setAttribute("x1","38"); d2.setAttribute("y1","4");
+      d2.setAttribute("x2","4"); d2.setAttribute("y2","38");
       svg.appendChild(d1);
       svg.appendChild(d2);
       wrap.appendChild(svg);
@@ -4182,7 +4179,8 @@ function initStaticTips(){
     trainPrev:     {es:"Ejercicio / ronda anterior",                                 en:"Previous exercise / round"},
     trainNext:     {es:"Siguiente ejercicio / ronda",                                en:"Next exercise / round"},
     ivPause:       {es:"Pausar / reanudar el temporizador",                          en:"Pause / resume timer"},
-    ivStop:        {es:"Terminar la sesión de intervalos",                           en:"Stop interval session"},
+    ivStop:        {es:"Finalizar la sesión y marcar completado",                   en:"Finish session and mark complete"},
+    ivExit:        {es:"Salir sin finalizar (el progreso no se pierde)",             en:"Exit without finishing (progress kept)"},
     intervalClose: {es:"Cerrar configuración de intervalos",                         en:"Close interval config"},
     ivStart:       {es:"Iniciar la sesión de intervalos",                            en:"Start interval session"},
     timerSkip:     {es:"Saltear el descanso y continuar",                            en:"Skip rest and continue"},
@@ -4413,7 +4411,7 @@ const libModal = document.getElementById("libModal");
 const libTabs = document.getElementById("libTabs");
 const libBody = document.getElementById("libBody");
 const libSearch = document.getElementById("libSearchInput");
-let libCategory = Object.keys(LIBRARY)[0];
+let libCategory = "__all__";
 let libReplaceIdx = null; // si no es null, estamos reemplazando ese índice
 
 document.getElementById("browseLib").onclick = ()=>{
@@ -4437,21 +4435,25 @@ libSearch.oninput = ()=> renderLibBody();
 
 function renderLibTabs(){
   libTabs.innerHTML = "";
+  const allTab = document.createElement("button");
+  allTab.className = "lib-tab" + (libCategory==="__all__"?" active":"");
+  allTab.textContent = LL("Todos","All");
+  allTab.onclick = ()=>{ libCategory="__all__"; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+  libTabs.appendChild(allTab);
   Object.keys(LIBRARY).forEach(cat=>{
     const t = document.createElement("button");
     t.className = "lib-tab" + (cat===libCategory?" active":"");
     t.textContent = catLabel(cat);
-    t.onclick = ()=>{ libCategory=cat; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+    t.onclick = ()=>{ libCategory=(libCategory===cat)?"__all__":cat; libSearch.value=""; renderLibTabs(); renderLibBody(); };
     libTabs.appendChild(t);
   });
-  // Custom library categories
   const clib = getCustomLib();
   Object.keys(clib).forEach(catKey=>{
     const dispName = catKey.replace('__custom__','');
     const t = document.createElement("button");
     t.className = "lib-tab" + (catKey===libCategory?" active":"");
     t.textContent = "✨ "+dispName;
-    t.onclick = ()=>{ libCategory=catKey; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+    t.onclick = ()=>{ libCategory=(libCategory===catKey)?"__all__":catKey; libSearch.value=""; renderLibTabs(); renderLibBody(); };
     libTabs.appendChild(t);
   });
   // Add new custom category tab
@@ -4541,17 +4543,16 @@ function renderLibBody(){
     return;
   }
   let items;
-  if(q){
+  if(q || libCategory==="__all__"){
     items = [];
     Object.entries(LIBRARY).forEach(([cat,list])=>{
       list.forEach(ex=>{
-        if((ex.es+ex.en+ex.muscle).toLowerCase().includes(q)) items.push({...ex, cat});
+        if(!q || (ex.es+ex.en+ex.muscle).toLowerCase().includes(q)) items.push({...ex, cat});
       });
     });
-    // also search custom lib
     Object.entries(getCustomLib()).forEach(([cat,list])=>{
       (list||[]).forEach(ex=>{
-        if(((ex.es||'')+(ex.en||'')+(ex.muscle||'')).toLowerCase().includes(q))
+        if(!q || ((ex.es||'')+(ex.en||'')+(ex.muscle||'')).toLowerCase().includes(q))
           items.push({...ex, cat});
       });
     });
@@ -6847,9 +6848,13 @@ function renderTpl(){
     Object.keys(TEMPLATES).forEach(t=>{
       const totalCirc = TEMPLATES[t].reduce((a,lvl)=>a+Object.keys(lvl).length,0);
       const card = document.createElement("button");
-      card.className = "tpl-pick";
+      card.className = "tpl-pick" + (tplType===t?" tpl-pick-active":"");
       card.innerHTML = `<span class="tpl-pick-name">${catLabel(t)}</span><span class="tpl-pick-sub">${totalCirc} ${LL("circuitos · 5 niveles","circuits · 5 levels")}</span>`;
-      card.onclick = ()=>{ tplType=t; tplStep="level"; renderTpl(); };
+      // Click en activo = deseleccionar
+      card.onclick = ()=>{
+        if(tplType===t){ tplType=null; renderTpl(); }
+        else { tplType=t; tplStep="level"; renderTpl(); }
+      };
       tplBody.appendChild(card);
     });
 
@@ -7362,6 +7367,13 @@ document.getElementById("ivStop").onclick = ()=>{
   stopBgAudio();
   ivRun.classList.remove("show");
 };
+document.getElementById("ivExit").onclick = ()=>{
+  if(!confirm(LL("¿Salir sin finalizar?","Exit without finishing?"))) return;
+  clearInterval(ivInt);
+  _cancelPendingAudio();
+  stopBgAudio();
+  ivRun.classList.remove("show");
+};
 
 /* ---------- Idioma · Language (ES / EN) ---------- */
 const LANG_KEY = "strengthGadgetRojo.lang";
@@ -7380,7 +7392,7 @@ const I18N = {
     dataSavedTxt:"Los datos se guardan en tu dispositivo",
     ivTitle:"⏲️ Temporizador de intervalos", ivLabPrep:"Preparación (s)", ivLabWork:"Trabajo (s)",
     ivLabRest:"Descanso (s)", ivLabRounds:"Rondas", ivLabSets:"Sets/ciclos", ivLabSetRest:"Descanso entre sets (s)",
-    ivStart:"▶ Iniciar", ivPause:"⏸ Pausar", ivStop:"■ Terminar",
+    ivStart:"▶ Iniciar", ivPause:"⏸ Pausar", ivStop:"■ Finalizar", ivExit:"✕ Salir",
     tplTitle:"🗂️ Plantillas", motivTitle:"🔥 Frases", progTitle:"📈 Progreso", libTitle:"📚 Biblioteca",
     restLab:"Descanso", libSearchPh:"Buscar ejercicio…", addQuoteBtn:"＋ Agregar frase",
     installBtn:"📲 Instalar app",
@@ -7404,7 +7416,7 @@ const I18N = {
     dataSavedTxt:"Your data is saved on your device",
     ivTitle:"⏲️ Interval timer", ivLabPrep:"Prep (s)", ivLabWork:"Work (s)",
     ivLabRest:"Rest (s)", ivLabRounds:"Rounds", ivLabSets:"Sets/cycles", ivLabSetRest:"Rest between sets (s)",
-    ivStart:"▶ Start", ivPause:"⏸ Pause", ivStop:"■ Stop",
+    ivStart:"▶ Start", ivPause:"⏸ Pause", ivStop:"■ Finish", ivExit:"✕ Exit",
     tplTitle:"🗂️ Templates", motivTitle:"🔥 Quotes", progTitle:"📈 Progress", libTitle:"📚 Library",
     restLab:"Rest", libSearchPh:"Search exercise…", addQuoteBtn:"＋ Add quote",
     installBtn:"📲 Install app",
@@ -7447,7 +7459,7 @@ function applyLang(l){
   const map = {
     tplTitleEl:dict.tplTitle, motivTitleEl:dict.motivTitle,
     progTitleEl:dict.progTitle, libTitleEl:dict.libTitle, restLabEl:dict.restLab,
-    ivPause:dict.ivPause, ivStop:dict.ivStop
+    ivPause:dict.ivPause, ivStop:dict.ivStop, ivExit:dict.ivExit
   };
   Object.keys(map).forEach(id=>{ const el=document.getElementById(id); if(el&&map[id]) el.textContent=map[id]; });
   const srch = document.getElementById("libSearchInput");
