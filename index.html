@@ -525,7 +525,23 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     font-family:var(--font-head);font-weight:700;letter-spacing:.5px;font-size:1rem;color:#fff;
     background:linear-gradient(135deg,var(--violet),var(--violet-deep));box-shadow:var(--shadow)}
   .install-btn:hover{transform:translateY(-1px)}
-  .start-circuit-btn{width:100%;border:none;border-radius:14px;padding:16px;margin-bottom:16px;cursor:pointer;
+  /* ── Circuit rest editor ── */
+  .circuit-rests-editor{background:var(--card-bg);border:1.5px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0;}
+  .cre-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;}
+  .cre-label{font-size:.82rem;color:var(--ink-soft);flex:1;}
+  .cre-stepper{display:flex;align-items:center;gap:10px;}
+  .cre-val{font-size:1rem;font-weight:700;min-width:38px;text-align:center;color:var(--violet-deep);}
+  .cre-repmode-btn{border:2px solid var(--line);border-radius:20px;padding:5px 14px;font-size:.82rem;cursor:pointer;
+    background:var(--cream-2);color:var(--ink);font-weight:600;transition:background .2s,color .2s;}
+  .cre-repmode-btn.active{background:var(--violet);color:#fff;border-color:var(--violet);}
+  /* ── Calorie banner ── */
+  .kcal-banner{background:linear-gradient(135deg,var(--violet),var(--violet-deep));color:#fff;
+    border-radius:14px;padding:14px 18px;margin-bottom:14px;text-align:center;line-height:1.5;
+    font-family:var(--font-head);font-size:.95rem;font-weight:600;}
+  .kcal-main{font-size:1.6rem;font-weight:800;letter-spacing:.5px;}
+  .kcal-inline{font-size:.78rem;opacity:.9;}
+  /* ── Train pie ── */
+.start-circuit-btn{width:100%;border:none;border-radius:14px;padding:16px;margin-bottom:16px;cursor:pointer;
     font-family:var(--font-head);font-size:1.2rem;font-weight:700;letter-spacing:1px;color:#fff;
     background:linear-gradient(135deg,var(--violet),var(--violet-deep));box-shadow:var(--shadow)}
   .start-circuit-btn:hover{transform:translateY(-1px)}
@@ -587,7 +603,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .card.done{opacity:.75}
 
   .card-head{
-    display:flex;align-items:flex-start;gap:12px;
+    display:flex;align-items:center;gap:12px;
     padding:14px 16px;
     background:linear-gradient(90deg, rgba(209,10,20,0.05), transparent);
     border-bottom:1px solid var(--line);
@@ -740,7 +756,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   }
 
   .workout-bar{
-    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+    display:none;gap:8px;flex-wrap:wrap;justify-content:center;
     margin-top:12px;align-items:center;
   }
   .wk-select{
@@ -1340,8 +1356,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <select id="workoutSelect" class="wk-select">
         <option value="">— Workouts guardados · Saved —</option>
       </select>
-      <button id="wkSave" class="wk-btn">💾 Mis workouts: guardar</button>
-      <button id="wkDelete" class="wk-btn danger">🗑</button>
+      <button id="wkSave" class="wk-btn">💾 Guardar semana completa</button>
+      <button id="wkDelete" class="wk-btn danger">🗑 Borrar</button>
       <button id="wkExport" class="wk-btn">📊 Exportar Excel</button>
       <button id="wkExcelImport" class="wk-btn">📗 Importar Excel</button>
       <button id="wkShare" class="wk-btn">📤 Exportar JSON</button>
@@ -2518,6 +2534,99 @@ function setCircuitRests(dayName, between, round){
   dayModes["__rest_"+dayName] = {between, round}; save();
 }
 
+/* ── Exhaustive calorie estimator ─────────────────────────────────────────── */
+function estimateKcal(dayName){
+  const _bW = parseFloat(localStorage.getItem('BURN.weight') || 0);
+  const _bA = parseInt(localStorage.getItem('BURN.age') || 0);
+  const _bS = localStorage.getItem('BURN.sex') || 'M';
+  if(_bW < 20 || _bW > 400) return null; // no biometrics
+
+  const list = (data[dayName] || []);
+  if(!list.length) return null;
+
+  // MET + time-per-rep by muscle group / exercise name
+  function _met(ex){
+    const c = ((ex.muscle||'')+(ex.es||'')+(ex.en||'')).toLowerCase();
+    if(/hiit|burpee|sprint|salto|jump|skipping|cuerda|rope/.test(c))             return {met:10.0, tpr:1.5};
+    if(/interval|fartlek/.test(c))                                                return {met: 9.5, tpr:2.0};
+    if(/cardio|carrera|running|corr|trote|caminata/.test(c))                      return {met: 9.0, tpr:2.0};
+    if(/resistencia|endurance|amrap|emom|tabata|chipper|density|metcon|gauntlet|death/.test(c)) return {met:8.0, tpr:2.0};
+    if(/bicicleta|bike|ciclismo|spinning/.test(c))                                return {met: 7.0, tpr:2.5};
+    if(/funcional|crossfit|circuit|circuito/.test(c))                             return {met: 7.5, tpr:2.0};
+    if(/piernas|legs|cuad|femor|squat|sentadilla|prensa|lunge|zancada/.test(c))  return {met: 5.5, tpr:3.5};
+    if(/glut|hip.?thrust|peso.?muerto|deadlift/.test(c))                          return {met: 5.5, tpr:4.0};
+    if(/espalda|back|dorsal|remo|row|pull|dominada/.test(c))                      return {met: 5.0, tpr:3.5};
+    if(/pecho|chest|press.?banca|bench/.test(c))                                  return {met: 4.5, tpr:3.5};
+    if(/hombros|shoulder|deltoid|press.?mili|overhead/.test(c))                   return {met: 4.0, tpr:3.5};
+    if(/bíceps|biceps|curl/.test(c))                                         return {met: 3.5, tpr:3.0};
+    if(/tríceps|triceps|fondo|dip/.test(c))                                  return {met: 3.5, tpr:3.0};
+    if(/core|abdomen|abdominal|plancha|plank|crunch|sit.?up/.test(c))             return {met: 4.0, tpr:3.0};
+    if(/movilidad|mobility/.test(c))                                               return {met: 3.0, tpr:8.0};
+    if(/calentamiento|warm.?up/.test(c))                                           return {met: 4.0, tpr:4.0};
+    if(/elongaci|stretching|cool.?down/.test(c))                                   return {met: 2.5, tpr:10.0};
+    return {met:4.0, tpr:3.5}; // general strength default
+  }
+
+  let activeSeconds = 0, metWeightedSum = 0, restSeconds = 0;
+  const mode = getDayMode(dayName);
+
+  list.forEach(ex => {
+    const sets   = Math.max(1, +ex.sets  || 1);
+    const reps   = Math.max(1, +ex.reps  || 10);
+    const wUsed  = +ex.weight || 0;
+    const restSec = +ex.rest  || 60;
+    const {met, tpr} = _met(ex);
+
+    // Intensity multiplier: heavier weight = more metabolic cost
+    let metAdj = met;
+    if(wUsed > 0 && _bW > 0){
+      const rel = wUsed / _bW;
+      if(rel >= 1.0)      metAdj *= 1.40;
+      else if(rel >= 0.7) metAdj *= 1.25;
+      else if(rel >= 0.5) metAdj *= 1.15;
+      else if(rel >= 0.3) metAdj *= 1.06;
+    }
+
+    const setActive = reps * tpr;        // active seconds per set
+    activeSeconds  += sets * setActive;
+    metWeightedSum += sets * setActive * metAdj;
+    restSeconds    += sets * restSec;
+  });
+
+  // In circuit mode rest structure is different (inter-ex + inter-round)
+  if(mode === 'circuit'){
+    const rr = getCircuitRests(dayName);
+    const rounds = Math.max(1, ...list.map(e=>+e.sets||1));
+    restSeconds = list.length * rounds * (rr.between||20) + rounds * (rr.round||90);
+  }
+
+  const avgMet  = metWeightedSum / (activeSeconds || 1);
+  const kcalAct = avgMet * _bW * (activeSeconds / 3600);
+  const kcalRst = 2.0   * _bW * (restSeconds   / 3600); // MET 2 at rest
+
+  // EPOC: intensity-dependent excess post-exercise oxygen consumption
+  const hasHiit = list.some(e=>/(hiit|cardio|resistencia|interval)/.test((e.muscle||'').toLowerCase()));
+  const epocPct = mode==='circuit' ? (hasHiit ? 0.17 : 0.11) : 0.07;
+
+  // Age: metabolic rate -0.4%/yr after 30
+  const ageAdj = _bA > 30 ? Math.max(0.80, 1 - (_bA-30)*0.004) : 1.0;
+  // Sex: women ~8% lower at same work (smaller muscle mass on average)
+  const sexAdj = _bS==='F' ? 0.92 : 1.0;
+
+  const totalKcal = (kcalAct + kcalRst) * (1+epocPct) * ageAdj * sexAdj;
+  const epocKcal  = (kcalAct + kcalRst) * epocPct * ageAdj * sexAdj;
+
+  return {
+    kcal:      Math.round(totalKcal),
+    kcalAct:   Math.round(kcalAct * (1+epocPct) * ageAdj * sexAdj),
+    epocKcal:  Math.round(epocKcal),
+    activeMin: Math.round(activeSeconds / 60),
+    totalMin:  Math.round((activeSeconds + restSeconds) / 60),
+    avgMet:    avgMet.toFixed(1),
+    weight:    _bW
+  };
+}
+
 /* ---------- Undo / Redo ---------- */
 let undoStack = [];
 let redoStack = [];
@@ -2599,18 +2708,30 @@ let _daySuppressClick = false;
 function attachDayDrag(wrap, day){
   wrap.style.touchAction = "none";
   wrap.addEventListener("pointerdown", (e)=>{
-    if(e.target.closest(".day-x")) return;            // el botón 🗑 no arrastra
+    if(e.target.closest(".day-x") || e.target.closest(".chip-menu")) return;
     const startX = e.clientX, startY = e.clientY;
-    let dragging = false, target = null;
+    const rect = wrap.getBoundingClientRect();
+    const offX = startX - rect.left, offY = startY - rect.top;
+    let dragging = false, target = null, ghost = null;
     const move = (ev)=>{
       if(!dragging && Math.hypot(ev.clientX-startX, ev.clientY-startY) > 10){
         dragging = true;
         _daySuppressClick = true;
-        wrap.style.opacity = ".45";
+        wrap.style.opacity = ".3";
         if(navigator.vibrate) navigator.vibrate(20);
+        ghost = wrap.cloneNode(true);
+        ghost.style.cssText = "position:fixed;pointer-events:none;z-index:9999;"
+          + "left:" + (ev.clientX - offX) + "px;top:" + (ev.clientY - offY) + "px;"
+          + "transform:scale(1.08) rotate(-3deg);opacity:0.9;"
+          + "box-shadow:0 10px 28px rgba(0,0,0,.4);transition:none;margin:0;";
+        document.body.appendChild(ghost);
       }
       if(!dragging) return;
       ev.preventDefault();
+      if(ghost){
+        ghost.style.left = (ev.clientX - offX) + "px";
+        ghost.style.top  = (ev.clientY - offY) + "px";
+      }
       const el = document.elementFromPoint(ev.clientX, ev.clientY);
       const chip = el && el.closest ? el.closest(".day-chip") : null;
       document.querySelectorAll(".day-chip").forEach(c=>{ c.style.outline=""; });
@@ -2624,6 +2745,7 @@ function attachDayDrag(wrap, day){
       document.removeEventListener("pointerup", up);
       document.removeEventListener("pointercancel", up);
       wrap.style.opacity = "";
+      if(ghost){ ghost.remove(); ghost = null; }
       document.querySelectorAll(".day-chip").forEach(c=>{ c.style.outline=""; });
       if(dragging && target && target !== day) reorderDays(day, target);
       setTimeout(()=>{ _daySuppressClick = false; }, 50);
@@ -2640,10 +2762,26 @@ function attachExDrag(card, idx){
   card._exIdx = idx;
   h.addEventListener("pointerdown", (e)=>{
     e.preventDefault();
-    let target = null;
-    card.style.opacity = ".45";
+    const rect = card.getBoundingClientRect();
+    const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+    let target = null, ghost = null, _exDragging = false;
+    const _sX = e.clientX, _sY = e.clientY;
     const move = (ev)=>{
+      if(!_exDragging){
+        if(Math.abs(ev.clientX-_sX)<10 && Math.abs(ev.clientY-_sY)<10) return;
+        _exDragging = true;
+        card.style.opacity = ".3";
+        ghost = card.cloneNode(true);
+        ghost.style.cssText = "position:fixed;pointer-events:none;z-index:9999;"
+          + "left:" + (_sX - offX) + "px;top:" + (_sY - offY) + "px;"
+          + "width:" + rect.width + "px;"
+          + "transform:scale(1.03) rotate(1.5deg);opacity:0.88;"
+          + "box-shadow:0 10px 28px rgba(0,0,0,.4);transition:none;margin:0;border-radius:14px;";
+        document.body.appendChild(ghost);
+      }
       ev.preventDefault();
+      ghost.style.left = (ev.clientX - offX) + "px";
+      ghost.style.top  = (ev.clientY - offY) + "px";
       const el = document.elementFromPoint(ev.clientX, ev.clientY);
       const c2 = el && el.closest ? el.closest("#list .card") : null;
       document.querySelectorAll("#list .card").forEach(c=>{ c.style.outline=""; });
@@ -2655,6 +2793,7 @@ function attachExDrag(card, idx){
       document.removeEventListener("pointerup", up);
       document.removeEventListener("pointercancel", up);
       card.style.opacity = "";
+      if(ghost){ ghost.remove(); ghost = null; }
       document.querySelectorAll("#list .card").forEach(c=>{ c.style.outline=""; });
       if(target != null && target !== idx) moveExercise(idx, target);
     };
@@ -2762,7 +2901,7 @@ function renderDays(){
     b.onclick = ()=>{
       if(_daySuppressClick) return;
       if(day===currentDay){ renameDay(day); }
-      else{ currentDay = day; renderDays(); renderList(); }
+      else{ currentDay = day; circExInRound = 0; renderDays(); renderList(); }
     };
     wrap.appendChild(b);
     wrap._dayName = day;
@@ -2810,13 +2949,55 @@ function renderDays(){
   sel.className = "day-btn day-add-select";
   sel.innerHTML = `
     <option value="">${LL("＋ Agregar día","＋ Add day")}</option>
-    <option value="Lunes · Mon">${dayLabel("Lunes · Mon")}</option>
-    <option value="Martes · Tue">${dayLabel("Martes · Tue")}</option>
-    <option value="Miérc · Wed">${dayLabel("Miérc · Wed")}</option>
-    <option value="Jueves · Thu">${dayLabel("Jueves · Thu")}</option>
-    <option value="Viernes · Fri">${dayLabel("Viernes · Fri")}</option>
-    <option value="Sábado · Sat">${dayLabel("Sábado · Sat")}</option>
-    <option value="Domingo · Sun">${dayLabel("Domingo · Sun")}</option>
+    <optgroup label="${LL("📅 Días","📅 Days")}">
+      <option value="Lunes · Mon">${dayLabel("Lunes · Mon")}</option>
+      <option value="Martes · Tue">${dayLabel("Martes · Tue")}</option>
+      <option value="Miérc · Wed">${dayLabel("Miérc · Wed")}</option>
+      <option value="Jueves · Thu">${dayLabel("Jueves · Thu")}</option>
+      <option value="Viernes · Fri">${dayLabel("Viernes · Fri")}</option>
+      <option value="Sábado · Sat">${dayLabel("Sábado · Sat")}</option>
+      <option value="Domingo · Sun">${dayLabel("Domingo · Sun")}</option>
+    </optgroup>
+    <optgroup label="${LL("🔢 Sesiones","🔢 Sessions")}">
+      <option value="Workout I · Workout I">Workout I</option>
+      <option value="Workout II · Workout II">Workout II</option>
+      <option value="Workout III · Workout III">Workout III</option>
+      <option value="Workout IV · Workout IV">Workout IV</option>
+      <option value="Workout V · Workout V">Workout V</option>
+      <option value="Día I · Day I">${dayLabel("Día I · Day I")}</option>
+      <option value="Día II · Day II">${dayLabel("Día II · Day II")}</option>
+      <option value="Día III · Day III">${dayLabel("Día III · Day III")}</option>
+      <option value="Día IV · Day IV">${dayLabel("Día IV · Day IV")}</option>
+      <option value="Día V · Day V">${dayLabel("Día V · Day V")}</option>
+    </optgroup>
+    <optgroup label="${LL("🏋️ Splits","🏋️ Splits")}">
+      <option value="Empuje · Push">${dayLabel("Empuje · Push")}</option>
+      <option value="Jalón · Pull">${dayLabel("Jalón · Pull")}</option>
+      <option value="Piernas · Legs">${dayLabel("Piernas · Legs")}</option>
+      <option value="Tren sup. · Upper">${dayLabel("Tren sup. · Upper")}</option>
+      <option value="Tren inf. · Lower">${dayLabel("Tren inf. · Lower")}</option>
+      <option value="Cuerpo entero · Full body">${dayLabel("Cuerpo entero · Full body")}</option>
+    </optgroup>
+    <optgroup label="${LL("💪 Grupos musculares","💪 Muscle groups")}">
+      <option value="Pecho · Chest">${dayLabel("Pecho · Chest")}</option>
+      <option value="Espalda · Back">${dayLabel("Espalda · Back")}</option>
+      <option value="Hombros · Shoulders">${dayLabel("Hombros · Shoulders")}</option>
+      <option value="Brazos · Arms">${dayLabel("Brazos · Arms")}</option>
+      <option value="Glúteos · Glutes">${dayLabel("Glúteos · Glutes")}</option>
+      <option value="Core · Core">Core</option>
+      <option value="Cardio · Cardio">Cardio</option>
+      <option value="HIIT · HIIT">HIIT</option>
+      <option value="Movilidad · Mobility">${dayLabel("Movilidad · Mobility")}</option>
+      <option value="Elongación · Stretching">${dayLabel("Elongación · Stretching")}</option>
+    </optgroup>
+    <optgroup label="${LL("⏰ Momento","⏰ Time of day")}">
+      <option value="Mañana · Morning">${dayLabel("Mañana · Morning")}</option>
+      <option value="Tarde · Evening">${dayLabel("Tarde · Evening")}</option>
+      <option value="Ciclo A · Cycle A">${dayLabel("Ciclo A · Cycle A")}</option>
+      <option value="Ciclo B · Cycle B">${dayLabel("Ciclo B · Cycle B")}</option>
+      <option value="Pesado · Heavy">${dayLabel("Pesado · Heavy")}</option>
+      <option value="Liviano · Light">${dayLabel("Liviano · Light")}</option>
+    </optgroup>
     <option value="__custom__">${LL("✏️ Personalizado…","✏️ Custom…")}</option>
   `;
   sel.onchange = ()=>{
@@ -2865,6 +3046,7 @@ function renameDay(day){
   // migrar modo de día y descansos de circuito al nuevo nombre
   if(dayModes[day]!==undefined){ dayModes[trimmed]=dayModes[day]; delete dayModes[day]; }
   if(dayModes["__rest_"+day]!==undefined){ dayModes["__rest_"+trimmed]=dayModes["__rest_"+day]; delete dayModes["__rest_"+day]; }
+  if(dayModes["__repMode_"+day]!==undefined){ dayModes["__repMode_"+trimmed]=dayModes["__repMode_"+day]; delete dayModes["__repMode_"+day]; }
   if(currentDay===day) currentDay = trimmed;
   save(); renderDays(); renderList();
 }
@@ -2891,6 +3073,7 @@ function deleteDayNamed(day){
   delete data[day];
   delete dayModes[day];
   delete dayModes["__rest_"+day];
+  delete dayModes["__repMode_"+day];
   if(isLast){
     // recrear un día vacío para no dejar la app sin días
     const fresh = LL("Día 1","Day 1");
@@ -2961,6 +3144,35 @@ function renderList(){
       </div>`;
     circHeaderWrap.appendChild(rc);
 
+    // ── Inline rest & mode editor ──
+    const _crNow = getCircuitRests(currentDay);
+    const _repModeOn = !!dayModes["__repMode_"+currentDay];
+    const restEditor = document.createElement("div");
+    restEditor.className = "circuit-rests-editor";
+    restEditor.innerHTML = `
+      <div class="cre-row">
+        <span class="cre-label">${LL("⏱ Entre ejercicios","⏱ Between exercises")}</span>
+        <div class="cre-stepper">
+          <button class="stepper cre-btn" id="creBMinus" title="−5s">−</button>
+          <span class="cre-val" id="creB">${_crNow.between}s</span>
+          <button class="stepper cre-btn" id="creBPlus" title="+5s">＋</button>
+        </div>
+      </div>
+      <div class="cre-row">
+        <span class="cre-label">${LL("🛑 Descanso de serie","🛑 Rest between sets")}</span>
+        <div class="cre-stepper">
+          <button class="stepper cre-btn" id="creRMinus" title="−15s">−</button>
+          <span class="cre-val" id="creR">${_crNow.round}s</span>
+          <button class="stepper cre-btn" id="creRPlus" title="+15s">＋</button>
+        </div>
+      </div>
+      <div class="cre-row" style="justify-content:center;margin-top:6px">
+        <button class="cre-repmode-btn${_repModeOn?' active':''}" id="creRepMode">
+          ${_repModeOn ? '🔢 '+LL("Reps (tap → ⏱)","Reps (tap → ⏱)") : '⏱ '+LL("Tiempo (tap → 🔢)","Time (tap → 🔢)")}
+        </button>
+      </div>`;
+    circHeaderWrap.appendChild(restEditor);
+
     // Botón grande iniciar circuito
     const startBtn = document.createElement("button");
     startBtn.className = "start-circuit-btn";
@@ -2981,6 +3193,20 @@ function renderList(){
     };
     document.getElementById("circMinus").onclick = ()=> applyRounds(rounds-1);
     document.getElementById("circPlus").onclick = ()=> applyRounds(rounds+1);
+
+    // Wire rest editor
+    const _wireRest = ()=>{
+      const rr = getCircuitRests(currentDay);
+      document.getElementById("creBMinus").onclick = ()=>{ setCircuitRests(currentDay, Math.max(5, rr.between-5), rr.round); renderList(); };
+      document.getElementById("creBPlus").onclick  = ()=>{ setCircuitRests(currentDay, rr.between+5, rr.round); renderList(); };
+      document.getElementById("creRMinus").onclick = ()=>{ setCircuitRests(currentDay, rr.between, Math.max(15, rr.round-15)); renderList(); };
+      document.getElementById("creRPlus").onclick  = ()=>{ setCircuitRests(currentDay, rr.between, rr.round+15); renderList(); };
+      document.getElementById("creRepMode").onclick = ()=>{
+        dayModes["__repMode_"+currentDay] = !dayModes["__repMode_"+currentDay];
+        save(); renderList();
+      };
+    };
+    _wireRest();
 
     updateDayProgress();
     return;
@@ -3256,7 +3482,7 @@ function updateTrainPie(){
 
 function modeForCategory(cat){
   const c = (cat||"").toLowerCase();
-  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongación|cool.?down|stretching)/.test(c)) return "circuit";
+  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down)/.test(c)) return "circuit";
   return "straight";
 }
 
@@ -3594,6 +3820,8 @@ function pasteAsNewDay(){
   exs.forEach(ex=>{ ex.setsDone=[]; ex.done=false; ex.rpe=0; });
   data[name] = exs;
   if(dayModes[_clip.name]) dayModes[name] = dayModes[_clip.name];
+  if(dayModes["__rest_"+_clip.name]) dayModes["__rest_"+name] = dayModes["__rest_"+_clip.name];
+  if(dayModes["__repMode_"+_clip.name]) dayModes["__repMode_"+name] = dayModes["__repMode_"+_clip.name];
   currentDay = name;
   save(); renderDays(); renderList();
   toast(LL(`📋 Nuevo día: "${name}"`,`📋 New day: "${name}"`));
@@ -4588,7 +4816,7 @@ function renderLibBody(){
     return {sets:3,reps:10,weight:0,rest:60};
   }
   function _isTimedCat(cat){
-    return /bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
+    return /intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
   }
       row.querySelector('.add-btn').onclick = ()=>{
         pushUndo();
@@ -4750,7 +4978,7 @@ const VOICE_CLIPS = {
 /* AudioBuffer cache — decoded once, played with AudioContext scheduler */
 const _voiceBufs = {};
 const GO_OFFSET = 0.32; // secs from clip start to key word ("go"/"it") // secs from letsgo clip start to "go" syllable
-let   _voiceOn   = JSON.parse(localStorage.getItem("BURN.voice") ?? "true");
+let   _voiceOn   = JSON.parse(localStorage.getItem("BURN.voice") ?? "false");
 async function _decodeClip(key){
   if(_voiceBufs[key]) return _voiceBufs[key];
   const ctx = _getAudioCtx();
@@ -4925,7 +5153,10 @@ function renderWorkoutList(){
 }
 
 wkSaveBtn.onclick = ()=>{
-  const name = prompt(LL("Nombre del workout:","Workout name:"));
+  const _all0 = getWorkouts();
+  const _base = (_userName && _userName.trim() ? _userName.trim() + " Workouts" : "Workouts");
+  let _v = 1; while(_all0[_base + " v" + _v]) _v++;
+  const name = prompt(LL("Nombre del workout:","Workout name:"), _base + " v" + _v);
   if(!name) return;
   const all = getWorkouts();
   all[name.trim()] = structuredClone(data);
@@ -5255,6 +5486,7 @@ document.getElementById("wkShare").onclick = async ()=>{
   Object.keys(days).forEach(d=>{
     if(dayModes[d]!==undefined) modes[d]=dayModes[d];
     if(dayModes["__rest_"+d]!==undefined) modes["__rest_"+d]=dayModes["__rest_"+d];
+    if(dayModes["__repMode_"+d]!==undefined) modes["__repMode_"+d]=dayModes["__repMode_"+d];
   });
   const payload = {
     app: "entrenamiento-rojo",
@@ -5335,6 +5567,7 @@ document.getElementById("wkImportInput").onchange = (e)=>{
           data[nm] = structuredClone(incoming[day]);
           if(pm[day]!==undefined) dayModes[nm] = pm[day];
           if(pm["__rest_"+day]!==undefined) dayModes["__rest_"+nm] = pm["__rest_"+day];
+          if(pm["__repMode_"+day]!==undefined) dayModes["__repMode_"+nm] = pm["__repMode_"+day];
           if(!firstAdded) firstAdded = nm;
           added++;
         });
@@ -5507,12 +5740,13 @@ const trainContent = document.getElementById("trainContent");
 let trainIdx = 0;          // straight: índice de ejercicio
 let circRound = 0;         // circuit: ronda actual (0-based)
 let circRounds = 1;        // circuit: total de rondas
+let circExInRound = 0;     // rep mode: ejercicio actual dentro de la ronda
 let trainModeNow = "straight";
 
 document.getElementById("trainBtn").onclick = ()=>{
   if(!data[currentDay].length){ toast(LL("Este día no tiene ejercicios todavía","No exercises yet")); return; }
   trainModeNow = getDayMode(currentDay);
-  trainIdx = 0; circRound = 0;
+  trainIdx = 0; circRound = 0; circExInRound = 0;
   // En circuito, las rondas = el máximo de "series" entre los ejercicios
   circRounds = Math.max(1, ...data[currentDay].map(e=>+e.sets||1));
   document.getElementById("trainTitle").textContent = dayLabel(currentDay) + (trainModeNow==="circuit" ? LL("  ·  ↻ Circuito","  ·  ↻ Circuit") : LL("  ·  ↓ Series seguidas","  ·  ↓ Straight sets"));
@@ -5522,11 +5756,11 @@ document.getElementById("trainBtn").onclick = ()=>{
 };
 document.getElementById("trainExit").onclick = ()=>{ stopTrainPhrases(); trainOverlay.classList.remove("show"); renderList(); };
 document.getElementById("trainPrev").onclick = ()=>{
-  if(trainModeNow==="circuit"){ if(circRound>0){ circRound--; renderTrain(); } }
+  if(trainModeNow==="circuit"){ if(circRound>0){ circRound--; circExInRound=0; renderTrain(); } }
   else { if(trainIdx>0){ trainIdx--; renderTrain(); } }
 };
 document.getElementById("trainNext").onclick = ()=>{
-  if(trainModeNow==="circuit"){ if(circRound<circRounds-1){ circRound++; renderTrain(); } }
+  if(trainModeNow==="circuit"){ if(circRound<circRounds-1){ circRound++; circExInRound=0; renderTrain(); } }
   else { if(trainIdx<data[currentDay].length-1){ trainIdx++; renderTrain(); } }
 };
 
@@ -5558,7 +5792,13 @@ function renderTrainStraight(){
         <button class="tok"></button>
       </div>`;
   }
+  const _estS = estimateKcal(currentDay);
+  const _allDoneS = data[currentDay].every(e=>{
+    const d=(e.setsDone||[]).slice(0,+e.sets||1).filter(x=>x&&x.done);
+    return d.length>=(+e.sets||1);
+  });
   trainContent.innerHTML = `
+    ${_allDoneS && _estS ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_estS.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_estS.activeMin}min · MET ${_estS.avgMet} · EPOC +${_estS.epocKcal} kcal</small></div>` : ''}
     <div>
       <div class="train-ex-name">${esc(LL(ex.es,ex.en||ex.es))}</div>
       <div class="train-ex-en">${esc(ex.en||"")} · ${esc(ex.muscle||"")}</div>
@@ -5568,6 +5808,7 @@ function renderTrainStraight(){
       <span>${ex.reps} reps</span>
       <span>${ex.weight} kg</span>
       <span>⏱ ${ex.customRest ? LL("por serie","per set") : ex.rest+"s"}</span>
+      ${(()=>{ const _ke=estimateKcal(currentDay); return _ke?`<span class="kcal-inline">🔥 ~${_ke.kcal} kcal</span>`:''; })()}
     </div>
     <div class="train-sets">${setsHtml}</div>
     <button class="train-rest">⏱ ${LL("Iniciar descanso","Start rest")} (${ex.customRest ? LL("1ª serie","set 1") : ex.rest+"s"})</button>
@@ -5601,8 +5842,15 @@ function renderTrainStraight(){
 
 /* ---- Modo CIRCUITO (circuit): una serie de cada ejercicio por ronda ---- */
 function renderTrainCircuit(){
+  if(dayModes["__repMode_"+currentDay]) return renderTrainCircuitRep();
+
   const list = data[currentDay];
   const rests = getCircuitRests(currentDay);
+  const _est = estimateKcal(currentDay);
+  const allDone = list.every(ex=>{
+    const d=(ex.setsDone||[]).slice(0,circRounds).filter(x=>x&&x.done);
+    return d.length>=circRounds;
+  });
   document.getElementById("trainProgress").textContent = `${LL("Serie","Set")} ${circRound+1} / ${circRounds}`;
   let rowsHtml = "";
   list.forEach((ex, ei)=>{
@@ -5619,7 +5867,9 @@ function renderTrainCircuit(){
   });
   const circNames = list.map(notationName);
   const circNotation = "(" + circNames.join(" + ") + ") × " + circRounds;
+  const kcalMeta = _est ? `<span class="kcal-inline">🔥 ~${_est.kcal} kcal</span>` : '';
   trainContent.innerHTML = `
+    ${allDone && _est ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_est.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_est.activeMin}min · MET ${_est.avgMet} · EPOC +${_est.epocKcal} kcal</small></div>` : ''}
     <div>
       <div class="train-ex-name">↻ ${LL("Circuito — Serie","Circuit — Set")} ${circRound+1} / ${circRounds}</div>
       <div class="train-ex-en">${LL("Hacé 1 serie de cada ejercicio, luego descansá","Do 1 set of each exercise, then rest")}</div>
@@ -5630,6 +5880,7 @@ function renderTrainCircuit(){
       <span>${circRounds} ${LL("series","sets")}</span>
       <span>⏱ ${rests.between}s ${LL("entre ej.","between")}</span>
       <span>🛑 ${rests.round}s ${LL("por serie","per set")}</span>
+      ${kcalMeta}
     </div>
     <div class="train-sets">${rowsHtml}</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -5648,14 +5899,100 @@ function renderTrainCircuit(){
       const _rounds = Math.max(1, +ex.sets||1);
       ex.done = ex.setsDone.slice(0, _rounds).filter(x=>x&&x.done).length >= _rounds;
       save(); renderTrainCircuit();
-      if(log.done) startTimer(rests.between);
+      if(log.done){ warmAudio(); startTimer(rests.between); }
     };
   });
   const btns = trainContent.querySelectorAll(".train-rest");
   btns[0].onclick = ()=> startTimer(rests.between);
   btns[1].onclick = ()=>{
     startTimer(rests.round);
-    if(circRound < circRounds-1){ circRound++; setTimeout(renderTrainCircuit, 300); }
+    if(circRound < circRounds-1){ circRound++; circExInRound=0; setTimeout(renderTrainCircuit, 300); }
+  };
+  updateTrainPie();
+}
+
+/* ── Circuit Rep Mode: one exercise at a time, Next → Rest flow ─────────── */
+function renderTrainCircuitRep(){
+  const list = data[currentDay];
+  const rests = getCircuitRests(currentDay);
+  const _est = estimateKcal(currentDay);
+  if(circExInRound >= list.length) circExInRound = 0;
+
+  const ex = list[circExInRound];
+  ex.setsDone = ex.setsDone || [];
+  const log = ex.setsDone[circRound] || {w:ex.weight, r:ex.reps, done:false};
+  ex.setsDone[circRound] = log;
+
+  const allDone = list.every(ex2=>{
+    const d=(ex2.setsDone||[]).slice(0,circRounds).filter(x=>x&&x.done);
+    return d.length>=circRounds;
+  });
+  const isLast     = circExInRound === list.length - 1;
+  const isLastRound = circRound === circRounds - 1;
+
+  document.getElementById("trainProgress").textContent =
+    `${LL("Serie","Set")} ${circRound+1}/${circRounds} · ${LL("Ej","Ex")} ${circExInRound+1}/${list.length}`;
+
+  const nextLabel = isLast
+    ? (isLastRound
+        ? `✅ ${LL("Fin del circuito","Circuit complete")}`
+        : `🛑 ${LL("Fin de serie","End of set")} → ⏱ ${rests.round}s`)
+    : `⏩ ${LL("Siguiente","Next")} → ⏱ ${rests.between}s`;
+
+  trainContent.innerHTML = `
+    ${allDone && _est ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_est.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_est.activeMin}min · MET ${_est.avgMet} · EPOC +${_est.epocKcal} kcal</small></div>` : ''}
+    <div>
+      <div class="train-ex-name">${esc(LL(ex.es,ex.en||ex.es))}</div>
+      <div class="train-ex-en">${esc(ex.en||'')} · ${esc(ex.muscle||'')}</div>
+    </div>
+    <div class="train-meta">
+      <span>${LL("Ej.","Ex.")} ${circExInRound+1} / ${list.length}</span>
+      <span>${LL("Serie","Set")} ${circRound+1} / ${circRounds}</span>
+      <span>🎯 ${log.r} reps</span>
+      <span>${log.w > 0 ? log.w+' kg' : LL("Corporal","Bodyweight")}</span>
+      ${_est ? `<span class="kcal-inline">🔥 ~${_est.kcal} kcal</span>` : ''}
+    </div>
+    <div class="train-sets">
+      <div class="train-set${log.done?' done':''}" id="repRow">
+        <span class="tn">#${circExInRound+1}</span>
+        <input type="number" lang="${lang}" class="tw" value="${log.w}" placeholder="kg">
+        <input type="number" lang="${lang}" class="tr" value="${log.r}" placeholder="reps">
+        <button class="tok"></button>
+      </div>
+    </div>
+    <button class="start-circuit-btn" id="repNextBtn" style="margin-top:8px;font-size:1rem">${nextLabel}</button>
+  `;
+
+  const row = document.getElementById('repRow');
+  row.querySelector('.tw').onchange = e=>{ log.w=+e.target.value; save(); };
+  row.querySelector('.tr').onchange = e=>{ log.r=+e.target.value; save(); };
+  row.querySelector('.tok').onclick = ()=>{
+    log.done = !log.done;
+    const _rounds = Math.max(1, +ex.sets||1);
+    ex.done = ex.setsDone.slice(0, _rounds).filter(x=>x&&x.done).length >= _rounds;
+    save(); renderTrainCircuitRep();
+  };
+
+  document.getElementById('repNextBtn').onclick = ()=>{
+    if(!log.done){
+      log.done = true;
+      const _rounds = Math.max(1, +ex.sets||1);
+      ex.done = ex.setsDone.slice(0, _rounds).filter(x=>x&&x.done).length >= _rounds;
+      save();
+    }
+    if(isLast){
+      if(!isLastRound){
+        warmAudio(); startTimer(rests.round);
+        circRound++; circExInRound = 0;
+        setTimeout(renderTrainCircuitRep, 350);
+      } else {
+        renderTrainCircuitRep(); // show completion
+      }
+    } else {
+      warmAudio(); startTimer(rests.between);
+      circExInRound++;
+      setTimeout(renderTrainCircuitRep, 350);
+    }
   };
   updateTrainPie();
 }
@@ -7046,7 +7383,7 @@ function renderTpl(){
     tplBody.appendChild(intro);
     const lvlObj = TEMPLATES[tplType][tplLevel];
     Object.entries(lvlObj).forEach(([cname, exs])=>{
-      if(cname.startsWith('_')) return; // skip metadata keys (_setRest etc.)
+      if(!Array.isArray(exs)) return; // skip metadata (setRest, _setRest, etc.)
       const card = document.createElement("div");
       card.className = "quote-card";
       const preview = exs.slice(0,3).map(e=>e.es).join(", ") + (exs.length>3 ? "…" : "");
@@ -7070,7 +7407,7 @@ card.innerHTML = `
         data[name] = structuredClone(exs);
         dayModes[name] = modeForCategory(tplType);
         const _tplLvl = TEMPLATES[tplType]?.[tplLevel];
-        if(_tplLvl?._setRest) setCircuitRests(name, 20, _tplLvl._setRest);
+        if(_tplLvl?._setRest)  setCircuitRests(name, 20, _tplLvl._setRest);
         currentDay = name;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
@@ -7081,7 +7418,7 @@ card.innerHTML = `
         data = { [cname]: structuredClone(exs) };
         dayModes = { [cname]: modeForCategory(tplType) };
         const _tplLvlR = TEMPLATES[tplType]?.[tplLevel];
-        if(_tplLvlR?._setRest){ dayModes["__rest_"+cname]={between:20,round:_tplLvlR._setRest}; }
+        if(_tplLvlR?._setRest){  dayModes["__rest_"+cname]={between:20,round:_tplLvlR._setRest}; }
         currentDay = cname;
         save(); renderDays(); renderList();
         tplModal.classList.remove("show");
@@ -7485,7 +7822,7 @@ const I18N = {
     browseLib:"📚 Biblioteca de ejercicios", addEx:"＋ Añadir ejercicio en blanco",
     tplBtn:"🗂️ Plantillas", propagateBtn:"⚙️ Propagar config", intervalBtn:"⏲️ Intervalos",
     modeStraight:"↓ Series", modeCircuit:"↻ Circuito",
-    wkSave:"💾 Mis workouts: guardar", wkExport:"📊 Exportar Excel",
+    wkSave:"💾 Guardar semana completa", wkExport:"📊 Exportar Excel",
     wkExcelImport:"📗 Importar Excel", wkShare:"📤 Exportar JSON", wkImport:"📥 Importar",
     sessionToggle:"▶ Iniciar sesión", undoBtn:"↶ Deshacer", redoBtn:"↷ Rehacer",
     bgPick:"🖼 Elegir imagen de fondo", bgClear:"✕ Sin imagen",
@@ -7509,7 +7846,7 @@ const I18N = {
     browseLib:"📚 Exercise library", addEx:"＋ Add blank exercise",
     tplBtn:"🗂️ Templates", propagateBtn:"⚙️ Apply to all", intervalBtn:"⏲️ Interval timer",
     modeStraight:"↓ Straight", modeCircuit:"↻ Circuit",
-    wkSave:"💾 My workouts: save", wkExport:"📊 Export Excel",
+    wkSave:"💾 Save full week", wkExport:"📊 Export Excel",
     wkExcelImport:"📗 Import Excel", wkShare:"📤 Export JSON", wkImport:"📥 Import",
     sessionToggle:"▶ Start session", undoBtn:"↶ Undo", redoBtn:"↷ Redo",
     bgPick:"🖼 Choose background", bgClear:"✕ No image",
@@ -8067,6 +8404,7 @@ document.getElementById("godModeBtn").onclick    = ()=> setAppMode("god");
 setAppMode(appMode);
 
 applyLang(lang);
+ensureSettingsOverlay();
 
 /* ══════════════════════════════════════════════
    INTRO TUTORIAL  –  first-launch onboarding
