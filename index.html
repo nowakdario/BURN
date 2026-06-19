@@ -1049,12 +1049,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .pocket-import-btn{ display:none; }
 
   /* ── Circuit header wrap ── */
-  .circuit-header-wrap{
-    display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin-bottom:8px;
-  }
-  .circuit-header-wrap .circuit-notation{flex:1;min-width:180px;margin-bottom:0;}
-  .circuit-header-wrap .rounds-control{flex:0 0 auto;margin-bottom:0;}
-  .circuit-header-wrap .start-circuit-btn{flex:1;min-width:140px;width:auto;margin-bottom:0;}
+  .circuit-header-wrap{display:flex;flex-direction:column;gap:10px;align-items:stretch;margin-bottom:10px;}
+  .circuit-header-wrap .circuit-notation{flex:0 0 auto;min-width:0;width:100%;margin:0;}
+  .circuit-header-wrap .rounds-control{flex:0 0 auto;width:100%;margin:0;}
+  .circuit-header-wrap .start-circuit-btn{flex:0 0 auto;min-width:0;width:100%;margin:0;}.circuit-header-wrap .circuit-rests-editor{margin:0;}
   body.pocket-mode .circuit-header-wrap{ grid-column:1 / -1; }
 
   /* ── Pocket mode: hide god-only elements ── */
