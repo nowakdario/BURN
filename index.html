@@ -363,7 +363,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* Context menu */
   .chip-menu-wrap{position:relative;display:inline-flex;}
   .chip-menu{
-    position:absolute;top:calc(100% + 4px);right:0;z-index:999;
+    position:fixed;z-index:9999;
     background:var(--card-bg);border:1.5px solid var(--line);
     border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.18);
     min-width:170px;padding:4px 0;display:none;
@@ -943,6 +943,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     border:2px solid var(--accent-2);background:transparent;color:var(--accent-2);
     border-radius:8px;padding:6px 10px;cursor:pointer;font-size:.9rem;flex:0 0 auto;
   }
+  .q-fav{border:none;background:none;font-size:1.15rem;cursor:pointer;padding:2px 5px;opacity:.4;transition:opacity .15s,transform .15s;flex:0 0 auto;}
+  .q-fav.active,.q-fav:hover{opacity:1;transform:scale(1.2);}
+  .motiv-cat-select{display:block;margin:0 16px 8px;width:calc(100% - 32px);padding:6px 10px;border-radius:8px;border:1.5px solid var(--line);background:var(--card-bg);color:var(--ink);font-size:.88rem;}
 
   @media (max-width:480px){
     .set-row{grid-template-columns:auto minmax(0,1fr) minmax(0,1fr) auto}
@@ -1427,7 +1430,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <input type="text" id="newQuoteText" class="lib-search" placeholder="Tu frase · Your quote…" style="margin:12px 16px 6px;width:auto;">
       <input type="text" id="newQuoteSrc" class="lib-search" placeholder="Autor (opcional) · Author…" style="margin:0 16px 6px;width:auto;">
       <button id="addQuoteBtn" class="wk-btn" style="margin:0 16px 8px;background:var(--accent);color:#fff;border-color:var(--accent)">＋ Agregar frase</button>
-      <div id="motivAddHint" style="font-size:.72rem;color:var(--ink-soft);margin:-2px 16px 8px;"></div>
+      <select id="newQuoteCat" class="motiv-cat-select"></select>
     </div>
     <div class="lib-body" id="motivBody"></div>
   </div>
@@ -2852,6 +2855,8 @@ function openChipMenu(day, wrap){
   closeAllChipMenus();
   const menu = wrap.querySelector(".chip-menu");
   if(!menu) return;
+  const _dots = wrap.querySelector(".day-x");
+  if(_dots){ const _r=_dots.getBoundingClientRect(); menu.style.top=((_r.bottom+4)+"px"); menu.style.right=((window.innerWidth-_r.right)+"px"); }
   menu.innerHTML = "";
   const item = (icon, label, cls, fn)=>{
     const b = document.createElement("button");
@@ -3299,7 +3304,7 @@ function makeCircuitCard(ex, idx){
     </div>
     <div class="cc-fields">
       <div class="cc-field">
-        <label>${Lc('Tiempo (s)','Time (s)')}</label>
+        <label>${(!!dayModes['__repMode_'+currentDay] || modeForCategory(ex.cat||'')!=='circuit') ? Lc('Reps','Reps') : Lc('Tiempo (s)','Time (s)')}</label>
         <div class="cc-step"><button class="stepper cc-m" data-f="reps">−</button><span class="cc-v" data-v="reps">${ex.reps}</span><button class="stepper cc-p" data-f="reps">＋</button></div>
       </div>
       <div class="cc-field">
@@ -3773,6 +3778,7 @@ function numField(label, value, step, onChange, allowDecimal){
 /* ---------- Añadir ejercicio ---------- */
 document.getElementById("addEx").onclick = ()=>{
   pushUndo();
+  if(!data[currentDay]||!Array.isArray(data[currentDay])){ toast(LL("Seleccioná un día primero","Select a day first")); return; }
   data[currentDay].push({
     es:"Nuevo ejercicio", en:"New exercise", muscle:"",
     sets:3, reps:10, weight:0, rest:60, setsDone:[], done:false
@@ -4009,6 +4015,166 @@ const MOTIV = [
   {cat:"movies", text:"In this moment, I am euphoric.", src:"Whiplash (2014)"},
   {cat:"movies", text:"There are no two words in the English language more harmful than 'good job.'", src:"Whiplash (2014)"},
   {cat:"movies", text:"Not my tempo.", src:"Whiplash (2014)"},
+
+  // The Karate Kid
+  {cat:"movies", text:"You're the best around, nothing's ever gonna keep you down.", src:"The Karate Kid (1984)"},
+  {cat:"movies", text:"Man who catch fly with chopstick accomplish anything.", src:"Mr. Miyagi — The Karate Kid (1984)"},
+  {cat:"movies", text:"Wax on, wax off. Everything has its purpose.", src:"Mr. Miyagi — The Karate Kid (1984)"},
+  // Cool Runnings
+  {cat:"movies", text:"A gold medal is a wonderful thing. But if you're not enough without it, you'll never be enough with it.", src:"Cool Runnings (1993)"},
+  {cat:"movies", text:"I see pride! I see power! I see a bad-ass mother who don't take no crap off of nobody!", src:"Cool Runnings (1993)"},
+  // Miracle
+  {cat:"movies", text:"Great moments are born from great opportunity.", src:"Herb Brooks — Miracle (2004)"},
+  {cat:"movies", text:"Tonight we skate. Tonight we are the greatest hockey team in the world.", src:"Herb Brooks — Miracle (2004)"},
+  // Million Dollar Baby
+  {cat:"movies", text:"If there's magic in boxing, it's the magic of fighting battles beyond endurance, beyond cracked ribs and swollen eyes.", src:"Million Dollar Baby (2004)"},
+  {cat:"movies", text:"Boxing is about respect. Getting it for yourself, and taking it away from the other guy.", src:"Million Dollar Baby (2004)"},
+  // Warrior
+  {cat:"movies", text:"I don't need you to take care of me. I can take care of myself.", src:"Warrior (2011)"},
+  {cat:"movies", text:"This is not over. It's never over.", src:"Warrior (2011)"},
+  // Cinderella Man
+  {cat:"movies", text:"I have to believe that when things are bad I can change them.", src:"Cinderella Man (2005)"},
+  {cat:"movies", text:"Sometimes when things look their darkest, a man has to find a way to shine the light himself.", src:"Cinderella Man (2005)"},
+  // Hoosiers
+  {cat:"movies", text:"I want you to remember this moment. You are a team. Whatever happens, you're a team.", src:"Hoosiers (1986)"},
+  {cat:"movies", text:"Forget about the crowds, the size of the school, their fancy uniforms, and remember what got you here.", src:"Hoosiers (1986)"},
+  // Field of Dreams
+  {cat:"movies", text:"If you build it, he will come.", src:"Field of Dreams (1989)"},
+  {cat:"movies", text:"Is this heaven? No, it's Iowa.", src:"Field of Dreams (1989)"},
+  {cat:"movies", text:"The one constant through all the years has been baseball.", src:"Field of Dreams (1989)"},
+  // The Matrix
+  {cat:"movies", text:"There is no spoon.", src:"The Matrix (1999)"},
+  {cat:"movies", text:"I know kung fu.", src:"Neo — The Matrix (1999)"},
+  {cat:"movies", text:"Free your mind.", src:"Morpheus — The Matrix (1999)"},
+  // 300
+  {cat:"movies", text:"This is Sparta!", src:"300 (2006)"},
+  {cat:"movies", text:"Spartans never retreat. Spartans never surrender.", src:"300 (2006)"},
+  {cat:"movies", text:"We fight. We give everything. And when our shields can't hold, we use our spears. And when our spears break, we use our swords.", src:"300 (2006)"},
+  // The Revenant
+  {cat:"movies", text:"I ain't afraid to die anymore. I done it already.", src:"The Revenant (2015)"},
+  {cat:"movies", text:"As long as you can still grab a breath, you fight. You breathe. Keep breathing.", src:"The Revenant (2015)"},
+  // Top Gun: Maverick
+  {cat:"movies", text:"Don't think, just do.", src:"Top Gun: Maverick (2022)"},
+  {cat:"movies", text:"It's not the plane. It's the pilot.", src:"Top Gun: Maverick (2022)"},
+  {cat:"movies", text:"The end is inevitable, Maverick. Your kind is heading for extinction.", src:"Top Gun: Maverick (2022)"},
+  // Mad Max: Fury Road
+  {cat:"movies", text:"We are not things!", src:"Mad Max: Fury Road (2015)"},
+  {cat:"movies", text:"Rage. The one thing I've been living on.", src:"Mad Max: Fury Road (2015)"},
+  // Hacksaw Ridge
+  {cat:"movies", text:"I don't know how I'm going to live with myself if I don't stay true to what I believe.", src:"Hacksaw Ridge (2016)"},
+  {cat:"movies", text:"Please, Lord, help me get one more. Help me get one more.", src:"Desmond Doss — Hacksaw Ridge (2016)"},
+  // Unbroken
+  {cat:"movies", text:"A moment of pain is worth a lifetime of glory.", src:"Unbroken (2014)"},
+  {cat:"movies", text:"If I can take it, I can make it.", src:"Louis Zamperini — Unbroken (2014)"},
+  // The Greatest Showman
+  {cat:"movies", text:"No one ever made a difference by being like everyone else.", src:"The Greatest Showman (2017)"},
+  {cat:"movies", text:"You don't need everyone to love you, just a few good people.", src:"The Greatest Showman (2017)"},
+  // Good Will Hunting
+  {cat:"movies", text:"You're not perfect. And let me save you the suspense: neither am I.", src:"Good Will Hunting (1997)"},
+  {cat:"movies", text:"It's not your fault.", src:"Sean Maguire — Good Will Hunting (1997)"},
+  {cat:"movies", text:"Some people can't believe in themselves until someone else believes in them first.", src:"Good Will Hunting (1997)"},
+  // Soul
+  {cat:"movies", text:"I'm just afraid that if I died today, my life would have amounted to nothing.", src:"Soul (2020)"},
+  {cat:"movies", text:"You can't crush a soul here. That's what life on Earth is for.", src:"Soul (2020)"},
+  // Kung Fu Panda
+  {cat:"movies", text:"There is no secret ingredient. It's just you.", src:"Kung Fu Panda (2008)"},
+  {cat:"movies", text:"Yesterday is history, tomorrow is a mystery, but today is a gift. That is why it is called the present.", src:"Master Oogway — Kung Fu Panda (2008)"},
+  {cat:"movies", text:"Your mind is like this water, my friend. When it is agitated, it becomes difficult to see. But if you allow it to settle, the answer becomes clear.", src:"Master Oogway — Kung Fu Panda (2008)"},
+  // The Incredibles
+  {cat:"movies", text:"Every moment can be our greatest.", src:"The Incredibles (2004)"},
+  {cat:"movies", text:"Settle down, are you fired up or what?", src:"The Incredibles (2004)"},
+  // Moana
+  {cat:"movies", text:"The ocean chose you for a reason.", src:"Moana (2016)"},
+  {cat:"movies", text:"The call isn't out there at all — it's inside me.", src:"Moana (2016)"},
+  // Coco
+  {cat:"movies", text:"Seize your moment.", src:"Coco (2017)"},
+  {cat:"movies", text:"Never forget how much your family loves you.", src:"Coco (2017)"},
+  // The Fighter
+  {cat:"movies", text:"I'm the one doing the fighting. You're going to start listening to me.", src:"The Fighter (2010)"},
+  {cat:"movies", text:"If you don't believe in yourself, how do you expect anyone else to?", src:"The Fighter (2010)"},
+  // Southpaw
+  {cat:"movies", text:"You still got a lot of fight in you, kid.", src:"Southpaw (2015)"},
+  {cat:"movies", text:"Every morning I wake up and I start again.", src:"Southpaw (2015)"},
+  // Ali
+  {cat:"movies", text:"I am the greatest! I said that before I knew I was.", src:"Ali (2001)"},
+  {cat:"movies", text:"If you even dream of beating me, you'd better wake up and apologize.", src:"Muhammad Ali — Ali (2001)"},
+  // Friday Night Lights
+  {cat:"movies", text:"Being perfect is not about that scoreboard out there. It's not about winning.", src:"Friday Night Lights (2004)"},
+  {cat:"movies", text:"You can put a picture of me on the moon and I'm not gonna get tired of looking at it.", src:"Friday Night Lights (2004)"},
+  // Rush
+  {cat:"movies", text:"A wise man can learn more from his enemies than a fool from his friends.", src:"Rush (2013)"},
+  {cat:"movies", text:"To do something well is so worthwhile that to die trying to do it better cannot be foolhardy.", src:"Rush (2013)"},
+  // Ford v Ferrari
+  {cat:"movies", text:"There's a point at seven thousand RPM where everything fades — the car, the road. All that's left is a body moving through space and time.", src:"Ford v Ferrari (2019)"},
+  {cat:"movies", text:"You want to win Le Mans, you're gonna need the best driver in the world.", src:"Ford v Ferrari (2019)"},
+  // 8 Mile
+  {cat:"movies", text:"Look, if you had one shot, one opportunity to seize everything you ever wanted in one moment — would you capture it, or let it slip?", src:"8 Mile (2002)"},
+  {cat:"movies", text:"Lose yourself in the music, the moment.", src:"8 Mile (2002)"},
+  // Bohemian Rhapsody
+  {cat:"movies", text:"We're four misfits who don't belong together, playing for other misfits. Those are our people.", src:"Bohemian Rhapsody (2018)"},
+  {cat:"movies", text:"I'm going to be a legend.", src:"Freddie Mercury — Bohemian Rhapsody (2018)"},
+  // Hidden Figures
+  {cat:"movies", text:"Every time we get a chance to get ahead, they move the finish line.", src:"Hidden Figures (2016)"},
+  {cat:"movies", text:"Here at NASA, we all pee the same color.", src:"Hidden Figures (2016)"},
+  {cat:"movies", text:"I'm a negro woman. I'm not going to entertain the impossible.", src:"Hidden Figures (2016)"},
+  // Joy
+  {cat:"movies", text:"Don't ever think that the world owes you anything, because it doesn't.", src:"Joy (2015)"},
+  {cat:"movies", text:"If I can't trust my own family, who can I trust?", src:"Joy (2015)"},
+  // Erin Brockovich
+  {cat:"movies", text:"They're people, and I'm good at what I do. And I will not walk away.", src:"Erin Brockovich (2000)"},
+  // Legally Blonde
+  {cat:"movies", text:"You must always have faith in people. And most importantly, you must always have faith in yourself.", src:"Legally Blonde (2001)"},
+  {cat:"movies", text:"Exercise gives you endorphins. Endorphins make you happy.", src:"Elle Woods — Legally Blonde (2001)"},
+  // October Sky
+  {cat:"movies", text:"Somebody down here has to make it all the way out there.", src:"October Sky (1999)"},
+  {cat:"movies", text:"You know, it's not the history of Homer, West Virginia that I'm studying. It's the future.", src:"October Sky (1999)"},
+  // Billy Elliot
+  {cat:"movies", text:"When I'm dancing, I forget everything else. I feel like electricity.", src:"Billy Elliot (2000)"},
+  {cat:"movies", text:"Just because I like ballet doesn't mean I'm a poof, you know.", src:"Billy Elliot (2000)"},
+  // Troy
+  {cat:"movies", text:"I'll tell you a secret. Something they don't teach you in your temple. The gods envy us.", src:"Achilles — Troy (2004)"},
+  {cat:"movies", text:"Immortality — take it! It's yours!", src:"Troy (2004)"},
+  // Black Panther
+  {cat:"movies", text:"In my culture, death is not the end. It's more of a stepping off point.", src:"Black Panther (2018)"},
+  {cat:"movies", text:"You're a good man with a good heart. And it's hard for a good man to be a king.", src:"Black Panther (2018)"},
+  {cat:"movies", text:"Wakanda forever.", src:"Black Panther (2018)"},
+  // Wonder Woman
+  {cat:"movies", text:"I used to want to save the world. To end war and bring peace to mankind.", src:"Wonder Woman (2017)"},
+  {cat:"movies", text:"It's not about deserve. It's about what you believe.", src:"Wonder Woman (2017)"},
+  // Iron Man
+  {cat:"movies", text:"I am Iron Man.", src:"Tony Stark — Iron Man (2008)"},
+  {cat:"movies", text:"Part of the journey is the end.", src:"Tony Stark — Avengers: Endgame (2019)"},
+  // Moneyball
+  {cat:"movies", text:"How can you not be romantic about baseball?", src:"Moneyball (2011)"},
+  {cat:"movies", text:"The first guy through the wall always gets bloody.", src:"Moneyball (2011)"},
+  {cat:"movies", text:"When your enemy is making mistakes, don't interrupt them.", src:"Moneyball (2011)"},
+  // The Social Network
+  {cat:"movies", text:"A million dollars isn't cool. You know what's cool? A billion dollars.", src:"The Social Network (2010)"},
+  {cat:"movies", text:"We lived on farms, then we lived in cities, and now we're going to live on the internet.", src:"The Social Network (2010)"},
+  // Cast Away
+  {cat:"movies", text:"I gotta keep breathing. Because tomorrow the sun will rise. Who knows what the tide could bring?", src:"Cast Away (2000)"},
+  {cat:"movies", text:"I'm so sick of being afraid all the time.", src:"Cast Away (2000)"},
+  // Into the Wild
+  {cat:"movies", text:"The core of man's spirit comes from new experiences.", src:"Into the Wild (2007)"},
+  {cat:"movies", text:"Happiness is only real when shared.", src:"Christopher McCandless — Into the Wild (2007)"},
+  // La La Land
+  {cat:"movies", text:"Here's to the ones who dream, foolish as they may seem.", src:"La La Land (2016)"},
+  {cat:"movies", text:"Maybe I'm not good enough!", src:"La La Land (2016)"},
+  // Little Miss Sunshine
+  {cat:"movies", text:"A real loser is someone who's so afraid of not winning, they don't even try.", src:"Little Miss Sunshine (2006)"},
+  {cat:"movies", text:"Do what you love and f*** the rest.", src:"Little Miss Sunshine (2006)"},
+  // Saving Private Ryan
+  {cat:"movies", text:"Earn this.", src:"Saving Private Ryan (1998)"},
+  {cat:"movies", text:"Every man I have ever killed was the better man than I.", src:"Saving Private Ryan (1998)"},
+  // Secretariat
+  {cat:"movies", text:"This horse has a heart two and a half times bigger than normal.", src:"Secretariat (2010)"},
+  {cat:"movies", text:"Run to win.", src:"Secretariat (2010)"},
+  // The Blind Side
+  {cat:"movies", text:"You're changing that boy's life.", src:"The Blind Side (2009)"},
+  {cat:"movies", text:"I don't need you to protect me. I'm looking out for myself.", src:"The Blind Side (2009)"},
+  // Bleed for This
+  {cat:"movies", text:"They say I can't make it back. That's fine. I'll prove them wrong.", src:"Bleed for This (2016)"},
+  {cat:"movies", text:"The only way I know how to fight is to never stop.", src:"Vinny Pazienza — Bleed for This (2016)"},
 
   // ===== DEPORTISTAS · ATHLETES =====
   {cat:"athletes", text:"You miss 100% of the shots you don't take.", src:"Wayne Gretzky"},
@@ -4284,7 +4450,8 @@ const MOTIV = [
 
 // Etiquetas de categorías de frases
 const MOTIV_CATS = {
-  all:     {es:"Todas", en:"All"},
+  all:      {es:"Todas", en:"All"},
+  favorites:{es:"⭐ Favoritas", en:"⭐ Favorites"},
   movies:  {es:"🎬 Películas", en:"🎬 Movies"},
   athletes:{es:"🏅 Deportistas", en:"🏅 Athletes"},
   artists: {es:"🎨 Artistas", en:"🎨 Artists"},
@@ -4296,6 +4463,11 @@ let motivFilter = "all";
 
 const CUSTOM_Q_KEY = "strengthGadgetRojo.customQuotes";
 const HEADER_Q_KEY = "strengthGadgetRojo.headerQuote";
+const MOTIV_FAV_KEY = "BURN.favoriteQuotes";
+function getFavs(){ try{return new Set(JSON.parse(localStorage.getItem(MOTIV_FAV_KEY))||[]);}catch(e){return new Set();} }
+function setFavs(s){ try{localStorage.setItem(MOTIV_FAV_KEY,JSON.stringify([...s]));}catch(e){} }
+function isFav(t){ return getFavs().has(t); }
+function toggleFav(t){ const s=getFavs(); s.has(t)?s.delete(t):s.add(t); setFavs(s); }
 
 function getCustomQuotes(){
   try{ return JSON.parse(localStorage.getItem(CUSTOM_Q_KEY)) || []; }catch(e){ return []; }
@@ -4625,14 +4797,20 @@ function renderMotiv(){
   };
   filterBar.appendChild(addCatBtn);
   // Show current filter label for clarity in add-quote form
-  const addHint = document.getElementById('motivAddHint');
-  if(addHint){
+  const catSel = document.getElementById('newQuoteCat');
+  if(catSel){
     const allCats = {...MOTIV_CATS};
     getCustomMotivCats().forEach(cc=>{ allCats[cc.key]={es:cc.es,en:cc.en}; });
-    addHint.textContent = motivFilter!=='all'
-      ? LL(`Nueva frase → categoría: ${allCats[motivFilter]?.es||motivFilter}`,
-           `New quote → category: ${allCats[motivFilter]?.en||motivFilter}`)
-      : LL('Nueva frase (elige una categoría para clasificarla)','New quote (pick a category to classify it)');
+    catSel.innerHTML = '';
+    const defaultKey = (motivFilter!=='all'&&motivFilter!=='favorites') ? motivFilter : 'movies';
+    Object.entries(allCats).forEach(([k,v])=>{
+      if(k==='all'||k==='favorites') return;
+      const opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = lang==='en' ? v.en : v.es;
+      if(k===defaultKey) opt.selected = true;
+      catSel.appendChild(opt);
+    });
   }
   motivBody.appendChild(filterBar);
 
@@ -4640,13 +4818,15 @@ function renderMotiv(){
     const isCustom = i >= MOTIV.length;
     const customIdx = i - MOTIV.length;
     // filtro por categoría (las custom guardan su propia categoría)
-    if(motivFilter!=="all" && q.cat !== motivFilter) return;
+    if(motivFilter==="favorites" && !isFav(q.text)) return;
+    else if(motivFilter!=="all" && motivFilter!=="favorites" && q.cat !== motivFilter) return;
     const c = document.createElement("div");
     c.className = "quote-card";
     c.innerHTML = `
       <div class="text">"${q.text}"</div>
       <span class="src">${q.src ? "— "+(lang==="en"?q.src.replace(/^Latín/,"Latin"):q.src) : ""}</span>
       <div class="quote-actions">
+        <button class="q-fav${isFav(q.text)?' active':''}" title="${LL('Favorita','Favorite')}">${isFav(q.text)?'⭐':'☆'}</button>
         <button class="q-use">⬆ ${LL("Llevar al menú","Use on menu")}</button>
         ${isCustom ? '<button class="q-del">🗑</button>' : ''}
       </div>
@@ -4655,6 +4835,7 @@ function renderMotiv(){
       setHeaderQuote(q);
       motivModal.classList.remove("show");
     };
+    c.querySelector(".q-fav").onclick = ()=>{ toggleFav(q.text); renderMotiv(); };
     if(isCustom){
       c.querySelector(".q-del").onclick = ()=>{
         if(!confirm(LL("¿Borrar esta frase?","Delete this quote?"))) return;
@@ -4678,7 +4859,8 @@ document.getElementById("addQuoteBtn").onclick = ()=>{
   const text = textEl.value.trim();
   if(!text){ toast(LL("Escribí una frase primero","Type a quote first")); return; }
   const arr = getCustomQuotes();
-  arr.push({text, src: srcEl.value.trim(), cat: motivFilter!=="all" ? motivFilter : undefined});
+  const _catSel = document.getElementById("newQuoteCat");
+  arr.push({text, src: srcEl.value.trim(), cat: _catSel?.value || undefined});
   setCustomQuotes(arr);
   textEl.value = ""; srcEl.value = "";
   renderMotiv();
@@ -4820,6 +5002,7 @@ function renderLibBody(){
   }
       row.querySelector('.add-btn').onclick = ()=>{
         pushUndo();
+        if(!data[currentDay]||!Array.isArray(data[currentDay])){ toast(LL('Seleccioná un día primero','Select a day first')); return; }
         if(libReplaceIdx !== null){
           const old = data[currentDay][libReplaceIdx]||{};
           data[currentDay][libReplaceIdx]={es:ex.es,en:ex.en||ex.es,muscle:ex.muscle||'',
@@ -4829,7 +5012,7 @@ function renderLibBody(){
         }
         const _d=_libDefaults(ex.cat||libCategory);
         if(_isTimedCat(ex.cat||libCategory) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
-        data[currentDay].push({es:ex.es,en:ex.en||ex.es,muscle:ex.muscle||'',
+        data[currentDay].push({es:ex.es,en:ex.en||ex.es,cat:ex.cat||libCategory,muscle:ex.muscle||'',
           sets:_d.sets,reps:_d.reps,weight:_d.weight,rest:_d.rest,setsDone:[],done:false});
         save(); renderList();
         const btn=row.querySelector('.add-btn'); btn.textContent='✓'; btn.style.background='var(--accent)';
@@ -4886,6 +5069,7 @@ row.innerHTML = `
     `;
     row.querySelector(".add-btn").onclick = ()=>{
       pushUndo();
+      if(!data[currentDay]||!Array.isArray(data[currentDay])){ toast(LL("Seleccioná un día primero","Select a day first")); return; }
       if(libReplaceIdx !== null){
         // Reemplazar conservando posición; preguntar si mantener config
         const old = data[currentDay][libReplaceIdx] || {};
@@ -4908,7 +5092,7 @@ row.innerHTML = `
       const _d=_libDefaults(ex.cat);
       if(_isTimedCat(ex.cat) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
       data[currentDay].push({
-        es:ex.es, en:ex.en, muscle:ex.muscle,
+        es:ex.es, en:ex.en, cat:ex.cat, muscle:ex.muscle,
         sets:_d.sets, reps:_d.reps, weight:_d.weight, rest:_d.rest, setsDone:[], done:false,
         customRest:false, restNote:""
       });
