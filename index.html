@@ -284,7 +284,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .header-top-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px}
   .header-btns-left{justify-self:start}
   .header-top-row h1{grid-column:2;justify-self:center;text-align:center}
-  .header-btns-right{justify-self:end;flex-wrap:wrap;justify-content:flex-end;align-items:center;min-width:0;overflow:hidden}
+  .header-btns-right{justify-self:end;flex-wrap:nowrap;justify-content:flex-end;align-items:center;min-width:0;overflow:hidden}
   /* gear clavado en la esquina superior derecha, a la altura exacta del botón de idioma */
   .header-top-row{position:relative}
   /* #paletteBtn: normal flow, no absolute */
@@ -314,8 +314,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     letter-spacing:.5px;
     box-shadow:inset 0 0 0 3px var(--violet-deep);
   }
-  .quote .big{font-size:clamp(1.2rem,4.5vw,1.7rem);color:var(--violet-deep)}
-  .quote .small{font-size:clamp(.8rem,2.8vw,1rem);display:block;margin-top:6px}
+  .quote .big{font-size:clamp(1.2rem,4.5vw,1.7rem);color:var(--violet-deep);word-break:break-word;overflow-wrap:break-word;}
+  .quote .small{font-size:clamp(.8rem,2.8vw,1rem);display:block;margin-top:6px;word-break:break-word;overflow-wrap:break-word;}
 
   /* Selector de días / Days */
   .days{
@@ -514,7 +514,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     color:#fff;border-radius:14px;padding:12px 16px;margin-bottom:14px;box-shadow:var(--shadow-soft);
   }
   .circuit-notation .cn-head{font-weight:700;font-size:1rem;font-family:var(--font-head);letter-spacing:.3px}
-  .circuit-notation .cn-expanded{font-size:.82rem;opacity:.9;margin-top:4px;line-height:1.4}
+  .circuit-notation .cn-expanded{font-size:.82rem;opacity:.9;margin-top:4px;line-height:1.4;word-break:break-word;overflow-wrap:break-word;}
   .rounds-control{display:flex;align-items:center;justify-content:space-between;
     background:var(--card-bg);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:14px 0 18px}
   .rounds-control .rc-label{font-weight:700;font-size:1rem;color:var(--ink);font-family:var(--font-head);letter-spacing:.3px}
@@ -538,6 +538,8 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .kcal-banner{background:linear-gradient(135deg,var(--violet),var(--violet-deep));color:#fff;
     border-radius:14px;padding:14px 18px;margin-bottom:14px;text-align:center;line-height:1.5;
     font-family:var(--font-head);font-size:.95rem;font-weight:600;}
+  .kcal-banner.kcal-live{padding:9px 14px;font-size:.95rem;line-height:1.35;opacity:.97;}
+  .kcal-banner.kcal-hint{padding:9px 14px;font-size:.86rem;line-height:1.35;background:linear-gradient(135deg,var(--violet-soft),var(--violet));opacity:.95;}
   .kcal-main{font-size:1.6rem;font-weight:800;letter-spacing:.5px;}
   .kcal-inline{font-size:.78rem;opacity:.9;}
   /* ── Train pie ── */
@@ -803,10 +805,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:1rem;
   }
   .lib-search{
+    display:block;box-sizing:border-box;
     margin:12px 16px 6px;padding:10px 12px;border-radius:10px;
     border:2px solid var(--line);font-size:.95rem;
     background:var(--card-bg);color:var(--ink);
-    width:auto;
+    width:calc(100% - 32px);
   }
   .lib-tabs{display:flex;gap:6px;padding:6px 16px;flex-wrap:wrap}
   .lib-tab{
@@ -815,7 +818,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     cursor:pointer;white-space:nowrap;flex:0 0 auto;line-height:1.2;
   }
   .lib-tab.active{background:var(--violet);color:var(--cream)}
-  .lib-body{overflow-y:auto;overflow-x:visible;padding:8px 16px 18px 28px;flex:1}
+  .lib-body{overflow-y:auto;overflow-x:hidden;padding:8px 16px 18px 28px;flex:1}
   .lib-item{
     display:flex;align-items:center;gap:10px;color:var(--ink);
     padding:10px 12px;border:1px solid var(--line);border-radius:10px;
@@ -833,7 +836,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .lib-item .info{flex:1 1 auto;min-width:0}
   .lib-item .info .es{font-weight:bold;font-size:.95rem;word-break:break-word;overflow-wrap:anywhere;text-indent:0;margin:0}
   .lib-item .info .en{font-size:.8rem;opacity:.65;font-style:italic;word-break:break-word;overflow-wrap:anywhere;text-indent:0;margin:0}
-  .lib-item .add-btn{
+  .lib-info-btn{border:none;background:none;font-size:.95rem;cursor:pointer;padding:2px 4px;opacity:.55;transition:opacity .15s,transform .15s;flex:0 0 auto;align-self:center;}
+.lib-info-btn:hover{opacity:1;transform:scale(1.15);}
+.lib-item .add-btn{
     border:none;background:var(--accent);color:#fff;font-weight:bold;
     border-radius:8px;width:36px;height:36px;font-size:1.2rem;cursor:pointer;flex:0 0 auto;
   }
@@ -931,9 +936,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     background:var(--card-bg);color:var(--ink);border:1px solid var(--line);border-left:5px solid var(--violet);
     border-radius:10px;padding:12px 14px;margin-bottom:10px;
   }
-  .quote-card .text{font-size:.98rem;line-height:1.4;font-style:italic}
-  .quote-card .src{display:block;margin-top:6px;font-size:.78rem;font-weight:bold;color:var(--violet-deep);font-style:normal}
-  .quote-actions{display:flex;gap:6px;margin-top:10px}
+  .quote-card .text{font-size:.98rem;line-height:1.4;font-style:italic;word-break:break-word;overflow-wrap:break-word;}
+  .quote-card .src{display:block;margin-top:6px;font-size:.78rem;font-weight:bold;color:var(--violet-deep);font-style:normal;word-break:break-word;overflow-wrap:break-word;}
+  .quote-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center;}
   .quote-actions .q-use{
     flex:1;border:2px solid var(--violet);background:var(--cream);color:var(--violet-deep);
     border-radius:8px;padding:6px 10px;font-weight:bold;font-size:.78rem;cursor:pointer;
@@ -1427,9 +1432,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button class="modal-close" id="motivClose">✕</button>
     </div>
     <div class="motiv-add">
-      <input type="text" id="newQuoteText" class="lib-search" placeholder="Tu frase · Your quote…" style="margin:12px 16px 6px;width:auto;">
-      <input type="text" id="newQuoteSrc" class="lib-search" placeholder="Autor (opcional) · Author…" style="margin:0 16px 6px;width:auto;">
-      <button id="addQuoteBtn" class="wk-btn" style="margin:0 16px 8px;background:var(--accent);color:#fff;border-color:var(--accent)">＋ Agregar frase</button>
+      <input type="text" id="newQuoteText" class="lib-search" placeholder="Tu frase · Your quote…" style="margin:12px 16px 6px;">
+      <input type="text" id="newQuoteSrc" class="lib-search" placeholder="Autor (opcional) · Author…" style="margin:0 16px 6px;">
+      <button id="addQuoteBtn" class="wk-btn" style="margin:0 16px 8px;background:var(--accent);color:#fff;border-color:var(--accent);display:block;box-sizing:border-box;width:calc(100% - 32px);white-space:normal;text-align:center;">＋ Agregar frase</button>
       <select id="newQuoteCat" class="motiv-cat-select"></select>
     </div>
     <div class="lib-body" id="motivBody"></div>
@@ -2538,6 +2543,16 @@ function setCircuitRests(dayName, between, round){
 }
 
 /* ── Exhaustive calorie estimator ─────────────────────────────────────────── */
+function kcalBannerHTML(est, done){
+  if(!est){
+    return `<div class="kcal-banner kcal-hint">🔥 ${LL("Calorías: completá tu peso en ⚙️ → 👤 Perfil del atleta","Calories: add your weight in ⚙️ → 👤 Athlete profile")}</div>`;
+  }
+  if(done){
+    return `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${est.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${est.activeMin}min · MET ${est.avgMet} · EPOC +${est.epocKcal} kcal</small></div>`;
+  }
+  return `<div class="kcal-banner kcal-live"><span class="kcal-main">🔥 ${est.kcal} kcal</span> <small style="opacity:.85">${LL("estimado para la sesión","estimated for the session")} · ${est.activeMin}min · MET ${est.avgMet}</small></div>`;
+}
+
 function estimateKcal(dayName){
   const _bW = parseFloat(localStorage.getItem('BURN.weight') || 0);
   const _bA = parseInt(localStorage.getItem('BURN.age') || 0);
@@ -4761,7 +4776,7 @@ function renderMotiv(){
   // Barra de filtros por categoría
   const filterBar = document.createElement("div");
   filterBar.className = "lib-tabs";
-  filterBar.style.padding = "0 0 10px";
+  filterBar.style.padding = "0 16px 10px";
   Object.keys(MOTIV_CATS).forEach(catKey=>{
     const t = document.createElement("button");
     t.className = "lib-tab" + (motivFilter===catKey ? " active" : "");
@@ -4937,6 +4952,18 @@ function renderLibTabs(){
 }
 
 function renderLibBody(){
+  // ── Helpers always available regardless of code path ──
+  function _libDefaults(cat){
+    const c=(cat||'').toLowerCase();
+    if(/bicicleta|stationary.?bike/.test(c)) return {sets:1,reps:20,weight:0,rest:0};
+    if(/movilidad|mobility/.test(c))         return {sets:3,reps:30,weight:0,rest:15};
+    if(/calentamiento|warm.?up/.test(c))     return {sets:2,reps:30,weight:0,rest:15};
+    if(/elongaci|stretching|cool.?down/.test(c)) return {sets:2,reps:30,weight:0,rest:10};
+    return {sets:3,reps:10,weight:0,rest:60};
+  }
+  function _isTimedCat(cat){
+    return /intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
+  }
   const q = libSearch.value.trim().toLowerCase();
   libBody.innerHTML = "";
   // Aviso de modo reemplazo
@@ -4985,21 +5012,16 @@ function renderLibBody(){
           <div class="es">${ex.es}</div>
           <div class="en">${ex.en||''} · ${ex.muscle||''}</div>
         </div>
+        <button class="lib-info-btn" title="${LL('Ver técnica','How-to')}">ℹ️</button>
         <button class="add-btn" title="${LL('Añadir','Add')}">＋</button>
         <button class="del-btn" style="background:transparent;border:1.5px solid var(--line);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:.8rem;margin-left:4px;" title="${LL('Borrar','Delete')}">🗑</button>
       `;
-/* helper: defaults según categoría de library */
-  function _libDefaults(cat){
-    const c=(cat||'').toLowerCase();
-    if(/bicicleta|stationary.?bike/.test(c)) return {sets:1,reps:20,weight:0,rest:0};
-    if(/movilidad|mobility/.test(c))         return {sets:3,reps:30,weight:0,rest:15};
-    if(/calentamiento|warm.?up/.test(c))     return {sets:2,reps:30,weight:0,rest:15};
-    if(/elongaci|stretching|cool.?down/.test(c)) return {sets:2,reps:30,weight:0,rest:10};
-    return {sets:3,reps:10,weight:0,rest:60};
-  }
-  function _isTimedCat(cat){
-    return /intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
-  }
+
+      row.querySelector('.lib-info-btn').onclick = (e)=>{
+        e.stopPropagation();
+        const term = encodeURIComponent(((ex.en||ex.es)+" exercise technique").trim());
+        window.open("https://www.youtube.com/results?search_query="+term,"_blank");
+      };
       row.querySelector('.add-btn').onclick = ()=>{
         pushUndo();
         if(!data[currentDay]||!Array.isArray(data[currentDay])){ toast(LL('Seleccioná un día primero','Select a day first')); return; }
@@ -5065,8 +5087,14 @@ row.innerHTML = `
         <div class="es">${ex.es}${_mfH}</div>
         <div class="en">${ex.en} · ${ex.muscle}</div>
       </div>
+      <button class="lib-info-btn" title="${LL('Ver técnica','How-to')}">ℹ️</button>
       <button class="add-btn" title="${replacing?LL('Reemplazar','Replace'):LL('Añadir','Add')}">${replacing?'🔄':'＋'}</button>
     `;
+    row.querySelector(".lib-info-btn").onclick = (e)=>{
+      e.stopPropagation();
+      const term = encodeURIComponent(((ex.en||ex.es)+" exercise technique").trim());
+      window.open("https://www.youtube.com/results?search_query="+term,"_blank");
+    };
     row.querySelector(".add-btn").onclick = ()=>{
       pushUndo();
       if(!data[currentDay]||!Array.isArray(data[currentDay])){ toast(LL("Seleccioná un día primero","Select a day first")); return; }
@@ -5096,7 +5124,7 @@ row.innerHTML = `
         sets:_d.sets, reps:_d.reps, weight:_d.weight, rest:_d.rest, setsDone:[], done:false,
         customRest:false, restNote:""
       });
-      save(); renderList();
+      save(); try{ renderList(); } catch(e){ console.error("renderList error:",e); toast("Error al renderizar: "+e.message); }
       const btn = row.querySelector(".add-btn");
       btn.textContent = "✓"; btn.style.background = "var(--accent)";
       setTimeout(()=>{ btn.textContent="＋"; }, 700);
@@ -5982,7 +6010,7 @@ function renderTrainStraight(){
     return d.length>=(+e.sets||1);
   });
   trainContent.innerHTML = `
-    ${_allDoneS && _estS ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_estS.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_estS.activeMin}min · MET ${_estS.avgMet} · EPOC +${_estS.epocKcal} kcal</small></div>` : ''}
+    ${kcalBannerHTML(_estS, _allDoneS)}
     <div>
       <div class="train-ex-name">${esc(LL(ex.es,ex.en||ex.es))}</div>
       <div class="train-ex-en">${esc(ex.en||"")} · ${esc(ex.muscle||"")}</div>
@@ -6053,7 +6081,7 @@ function renderTrainCircuit(){
   const circNotation = "(" + circNames.join(" + ") + ") × " + circRounds;
   const kcalMeta = _est ? `<span class="kcal-inline">🔥 ~${_est.kcal} kcal</span>` : '';
   trainContent.innerHTML = `
-    ${allDone && _est ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_est.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_est.activeMin}min · MET ${_est.avgMet} · EPOC +${_est.epocKcal} kcal</small></div>` : ''}
+    ${kcalBannerHTML(_est, allDone)}
     <div>
       <div class="train-ex-name">↻ ${LL("Circuito — Serie","Circuit — Set")} ${circRound+1} / ${circRounds}</div>
       <div class="train-ex-en">${LL("Hacé 1 serie de cada ejercicio, luego descansá","Do 1 set of each exercise, then rest")}</div>
@@ -6124,7 +6152,7 @@ function renderTrainCircuitRep(){
     : `⏩ ${LL("Siguiente","Next")} → ⏱ ${rests.between}s`;
 
   trainContent.innerHTML = `
-    ${allDone && _est ? `<div class="kcal-banner">${LL("🎉 ¡Sesión completa!","🎉 Session complete!")}<br><span class="kcal-main">🔥 ${_est.kcal} kcal</span><br><small style="opacity:.85">${LL("activo","active")} ${_est.activeMin}min · MET ${_est.avgMet} · EPOC +${_est.epocKcal} kcal</small></div>` : ''}
+    ${kcalBannerHTML(_est, allDone)}
     <div>
       <div class="train-ex-name">${esc(LL(ex.es,ex.en||ex.es))}</div>
       <div class="train-ex-en">${esc(ex.en||'')} · ${esc(ex.muscle||'')}</div>
@@ -8229,8 +8257,6 @@ function ensureSettingsOverlay(){
   // mover la barra de workouts (guardar/importar/exportar) y el toggle de tema adentro del menú
   const bar = document.querySelector(".workout-bar");
   if(bar) ov.querySelector("#settingsDataSlot").appendChild(bar);
-  const th = document.getElementById("themeToggle");
-  if(th) ov.querySelector("#settingsThemeRow").appendChild(th);
   const sr = ov.querySelector("#settingsSoundRow");
   ["voiceToggleBtn","wakeBtn","bgAudioBtn"].forEach(id=>{
     const b = document.getElementById(id);
@@ -8433,26 +8459,7 @@ document.getElementById("paletteBtn").onclick = openSettings;
 try{ applyPalette(localStorage.getItem(PALETTE_KEY) || "rojo"); }catch(e){}
 ensureSettingsOverlay();
 initStaticTips();
-// Atleta a un lado (junto al idioma), Última actualización al otro (junto al ⚙️)
-// En mobile (≤480px): NO se reorganiza — user-info-bar permanece visible debajo del header-top-row.
-// En desktop (>480px): se mueven los elementos a las columnas de botones.
-try{
-  if(!window.matchMedia("(max-width:480px)").matches){
-    const left = document.querySelector(".header-btns-left");
-    const right = document.querySelector(".header-btns-right");
-    const mk = ()=>{ const s=document.createElement("span"); s.className="uib-group"; return s; };
-    const gA = mk();
-    gA.appendChild(document.getElementById("userNameLabel"));
-    gA.appendChild(document.getElementById("userNameInput"));
-    left.appendChild(gA);
-    const gU = mk();
-    gU.appendChild(document.getElementById("lastModLabel"));
-    gU.appendChild(document.getElementById("lastModDisplay"));
-    right.insertBefore(gU, document.getElementById("paletteBtn"));
-    const uib = document.querySelector(".user-info-bar");
-    if(uib) uib.style.display = "none";
-  }
-}catch(e){}
+
 // "Reiniciar casillas" baja a la fila del cronómetro de sesión
 try{
   const sb = document.querySelector(".session-bar");
