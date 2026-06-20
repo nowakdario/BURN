@@ -125,6 +125,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
+  /* scrollbar a ambos lados: el contenido (logo BURN incluido) queda perfectamente centrado
+     en vez de correrse a la izquierda por el ancho de la barra de scroll */
+  html{scrollbar-gutter:stable both-edges}
   body{
     font-family:var(--font-body);
     color:var(--ink);
@@ -521,6 +524,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .rounds-control .rc-label small{display:block;font-weight:400;opacity:.65;font-family:var(--font-body);font-size:.75rem;margin-top:2px}
   .rounds-control .rc-stepper{display:flex;align-items:center;gap:14px}
   .rounds-control .rc-val{font-size:1.4rem;font-weight:800;min-width:28px;text-align:center;color:var(--ink)}
+  input.rc-val{width:48px;max-width:48px;border:none;background:transparent;padding:2px 0;
+    -moz-appearance:textfield;appearance:textfield;font-family:inherit;outline:none}
+  input.rc-val:focus{background:rgba(0,0,0,.06);border-radius:6px}
   .install-btn{margin:12px auto 0;display:block;border:none;border-radius:12px;padding:12px 22px;cursor:pointer;
     font-family:var(--font-head);font-weight:700;letter-spacing:.5px;font-size:1rem;color:#fff;
     background:linear-gradient(135deg,var(--violet),var(--violet-deep));box-shadow:var(--shadow)}
@@ -530,7 +536,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .cre-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0;}
   .cre-label{font-size:.82rem;color:var(--ink-soft);flex:1;}
   .cre-stepper{display:flex;align-items:center;gap:10px;}
-  .cre-val{font-size:1rem;font-weight:700;min-width:38px;text-align:center;color:var(--violet-deep);}
+  .cre-val{font-size:1rem;font-weight:700;min-width:38px;text-align:center;color:var(--violet-deep);
+    display:inline-flex;align-items:baseline;justify-content:center;gap:1px;}
+  .cre-val input{width:32px;max-width:32px;border:none;background:transparent;text-align:right;
+    font-size:1rem;font-weight:700;color:var(--violet-deep);padding:0;
+    -moz-appearance:textfield;appearance:textfield;font-family:inherit;outline:none}
+  .cre-val input:focus{background:rgba(0,0,0,.06);border-radius:5px}
+  .cre-val i{font-style:normal;font-size:.78rem;opacity:.7}
   .cre-repmode-btn{border:2px solid var(--line);border-radius:20px;padding:5px 14px;font-size:.82rem;cursor:pointer;
     background:var(--cream-2);color:var(--ink);font-weight:600;transition:background .2s,color .2s;}
   .cre-repmode-btn.active{background:var(--violet);color:#fff;border-color:var(--violet);}
@@ -550,15 +562,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .circuit-card .card-head{padding:12px 14px}
   .cc-num{width:26px;height:26px;flex:0 0 auto;display:grid;place-items:center;border-radius:50%;
     background:var(--violet);color:#fff;font-weight:700;font-size:.85rem}
-  .cc-fields{display:flex;gap:12px;padding:12px 14px}
-  .cc-field{flex:1;text-align:center}
+  .cc-fields{display:flex;flex-wrap:wrap;gap:12px;padding:12px 14px}
+  .cc-field{flex:1 1 40%;min-width:84px;text-align:center}
   .cc-field label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.5px;opacity:.6;font-weight:700;margin-bottom:6px}
   .cc-step{display:flex;align-items:center;justify-content:center;gap:12px}
   .cc-v{font-size:1.2rem;font-weight:800;min-width:36px;text-align:center;color:var(--ink)}
+  /* valor editable del stepper: parece texto, pero se puede tipear */
+  input.cc-v{width:46px;max-width:46px;border:none;background:transparent;padding:2px 0;
+    -moz-appearance:textfield;appearance:textfield;font-family:inherit;outline:none}
+  input.cc-v:focus{background:rgba(0,0,0,.06);border-radius:6px}
+  .stepper{touch-action:none;user-select:none}
   .cc-mix{padding:0 10px 12px;box-sizing:border-box}
   .mix-head{font-size:.82rem;color:var(--violet-deep);background:rgba(209,10,20,0.07);border-radius:8px;padding:8px 10px;margin-bottom:8px;line-height:1.4}
   .mix-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
-  .mix-row .mix-reps{width:64px;text-align:center;border:1px solid var(--line);border-radius:7px;padding:6px;background:var(--card-bg);color:var(--ink);font-weight:bold}
+  .mix-row .mix-reps{width:48px;flex:0 0 auto;text-align:center;border:1px solid var(--line);border-radius:7px;padding:6px 4px;background:var(--card-bg);color:var(--ink);font-weight:bold}
+  .mix-row .mix-select{text-overflow:ellipsis}
   .mix-row .mix-name{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card-bg);color:var(--ink)}
   .mix-row .mix-select{flex:1;min-width:0;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--card-bg);color:var(--ink);font-size:.9rem}
   .mix-row .mix-del{border:none;background:transparent;color:var(--violet);font-size:1rem;cursor:pointer;padding:4px 8px}
@@ -818,7 +836,14 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     cursor:pointer;white-space:nowrap;flex:0 0 auto;line-height:1.2;
   }
   .lib-tab.active{background:var(--violet);color:var(--cream)}
-  .lib-body{overflow-y:auto;overflow-x:hidden;padding:8px 16px 18px 28px;flex:1}
+  .lib-body{overflow-y:auto;overflow-x:hidden;padding:8px 16px 18px 28px;flex:1 1 auto;min-height:0}
+  /* Footer fijo del timer de intervalos: el botón ▶ Iniciar queda SIEMPRE visible (fuera del cuerpo
+     scrolleable). Lleva clase .rest-btn, que pocket-mode esconde con display:none!important → forzamos. */
+  #intervalModal .modal{overflow:hidden}
+  #intervalModal .lib-body{padding-bottom:8px}
+  .iv-foot{flex:0 0 auto;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
+    border-top:1px solid var(--line);background:var(--cream);border-radius:0 0 18px 18px}
+  #ivStart,body.pocket-mode #ivStart{display:block !important;width:100%;margin:0}
   .lib-item{
     display:flex;align-items:center;gap:10px;color:var(--ink);
     padding:10px 12px;border:1px solid var(--line);border-radius:10px;
@@ -1517,7 +1542,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
         <div class="field"><label id="ivLabSetRest">Descanso entre sets (s)</label><input type="number" id="ivSetRest" value="60"></div>
       </div>
       <div class="iv-total" id="ivTotal"></div>
-      <button class="rest-btn" id="ivStart" style="width:100%;margin-top:6px">▶ Iniciar</button>
+    </div>
+    <div class="iv-foot">
+      <button class="rest-btn" id="ivStart">▶ Iniciar</button>
     </div>
   </div>
 </div>
@@ -1583,7 +1610,9 @@ const MUSCLE_EN = {
   "Espalda baja":"Lower Back", "Pecho/Tríceps":"Chest/Triceps",
   "Espalda/Piernas":"Back/Legs", "Espalda/Bíceps":"Back/Biceps",
   "Hombros/Bíceps":"Shoulders/Biceps", "Piernas/Core":"Legs/Core",
-  "Isquios":"Hamstrings", "Cuello":"Neck", "Antebrazo":"Forearm"
+  "Isquios":"Hamstrings", "Cuello":"Neck", "Antebrazo":"Forearm",
+  "Carrera":"Running", "Carrera (potencia)":"Running (power)",
+  "Carrera (técnica)":"Running (drills)", "Carrera/Cardio":"Running/Cardio"
 };
 /* ── Medical Conditions ── */
 const MEDICAL_CONDITIONS = [
@@ -2295,6 +2324,26 @@ const LIBRARY = {
     {es:"Bici fija — vuelta a la calma", en:"Stationary bike — cool-down", muscle:"Cardio"},
     {es:"Spinning", en:"Spinning / indoor cycling", muscle:"Cardio"},
   ],
+  "Carrera · Running": [
+    {es:"Zancadas técnicas", en:"Running strides", muscle:"Carrera"},
+    {es:"Progresivos", en:"Progression strides", muscle:"Carrera"},
+    {es:"Aceleraciones", en:"Accelerations (build-ups)", muscle:"Carrera"},
+    {es:"Trote suave", en:"Easy jog", muscle:"Carrera"},
+    {es:"Carrera continua (Zona 2)", en:"Steady run (Zone 2)", muscle:"Carrera"},
+    {es:"Carrera tempo", en:"Tempo run", muscle:"Carrera"},
+    {es:"Fartlek (aceleración)", en:"Fartlek surge", muscle:"Carrera"},
+    {es:"Sprint", en:"Sprint", muscle:"Carrera (potencia)"},
+    {es:"Sprint 100m", en:"Sprint 100m", muscle:"Carrera (potencia)"},
+    {es:"Sprint 200m", en:"Sprint 200m", muscle:"Carrera"},
+    {es:"Sprint 400m", en:"Sprint 400m", muscle:"Carrera"},
+    {es:"Repetición 800m", en:"800m rep", muscle:"Carrera"},
+    {es:"Sprint en cuesta", en:"Hill sprint", muscle:"Carrera (potencia)"},
+    {es:"Cuestas", en:"Hill repeats", muscle:"Carrera"},
+    {es:"Intervalo VO2 máx", en:"VO2 max interval", muscle:"Carrera"},
+    {es:"Rodillas altas", en:"High knees", muscle:"Carrera (técnica)"},
+    {es:"Talones al glúteo", en:"Butt kicks", muscle:"Carrera (técnica)"},
+    {es:"Skipping (A-skips)", en:"A-skips", muscle:"Carrera (técnica)"},
+  ],
 };
 
 const STORE_KEY = "strengthGadgetRojo.v1";
@@ -2527,6 +2576,16 @@ function defaultModeFor(dayName){
 function getDayMode(dayName){
   if(!dayModes[dayName]) dayModes[dayName] = defaultModeFor(dayName);
   return dayModes[dayName];
+}
+/* ¿Este día puede usar modo Circuito? Para fuerza/hipertrofia (entrenamiento de pesas por
+   series/reps) el circuito confunde y no aplica → solo "Series". Se permite cuando el nombre
+   del día sugiere cardio/circuito/intervalos, o cuando algún ejercicio es de categoría por tiempo. */
+function dayAllowsCircuit(dayName){
+  const n = (dayName||"").toLowerCase();
+  if(/(circuit|circuito|tabata|hiit|amrap|emom|cardio|interval|sprint|fartlek|tempo|carrera|running|trote|jog|metaból|chipper|bici|bike|spinning|pirámide|piramide|cuesta|vo2|funcional|metcon|continu|resist|endurance|calisten|calisthenic|movilidad|mobility|elongaci|stretch|cool.?down|calentamiento|warm)/.test(n)) return true;
+  const list = data[dayName] || [];
+  if(list.length && list.some(e=> modeForCategory(e.cat||e.muscle||"")==="circuit")) return true;
+  return false;
 }
 function setDayMode(dayName, mode){
   dayModes[dayName] = mode; save();
@@ -3131,6 +3190,8 @@ function renderList(){
     listEl.appendChild(pbar);
   }
   const list = data[currentDay] || [];
+  // Fuerza/hipertrofia: el modo circuito no aplica → forzar Series
+  if(!dayAllowsCircuit(currentDay) && getDayMode(currentDay)==="circuit"){ dayModes[currentDay]="straight"; save(); }
   const isCircuit = getDayMode(currentDay)==="circuit";
 
   if(isCircuit && list.length){
@@ -3157,7 +3218,7 @@ function renderList(){
       <span class="rc-label">↻ Rounds <small>${LL("(vueltas del circuito)","(circuit loops)")}</small></span>
       <div class="rc-stepper">
         <button class="stepper" id="circMinus">−</button>
-        <span class="rc-val" id="circRoundsVal">${rounds}</span>
+        <input class="rc-val" id="circRoundsVal" type="number" inputmode="numeric" lang="${lang}" value="${rounds}">
         <button class="stepper" id="circPlus">＋</button>
       </div>`;
     circHeaderWrap.appendChild(rc);
@@ -3169,19 +3230,19 @@ function renderList(){
     restEditor.className = "circuit-rests-editor";
     restEditor.innerHTML = `
       <div class="cre-row">
-        <span class="cre-label">${LL("⏱ Entre ejercicios","⏱ Between exercises")}</span>
+        <span class="cre-label">${LL("⏱ Micropausa (entre ej.)","⏱ Micro-rest (between ex.)")}</span>
         <div class="cre-stepper">
-          <button class="stepper cre-btn" id="creBMinus" title="−5s">−</button>
-          <span class="cre-val" id="creB">${_crNow.between}s</span>
-          <button class="stepper cre-btn" id="creBPlus" title="+5s">＋</button>
+          <button class="stepper cre-btn" id="creBMinus" title="−1s">−</button>
+          <span class="cre-val"><input id="creB" type="number" inputmode="numeric" lang="${lang}" value="${_crNow.between}"><i>s</i></span>
+          <button class="stepper cre-btn" id="creBPlus" title="+1s">＋</button>
         </div>
       </div>
       <div class="cre-row">
-        <span class="cre-label">${LL("🛑 Descanso de serie","🛑 Rest between sets")}</span>
+        <span class="cre-label">${LL("🛑 Macropausa (de serie)","🛑 Macro-rest (between sets)")}</span>
         <div class="cre-stepper">
-          <button class="stepper cre-btn" id="creRMinus" title="−15s">−</button>
-          <span class="cre-val" id="creR">${_crNow.round}s</span>
-          <button class="stepper cre-btn" id="creRPlus" title="+15s">＋</button>
+          <button class="stepper cre-btn" id="creRMinus" title="−1s">−</button>
+          <span class="cre-val"><input id="creR" type="number" inputmode="numeric" lang="${lang}" value="${_crNow.round}"><i>s</i></span>
+          <button class="stepper cre-btn" id="creRPlus" title="+1s">＋</button>
         </div>
       </div>
       <div class="cre-row" style="justify-content:center;margin-top:6px">
@@ -3202,29 +3263,27 @@ function renderList(){
     // Lista simplificada
     list.forEach((ex, i)=> listEl.appendChild(makeCircuitCard(ex, i)));
 
-    // wiring del stepper de rounds (aplica a TODOS los ejercicios)
-    const applyRounds = (val)=>{
-      val = Math.max(1, val);
-      pushUndo();
-      list.forEach(e=>{ e.sets = val; });
+    // Rounds (vueltas): editable + mantener apretado. Se actualiza in-place y refresca al soltar.
+    const roundsInput = document.getElementById("circRoundsVal");
+    const applyRoundsInPlace = (val)=>{ val=Math.max(1, Math.round(val||1)); list.forEach(e=>{ e.sets=val; }); roundsInput.value=val; save(); };
+    holdRepeat(document.getElementById("circMinus"), ()=> applyRoundsInPlace((+roundsInput.value||1)-1), ()=> renderList());
+    holdRepeat(document.getElementById("circPlus"),  ()=> applyRoundsInPlace((+roundsInput.value||1)+1), ()=> renderList());
+    roundsInput.onchange = ()=>{ pushUndo(); applyRoundsInPlace(+roundsInput.value); renderList(); };
+
+    // Editor de descansos micro/macro: editable + mantener apretado (in-place, sin re-render por paso).
+    const creBin = document.getElementById("creB"), creRin = document.getElementById("creR");
+    const setMicro = v=>{ const rr=getCircuitRests(currentDay); v=Math.max(0,Math.round(v||0)); setCircuitRests(currentDay, v, rr.round); creBin.value=v; };
+    const setMacro = v=>{ const rr=getCircuitRests(currentDay); v=Math.max(0,Math.round(v||0)); setCircuitRests(currentDay, rr.between, v); creRin.value=v; };
+    holdRepeat(document.getElementById("creBMinus"), ()=> setMicro((+creBin.value||0)-1));
+    holdRepeat(document.getElementById("creBPlus"),  ()=> setMicro((+creBin.value||0)+1));
+    holdRepeat(document.getElementById("creRMinus"), ()=> setMacro((+creRin.value||0)-1));
+    holdRepeat(document.getElementById("creRPlus"),  ()=> setMacro((+creRin.value||0)+1));
+    creBin.onchange = ()=> setMicro(+creBin.value);
+    creRin.onchange = ()=> setMacro(+creRin.value);
+    document.getElementById("creRepMode").onclick = ()=>{
+      dayModes["__repMode_"+currentDay] = !dayModes["__repMode_"+currentDay];
       save(); renderList();
     };
-    document.getElementById("circMinus").onclick = ()=> applyRounds(rounds-1);
-    document.getElementById("circPlus").onclick = ()=> applyRounds(rounds+1);
-
-    // Wire rest editor
-    const _wireRest = ()=>{
-      const rr = getCircuitRests(currentDay);
-      document.getElementById("creBMinus").onclick = ()=>{ setCircuitRests(currentDay, Math.max(5, rr.between-5), rr.round); renderList(); };
-      document.getElementById("creBPlus").onclick  = ()=>{ setCircuitRests(currentDay, rr.between+5, rr.round); renderList(); };
-      document.getElementById("creRMinus").onclick = ()=>{ setCircuitRests(currentDay, rr.between, Math.max(15, rr.round-15)); renderList(); };
-      document.getElementById("creRPlus").onclick  = ()=>{ setCircuitRests(currentDay, rr.between, rr.round+15); renderList(); };
-      document.getElementById("creRepMode").onclick = ()=>{
-        dayModes["__repMode_"+currentDay] = !dayModes["__repMode_"+currentDay];
-        save(); renderList();
-      };
-    };
-    _wireRest();
 
     updateDayProgress();
     return;
@@ -3274,7 +3333,7 @@ function mixOptions(currentLabel){
     items.push({value: base, display});
   });
   items.sort((a,b)=> a.display.localeCompare(b.display));
-  let html = `<option value="">${lang==="en"?"— pick exercise —":"— elegí ejercicio —"}</option>`;
+  let html = `<option value="">${lang==="en"?"— pick —":"— elegí —"}</option>`;
   let matched = false;
   items.forEach(it=>{
     const sel = (it.value===currentLabel) ? " selected" : "";
@@ -3291,12 +3350,31 @@ function mixFindByLabel(lbl){
   return mixAllExercises().find(e=> mixLabel(e)===lbl) || null;
 }
 
+/* Press-and-hold para botones de stepper: un paso al tocar y, si se mantiene apretado,
+   repite de forma semicontinua acelerando. stepFn() ejecuta un único incremento. */
+function holdRepeat(btn, stepFn, onRelease){
+  let timer=null, delay=300, active=false;
+  const end=()=>{ if(!active) return; active=false; if(timer){ clearTimeout(timer); timer=null; } delay=300; if(onRelease) onRelease(); };
+  const tick=()=>{ stepFn(); delay=Math.max(40, Math.round(delay*0.80)); timer=setTimeout(tick, delay); };
+  btn.addEventListener('pointerdown', e=>{
+    if(e.pointerType==='mouse' && e.button!==0) return;
+    e.preventDefault();
+    active=true; delay=300;
+    stepFn();                       // primer paso inmediato
+    timer=setTimeout(tick, 360);    // breve pausa, luego auto-repite acelerando
+    try{ btn.setPointerCapture(e.pointerId); }catch(_){}
+  });
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=> btn.addEventListener(ev, end));
+  btn.addEventListener('blur', end);  // por las dudas, si el botón pierde foco/se va del DOM
+}
 function makeCircuitCard(ex, idx){
   const Lc = (es,en)=> lang==="en" ? en : es;
   const card = document.createElement("div");
   card.className = "card circuit-card" + (ex.done?" done":"");
   const primaryName = lang==="en" ? (ex.en||ex.es) : (ex.es||ex.en);
   const secondaryName = lang==="en" ? (ex.es||"") : (ex.en||"");
+  const _repMode = !!dayModes['__repMode_'+currentDay];
+  const _timeMode = !_repMode && modeForCategory(ex.cat||ex.muscle||'')==='circuit';
   card.innerHTML = `
     <div class="card-head">
       <div class="check" title="${Lc('Completar','Complete')}"></div>
@@ -3316,13 +3394,23 @@ function makeCircuitCard(ex, idx){
       <button class="del" title="${Lc('Eliminar','Delete')}">🗑</button>
     </div>
     <div class="cc-fields">
+      ${_timeMode ? `
       <div class="cc-field">
-        <label>${(!!dayModes['__repMode_'+currentDay] || modeForCategory(ex.cat||'')!=='circuit') ? Lc('Reps','Reps') : Lc('Tiempo (s)','Time (s)')}</label>
-        <div class="cc-step"><button class="stepper cc-m" data-f="reps">−</button><span class="cc-v" data-v="reps">${ex.reps}</span><button class="stepper cc-p" data-f="reps">＋</button></div>
+        <label>${Lc('Reps/set','Reps/set')}</label>
+        <div class="cc-step"><button class="stepper cc-m" data-f="intReps">−</button><input class="cc-v" data-v="intReps" type="number" inputmode="numeric" lang="${lang}" value="${+ex.intReps||1}"><button class="stepper cc-p" data-f="intReps">＋</button></div>
+      </div>` : ''}
+      <div class="cc-field">
+        <label>${_timeMode ? Lc('Trabajo (s)','Work (s)') : Lc('Reps','Reps')}</label>
+        <div class="cc-step"><button class="stepper cc-m" data-f="reps">−</button><input class="cc-v" data-v="reps" type="number" inputmode="numeric" lang="${lang}" value="${ex.reps}"><button class="stepper cc-p" data-f="reps">＋</button></div>
       </div>
+      ${_timeMode ? `
       <div class="cc-field">
-        <label>${Lc('Descanso (s)','Rest (s)')}</label>
-        <div class="cc-step"><button class="stepper cc-m" data-f="rest">−</button><span class="cc-v" data-v="rest">${ex.rest}</span><button class="stepper cc-p" data-f="rest">＋</button></div>
+        <label>${Lc('Micropausa (s)','Micro-rest (s)')}</label>
+        <div class="cc-step"><button class="stepper cc-m" data-f="microRest">−</button><input class="cc-v" data-v="microRest" type="number" inputmode="numeric" lang="${lang}" value="${+ex.microRest||0}"><button class="stepper cc-p" data-f="microRest">＋</button></div>
+      </div>` : ''}
+      <div class="cc-field">
+        <label>${_timeMode ? Lc('Entre ej. (s)','Between ex. (s)') : Lc('Descanso (s)','Rest (s)')}</label>
+        <div class="cc-step"><button class="stepper cc-m" data-f="rest">−</button><input class="cc-v" data-v="rest" type="number" inputmode="numeric" lang="${lang}" value="${ex.rest}"><button class="stepper cc-p" data-f="rest">＋</button></div>
       </div>
     </div>
     <div class="cc-mix" id="ccmix-${idx}"></div>
@@ -3395,16 +3483,23 @@ function makeCircuitCard(ex, idx){
   card.querySelector(".move-up").onclick = ()=>{ if(idx>0){ pushUndo(); [data[currentDay][idx-1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx-1]]; save(); renderList(); } };
   card.querySelector(".move-down").onclick = ()=>{ if(idx<data[currentDay].length-1){ pushUndo(); [data[currentDay][idx+1],data[currentDay][idx]]=[data[currentDay][idx],data[currentDay][idx+1]]; save(); renderList(); } };
   attachExDrag(card, idx);
-  // steppers de tiempo/descanso
+  // steppers de tiempo/descanso: editables (tipear) + mantener apretado = repetir acelerando.
+  const _ccMin = f => (f==="intReps" ? 1 : 0);
+  const _ccStep = f => (f==="reps" ? 5 : 1);     // trabajo (s) de a 5; rest/micropausa/reps-set de a 1
   card.querySelectorAll(".cc-m, .cc-p").forEach(btn=>{
-    btn.onclick = ()=>{
-      const f = btn.dataset.f;
-      const step = f==="rest" ? 5 : 5;
-      const delta = btn.classList.contains("cc-p") ? step : -step;
-      ex[f] = Math.max(0, (+ex[f]||0) + delta);
+    const f = btn.dataset.f;
+    const valEl = card.querySelector(`[data-v="${f}"]`);
+    holdRepeat(btn, ()=>{
+      const delta = btn.classList.contains("cc-p") ? _ccStep(f) : -_ccStep(f);
+      ex[f] = Math.max(_ccMin(f), (+ex[f]||0) + delta);
+      valEl.value = ex[f];
       save();
-      card.querySelector(`[data-v="${f}"]`).textContent = ex[f];
-    };
+    });
+  });
+  // tipear directamente el valor
+  card.querySelectorAll(".cc-v").forEach(inp=>{
+    const f = inp.dataset.v;
+    inp.onchange = ()=>{ ex[f] = Math.max(_ccMin(f), Math.round(+inp.value||0)); inp.value = ex[f]; save(); };
   });
   return card;
 }
@@ -3500,11 +3595,15 @@ function updateTrainPie(){
 
 function modeForCategory(cat){
   const c = (cat||"").toLowerCase();
-  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down)/.test(c)) return "circuit";
+  if(/(intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down|carrera|running|correr|trote|jog|sprint|fartlek|tempo|zancada|stride|progresiv|progression|aceleraci|surge|cuesta|hill|vo2)/.test(c)) return "circuit";
   return "straight";
 }
 
 function updateModeSwitch(){
+  const sw = document.getElementById("modeSwitch");
+  const allow = dayAllowsCircuit(currentDay);
+  // En días de fuerza/hipertrofia ocultamos el toggle completo (solo aplica "Series")
+  if(sw) sw.style.display = allow ? "" : "none";
   const mode = getDayMode(currentDay);
   const s = document.getElementById("modeStraight");
   const c = document.getElementById("modeCircuit");
@@ -3615,7 +3714,7 @@ function makeCard(ex, idx){
   grid.appendChild(numField(setsLabel, ex.sets, 1, v=>{ ex.sets=v; syncSetsDone(ex); save(); renderList(); }));
   grid.appendChild(numField(repsLabel, ex.reps, 1, v=>{ ex.reps=v; syncSetsDone(ex,{r:v}); save(); renderList(); }));
   grid.appendChild(numField(weightLabel, ex.weight, 1, v=>{ ex.weight=v; syncSetsDone(ex,{w:v}); save(); renderList(); }, true));
-  grid.appendChild(numField(restLabel, ex.rest, 5, v=>{ ex.rest=v; save(); }));
+  grid.appendChild(numField(restLabel, ex.rest, 1, v=>{ ex.rest=v; save(); }));
   body.appendChild(grid);
 
   // Tracker de series con peso/reps por serie
@@ -3783,8 +3882,10 @@ function numField(label, value, step, onChange, allowDecimal){
   const [minus, plus] = f.querySelectorAll(".stepper");
   const commit = ()=> onChange(+input.value || 0);
   input.onchange = commit;
-  minus.onclick = ()=>{ input.value = Math.max(0, (+input.value||0) - step); commit(); };
-  plus.onclick  = ()=>{ input.value = (+input.value||0) + step; commit(); };
+  // mantener apretado = repetir acelerando; el commit (que puede re-renderizar) se difiere a soltar
+  const bump = dir=>{ input.value = Math.max(0, (+input.value||0) + dir*step); };
+  holdRepeat(minus, ()=> bump(-1), commit);
+  holdRepeat(plus,  ()=> bump(+1), commit);
   return f;
 }
 
@@ -4957,10 +5058,11 @@ function renderLibBody(){
     if(/movilidad|mobility/.test(c))         return {sets:3,reps:30,weight:0,rest:15};
     if(/calentamiento|warm.?up/.test(c))     return {sets:2,reps:30,weight:0,rest:15};
     if(/elongaci|stretching|cool.?down/.test(c)) return {sets:2,reps:30,weight:0,rest:10};
+    if(/carrera|running|correr|trote|jog|sprint|fartlek|tempo|zancada|stride|progresiv|progression|aceleraci|surge|cuesta|hill|vo2/.test(c)) return {sets:4,reps:30,weight:0,rest:60,intReps:1,microRest:0};
     return {sets:3,reps:10,weight:0,rest:60};
   }
   function _isTimedCat(cat){
-    return /intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down/.test((cat||'').toLowerCase());
+    return /intervalos|intervals|hiit|cardio|resistencia|endurance|bicicleta|bike|movilidad|mobility|calentamiento|warm.?up|elongaci|stretching|cool.?down|carrera|running|correr|trote|jog|sprint|fartlek|tempo|zancada|stride|progresiv|progression|aceleraci|surge|cuesta|hill|vo2/.test((cat||'').toLowerCase());
   }
   const q = libSearch.value.trim().toLowerCase();
   libBody.innerHTML = "";
@@ -5033,7 +5135,7 @@ function renderLibBody(){
         const _d=_libDefaults(ex.cat||libCategory);
         if(_isTimedCat(ex.cat||libCategory) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
         data[currentDay].push({es:ex.es,en:ex.en||ex.es,cat:ex.cat||libCategory,muscle:ex.muscle||'',
-          sets:_d.sets,reps:_d.reps,weight:_d.weight,rest:_d.rest,setsDone:[],done:false});
+          sets:_d.sets,reps:_d.reps,weight:_d.weight,rest:_d.rest,intReps:_d.intReps||1,microRest:_d.microRest||0,setsDone:[],done:false});
         save(); renderList();
         const btn=row.querySelector('.add-btn'); btn.textContent='✓'; btn.style.background='var(--accent)';
         setTimeout(()=>{ btn.textContent='＋'; btn.style.background=''; },700);
@@ -5119,7 +5221,8 @@ row.innerHTML = `
       if(_isTimedCat(ex.cat) && !(data[currentDay]||[]).length){ setDayMode(currentDay,'circuit'); }
       data[currentDay].push({
         es:ex.es, en:ex.en, cat:ex.cat, muscle:ex.muscle,
-        sets:_d.sets, reps:_d.reps, weight:_d.weight, rest:_d.rest, setsDone:[], done:false,
+        sets:_d.sets, reps:_d.reps, weight:_d.weight, rest:_d.rest,
+        intReps:_d.intReps||1, microRest:_d.microRest||0, setsDone:[], done:false,
         customRest:false, restNote:""
       });
       save(); try{ renderList(); } catch(e){ console.error("renderList error:",e); toast("Error al renderizar: "+e.message); }
@@ -5143,6 +5246,7 @@ function startTimer(seconds){
   cancelPendingBeeps();
   if(!seconds || seconds<=0) return; // sin descanso configurado: no mostrar timer
   if(typeof startBgAudio === "function") startBgAudio();
+  try{ if(typeof updateMediaSummary==="function") updateMediaSummary({title:LL("😮‍💨 Descanso","😮‍💨 Rest"), artist:(typeof dayLabel==="function"?dayLabel(currentDay):currentDay)}); }catch(e){}
   _endVoiceSched = false;
   timeLeft = seconds;
   timerEl.classList.add("show");
@@ -5963,8 +6067,10 @@ document.getElementById("trainBtn").onclick = ()=>{
   renderTrain();
   trainOverlay.classList.add("show");
   startTrainPhrases();
+  // Gadget de resumen en pantalla bloqueada: arrancar la sesión de medios y mostrar qué se entrena
+  try{ if(typeof startBgAudio==="function") startBgAudio(); if(typeof updateMediaSummary==="function") updateMediaSummary(); }catch(e){}
 };
-document.getElementById("trainExit").onclick = ()=>{ stopTrainPhrases(); trainOverlay.classList.remove("show"); renderList(); };
+document.getElementById("trainExit").onclick = ()=>{ stopTrainPhrases(); trainOverlay.classList.remove("show"); try{ if(typeof stopBgAudio==="function" && (typeof timerInt==="undefined"||!timerInt)) stopBgAudio(); if("mediaSession" in navigator) navigator.mediaSession.playbackState="paused"; }catch(e){} renderList(); };
 document.getElementById("trainPrev").onclick = ()=>{
   if(trainModeNow==="circuit"){ if(circRound>0){ circRound--; circExInRound=0; renderTrain(); } }
   else { if(trainIdx>0){ trainIdx--; renderTrain(); } }
@@ -5975,8 +6081,9 @@ document.getElementById("trainNext").onclick = ()=>{
 };
 
 function renderTrain(){
-  if(trainModeNow==="circuit") return renderTrainCircuit();
-  return renderTrainStraight();
+  if(trainModeNow==="circuit") renderTrainCircuit();
+  else renderTrainStraight();
+  try{ if(typeof updateMediaSummary==="function") updateMediaSummary(); }catch(e){}
 }
 
 /* ---- Modo SERIES SEGUIDAS (straight sets): un ejercicio, todas sus series ---- */
@@ -6069,7 +6176,7 @@ function renderTrainCircuit(){
     ex.setsDone[circRound] = log;
     rowsHtml += `
       <div class="train-set ${log.done?'done':''}" data-ei="${ei}">
-        <span class="tn" style="width:auto;flex:1;text-align:left">${esc(LL(ex.es,ex.en||ex.es))}<br><span style="opacity:.7;font-size:.8rem">${ex.reps} reps · ${ex.weight||0} kg</span></span>
+        <span class="tn" style="width:auto;flex:1;text-align:left">${esc(LL(ex.es,ex.en||ex.es))}<br><span style="opacity:.7;font-size:.8rem">${(+ex.intReps>1?(ex.intReps+'×'):'')}${ex.reps}s${ex.weight>0?(' · '+ex.weight+' kg'):''}</span></span>
         <input type="number" lang="${lang}" class="tw" value="${log.w}" placeholder="kg" style="max-width:70px">
         <input type="number" lang="${lang}" class="tr" value="${log.r}" placeholder="reps" style="max-width:70px">
         <button class="tok"></button>
@@ -6213,7 +6320,7 @@ function renderTrainCircuitRep(){
    ============================================================ */
 const TPL_DIFFS = ["1 · Principiante","2 · Básico","3 · Intermedio","4 · Avanzado","5 · Élite"];
 // helper para crear ejercicio
-function E(es,en,muscle,sets,reps,weight,rest){ return {es,en,muscle,sets,reps,weight,rest,setsDone:[],done:false,customRest:false,notes:""}; }
+function E(es,en,muscle,sets,reps,weight,rest,intReps,microRest){ return {es,en,muscle,sets,reps,weight,rest,intReps:intReps||1,microRest:microRest||0,setsDone:[],done:false,customRest:false,notes:""}; }
 
 const TEMPLATES = {
   "Fuerza · Strength": [
@@ -6573,14 +6680,14 @@ const TEMPLATES = {
     {
       "Caminata-trote (60×60) × 8":[E("Trote suave","Easy jog","Carrera",8,60,0,60)],
       "Fartlek suave (30×90) × 6":[E("Aceleración suave","Easy surge","Carrera",6,30,0,90)],
-      "Zancadas técnicas (20×60) × 6":[E("Zancadas de carrera","Running strides","Carrera",6,20,0,60)],
+      "Zancadas 20s · 3 reps × 2 sets":[E("Zancadas de carrera","Running strides","Carrera",2,20,0,0,3,60)],
       "(45×75) × 6 · ritmo cómodo":[E("Carrera ritmo cómodo","Comfortable pace run","Carrera",6,45,0,75)],
       "Técnica (30×30) × 6 · rodillas + talones":[E("Rodillas altas","High knees","Cardio",6,30,0,30),E("Talones al glúteo","Butt kicks","Cardio",6,30,0,30)],
       "Trote continuo 15 min":[E("Trote continuo","Steady jog","Carrera",1,15,0,0)],
       "Trote continuo 20 min":[E("Trote continuo","Steady jog","Carrera",1,20,0,0)],
       "Pirámide (100-200-100) × 2":[E("Repetición 100","100m rep","Carrera",2,20,0,60),E("Repetición 200","200m rep","Carrera",2,45,0,90),E("Repetición 100","100m rep","Carrera",2,20,0,60)],
       "Cuesta suave (15×75) × 6":[E("Sprint en subida","Hill sprint","Carrera",6,15,0,75)],
-      "Progresivos (30×60) × 8":[E("Progresivo","Progression stride","Carrera",8,30,0,60)]
+      "Progresivos 30s · 4 reps × 2 sets":[E("Progresivo","Progression stride","Carrera",2,30,0,0,4,60)]
     },
     {
       "200m (40×80) × 6":[E("Sprint 200m","Sprint 200m","Carrera",6,40,0,80)],
@@ -6589,8 +6696,8 @@ const TEMPLATES = {
       "Cuestas (20×90) × 6":[E("Sprint en subida","Hill sprint","Carrera",6,20,0,90)],
       "Tempo (300×120) × 2":[E("Carrera tempo","Tempo run","Carrera",2,300,0,120)],
       "Ritmo 10k (300×90) × 3":[E("Carrera ritmo 10k","10k pace run","Carrera",3,300,0,90)],
-      "Progresivos (30×60) × 8":[E("Progresivo","Progression stride","Carrera",8,30,0,60)],
-      "Sprints (15×45) × 10":[E("Sprint","Sprint","Carrera",10,15,0,45)],
+      "Progresivos 30s · 4 reps × 2 sets":[E("Progresivo","Progression stride","Carrera",2,30,0,0,4,60)],
+      "Sprints 15s · 5 reps × 2 sets":[E("Sprint","Sprint","Carrera",2,15,0,0,5,45)],
       "Trote continuo 25 min":[E("Trote continuo","Steady jog","Carrera",1,25,0,0)],
       "Pirámide (100-200-400-200-100) × 2":[E("Repetición 100","100m rep","Carrera",2,20,0,60),E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 100","100m rep","Carrera",2,20,0,60)]
     },
@@ -6602,7 +6709,7 @@ const TEMPLATES = {
       "Tempo (600×120) × 2":[E("Carrera tempo","Tempo run","Carrera",2,600,0,120)],
       "Fartlek (60×60) × 10":[E("Aceleración","Surge","Carrera",10,60,0,60)],
       "Ritmo 5k (240×90) × 3":[E("Carrera ritmo 5k","5k pace run","Carrera",3,240,0,90)],
-      "Sprints (15×45) × 12":[E("Sprint","Sprint","Carrera",12,15,0,45)],
+      "Sprints 15s · 6 reps × 2 sets":[E("Sprint","Sprint","Carrera",2,15,0,0,6,45)],
       "Trote continuo 40 min":[E("Trote continuo","Steady jog","Carrera",1,40,0,0)],
       "Pirámide (200-400-600-400-200) × 2":[E("Repetición 200","200m rep","Carrera",2,40,0,90),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 600","600m rep","Carrera",2,135,0,150),E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 200","200m rep","Carrera",2,40,0,90)]
     },
@@ -6614,7 +6721,7 @@ const TEMPLATES = {
       "Tempo (900×180) × 2":[E("Carrera tempo","Tempo run","Carrera",2,900,0,180)],
       "VO2 (120×90) × 5":[E("Intervalo VO2 máx","VO2 max interval","Carrera",5,120,0,90)],
       "Fartlek (90×60) × 8":[E("Aceleración fuerte","Hard surge","Carrera",8,90,0,60)],
-      "Sprints máximos (12×60) × 12":[E("Sprint máximo","All-out sprint","Carrera",12,12,0,60)],
+      "Sprints máximos 12s · 4 reps × 3 sets":[E("Sprint máximo","All-out sprint","Carrera",3,12,0,0,4,60)],
       "Continuo 50 min · ritmo medio":[E("Carrera ritmo medio","Moderate pace run","Carrera",1,50,0,0)],
       "Pirámide (400-800-1200-800-400) × 2":[E("Repetición 400","400m rep","Carrera",2,85,0,120),E("Repetición 800","800m rep","Carrera",2,180,0,150),E("Repetición 1200","1200m rep","Carrera",2,280,0,180),E("Repetición 800","800m rep","Carrera",2,180,0,150),E("Repetición 400","400m rep","Carrera",2,85,0,120)]
     },
@@ -6626,9 +6733,46 @@ const TEMPLATES = {
       "Tempo (1200×180) × 2":[E("Carrera tempo","Tempo run","Carrera",2,1200,0,180)],
       "VO2 (180×90) × 5":[E("Intervalo VO2 máx","VO2 max interval","Carrera",5,180,0,90)],
       "Fartlek (120×60) × 8":[E("Aceleración fuerte","Hard surge","Carrera",8,120,0,60)],
-      "Sprints máximos (10×50) × 15":[E("Sprint máximo","All-out sprint","Carrera",15,10,0,50)],
+      "Sprints máximos 10s · 5 reps × 3 sets":[E("Sprint máximo","All-out sprint","Carrera",3,10,0,0,5,50)],
       "Continuo 60 min · tempo":[E("Carrera tempo","Tempo run","Carrera",1,60,0,0)],
       "Pirámide (400-800-1600-800-400) × 2":[E("Repetición 400","400m rep","Carrera",2,80,0,90),E("Repetición 800","800m rep","Carrera",2,170,0,120),E("Repetición 1600","1600m rep","Carrera",2,360,0,180),E("Repetición 800","800m rep","Carrera",2,170,0,120),E("Repetición 400","400m rep","Carrera",2,80,0,90)]
+    }
+  ],
+  "Carrera · Running": [
+    {
+      "Trote continuo 15 min":[E("Trote continuo","Steady jog","Carrera",1,15,0,0)],
+      "Caminar-trotar (60×60) × 8":[E("Trote suave","Easy jog","Carrera",8,60,0,60)],
+      "Zancadas 20s · 3 reps × 2 sets":[E("Zancadas de carrera","Running strides","Carrera",2,20,0,0,3,60)],
+      "Progresivos 30s · 4 reps × 2 sets":[E("Progresivo","Progression stride","Carrera",2,30,0,0,4,60)],
+      "Técnica · rodillas + talones (30×30) × 6":[E("Rodillas altas","High knees","Carrera (técnica)",6,30,0,30),E("Talones al glúteo","Butt kicks","Carrera (técnica)",6,30,0,30)]
+    },
+    {
+      "Carrera continua 25 min":[E("Carrera continua","Steady run","Carrera",1,25,0,0)],
+      "Fartlek (60×90) × 6":[E("Aceleración","Surge","Carrera",6,60,0,90)],
+      "Sprints 15s · 5 reps × 2 sets":[E("Sprint","Sprint","Carrera",2,15,0,0,5,45)],
+      "Aceleraciones 20s · 4 reps × 2 sets":[E("Aceleraciones","Accelerations (build-ups)","Carrera",2,20,0,0,4,60)],
+      "100m · 4 reps × 2 sets":[E("Sprint 100m","Sprint 100m","Carrera (potencia)",2,20,0,0,4,70)]
+    },
+    {
+      "Carrera continua 35 min":[E("Carrera continua","Steady run","Carrera",1,35,0,0)],
+      "Tempo (300×120) × 3":[E("Carrera tempo","Tempo run","Carrera",3,300,0,120)],
+      "Cuestas 20s · 5 reps × 2 sets":[E("Sprint en cuesta","Hill sprint","Carrera (potencia)",2,20,0,0,5,90)],
+      "200m · 4 reps × 2 sets":[E("Sprint 200m","Sprint 200m","Carrera",2,40,0,0,4,80)],
+      "Sprints 15s · 6 reps × 2 sets":[E("Sprint","Sprint","Carrera",2,15,0,0,6,45)]
+    },
+    {
+      "Carrera continua 45 min":[E("Carrera continua","Steady run","Carrera",1,45,0,0)],
+      "VO2 máx (120×90) × 5":[E("Intervalo VO2 máx","VO2 max interval","Carrera",5,120,0,90)],
+      "Tempo (600×120) × 2":[E("Carrera tempo","Tempo run","Carrera",2,600,0,120)],
+      "Sprints máximos 12s · 4 reps × 3 sets":[E("Sprint máximo","All-out sprint","Carrera (potencia)",3,12,0,0,4,60)],
+      "400m · 3 reps × 2 sets":[E("Sprint 400m","Sprint 400m","Carrera",2,90,0,0,3,120)]
+    },
+    {
+      "Carrera larga 60 min":[E("Carrera larga","Long run","Carrera",1,60,0,0)],
+      "Tempo (600×120) × 3":[E("Carrera tempo","Tempo run","Carrera",3,600,0,120)],
+      "VO2 máx (120×90) × 6":[E("Intervalo VO2 máx","VO2 max interval","Carrera",6,120,0,90)],
+      "Sprints máximos 10s · 5 reps × 3 sets":[E("Sprint máximo","All-out sprint","Carrera (potencia)",3,10,0,0,5,50)],
+      "800m · 3 reps × 2 sets":[E("Repetición 800m","800m rep","Carrera",2,180,0,0,3,150)]
     }
   ],
   "HIIT · HIIT": [
@@ -7761,7 +7905,7 @@ document.getElementById("intervalBtn").onclick = ()=>{
   // Cargar los ejercicios del día actual (si tiene), sea cual sea el modo
   const list = data[currentDay] || [];
   if(list.length){
-    ivExercises = list.map(e=>({es:e.es, en:e.en, reps:+e.reps||0, rest:+e.rest||0, sets:+e.sets||1, mix:e.mix||null}));
+    ivExercises = list.map(e=>({es:e.es, en:e.en, reps:+e.reps||0, rest:+e.rest||0, sets:+e.sets||1, intReps:Math.max(1,+e.intReps||1), microRest:+e.microRest||0, mix:e.mix||null}));
     const maxSets = Math.max(1, ...list.map(e=>+e.sets||1));
     document.getElementById("ivRounds").value = list.length;
     document.getElementById("ivSets").value = maxSets;
@@ -7832,10 +7976,12 @@ function updateIvTotal(){
   const c = ivConfig();
   const el = document.getElementById("ivTotal");
   if(ivExercises.length){
-    // total con tiempos por ejercicio
-    let work = ivExercises.reduce((a,e)=>a+(e.reps||0),0);
+    // total con tiempos por ejercicio (cada uno con sus reps/set y micropausa)
+    const _ir = e=>Math.max(1,+e.intReps||1);
+    let work = ivExercises.reduce((a,e)=>a+(e.reps||0)*_ir(e),0);
+    let micro = ivExercises.reduce((a,e)=>a+(e.microRest||0)*(_ir(e)-1),0);
     let rest = ivExercises.slice(0,-1).reduce((a,e)=>a+(e.rest||0),0);
-    let perSet = work + rest;
+    let perSet = work + micro + rest;
     let total = c.prep + perSet*c.sets + c.setRest*(c.sets-1);
     const m = Math.floor(total/60), s = total%60;
     // notación expandida con nombres reales
@@ -7871,7 +8017,14 @@ function buildIvPhases(c){
       }
       const workSecs = exs.length ? (+exs[r-1].reps||c.work) : c.work;
       const restSecs = exs.length ? (+exs[r-1].rest||c.rest) : c.rest;
-      if(workSecs>0) phases.push({type:"work", label:LL("💪 Trabajo","💪 Work"), secs:workSecs, idx:r, set:set, ex:exName, mix:mixSeq});
+      // reps por set: cada esfuerzo separado por micropausa (sin tocar el descanso entre ejercicios / macropausa)
+      const intReps  = exObj ? Math.max(1, +exObj.intReps||1) : 1;
+      const microRest= exObj ? Math.max(0, +exObj.microRest||0) : 0;
+      for(let k=1; k<=intReps; k++){
+        if(workSecs>0) phases.push({type:"work", label:LL("💪 Trabajo","💪 Work"), secs:workSecs, idx:r, set:set, ex:exName, mix:mixSeq, rep:k, repsTotal:intReps});
+        // micropausa entre reps del mismo ejercicio (no después de la última)
+        if(microRest>0 && k<intReps) phases.push({type:"rest", label:LL("😮‍💨 Micropausa","😮‍💨 Micro-rest"), secs:microRest, idx:r, set:set, micro:true});
+      }
       // descanso entre ejercicios (micro-pausa), salvo el último de la serie
       if(restSecs>0 && r<perSet) phases.push({type:"rest", label:LL("😮‍💨 Descanso","😮‍💨 Rest"), secs:restSecs, idx:r, set:set});
     }
@@ -7936,7 +8089,8 @@ function startIvPhase(){
   const perSet = ivExercises.length ? ivExercises.length : ivConf.rounds;
   if(ph.set){
     info = `${LL("Serie","Set")} ${ph.set} / ${ivConf.sets}`;
-    if(ph.idx) info += ` · ${LL("Ej.","Ex.")} ${ph.idx} / ${perSet}`;
+    if(ph.idx && perSet>1) info += ` · ${LL("Ej.","Ex.")} ${ph.idx} / ${perSet}`;
+    if(ph.repsTotal>1 && ph.rep) info += ` · ${LL("Rep","Rep")} ${ph.rep} / ${ph.repsTotal}`;
   } else if(ph.type==="setrest"){
     info = `${LL("Fin de la serie","End of set")} ${ph.set}`;
   } else {
@@ -7952,6 +8106,7 @@ function startIvPhase(){
   } else nextTxt = LL("Última fase","Last phase");
   document.getElementById("ivNext").textContent = nextTxt;
   renderIvClock();
+  try{ if(typeof updateMediaSummary==="function") updateMediaSummary(); }catch(e){}
   ivInt = setInterval(ivTick, 1000);
 }
 function ivTick(){
@@ -8507,13 +8662,65 @@ function _ensureBgEl(){
   document.body.appendChild(_bgEl);
   return _bgEl;
 }
+/* Gadget de resumen en la pantalla bloqueada (vía MediaSession "now playing").
+   Se ve aunque las notificaciones estén desactivadas, porque es un control de medios,
+   no una notificación. Refleja qué se está entrenando: ejercicio / fase / serie / rep. */
+function _mediaArtwork(){
+  return [
+    { src:"icon-192.png", sizes:"192x192", type:"image/png" },
+    { src:"icon-512.png", sizes:"512x512", type:"image/png" }
+  ];
+}
+function updateMediaSummary(opts){
+  if(!("mediaSession" in navigator)) return;
+  opts = opts || {};
+  let title = opts.title, artist = opts.artist;
+  try{
+    if(!title){
+      const day = (typeof currentDay!=="undefined" && currentDay) ? currentDay : "BURN";
+      const list = (typeof data!=="undefined" && data[day]) ? data[day] : [];
+      const _ivOn = (typeof ivRun!=="undefined" && ivRun && ivRun.classList.contains("show") && typeof ivPhases!=="undefined" && ivPhases[ivIdx]);
+      const _trainOn = (typeof trainOverlay!=="undefined" && trainOverlay && trainOverlay.classList.contains("show"));
+      if(_ivOn){
+        const ph = ivPhases[ivIdx];
+        const phaseLabel = (ph.label||"").replace(/^[^A-Za-zÁ-úÀ-ÿ]+/,"").trim();
+        title = ph.ex ? ph.ex : phaseLabel;
+        let parts = [];
+        if(ph.ex && phaseLabel) parts.push(phaseLabel);
+        if(ph.set && typeof ivConf!=="undefined" && ivConf) parts.push(`${LL("Serie","Set")} ${ph.set}/${ivConf.sets}`);
+        if(ph.repsTotal>1 && ph.rep) parts.push(`Rep ${ph.rep}/${ph.repsTotal}`);
+        artist = parts.join(" · ") || day;
+      } else if(_trainOn){
+        if(typeof trainModeNow!=="undefined" && trainModeNow==="circuit"){
+          title = `↻ ${dayLabel ? dayLabel(day) : day}`;
+          artist = `${LL("Serie","Set")} ${(typeof circRound!=="undefined"?circRound:0)+1}/${typeof circRounds!=="undefined"?circRounds:1}`;
+        } else {
+          const ex = list[(typeof trainIdx!=="undefined"?trainIdx:0)];
+          title = ex ? (lang==="en" ? (ex.en||ex.es) : (ex.es||ex.en)) : (dayLabel?dayLabel(day):day);
+          artist = `${(typeof trainIdx!=="undefined"?trainIdx:0)+1}/${list.length} · ${dayLabel?dayLabel(day):day}`;
+        }
+      } else {
+        title = dayLabel ? dayLabel(day) : day;
+        const muscles = [...new Set(list.map(e=> lang==="en"?((typeof MUSCLE_EN!=="undefined"&&MUSCLE_EN[e.muscle])||e.muscle||""):(e.muscle||"")).filter(Boolean))].slice(0,3).join(" · ");
+        artist = (list.length ? `${list.length} ${LL("ejercicios","exercises")}` : "BURN") + (muscles ? ` · ${muscles}` : "");
+      }
+    }
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title || "BURN",
+      artist: artist || "BURN — Training Hub",
+      album: "BURN — Be Unstoppable, Rise Now",
+      artwork: _mediaArtwork()
+    });
+    try{ navigator.mediaSession.playbackState = "playing"; }catch(e){}
+  }catch(e){}
+}
 function startBgAudio(){
   if(!_bgAudioOn) return;
   const el = _ensureBgEl();
   el.play().catch(()=>{});
   if("mediaSession" in navigator){
     try{
-      navigator.mediaSession.metadata = new MediaMetadata({ title:"BURN — temporizador", artist:"Training Hub" });
+      updateMediaSummary();
       navigator.mediaSession.setActionHandler("play", ()=>{ el.play().catch(()=>{}); });
       navigator.mediaSession.setActionHandler("pause", ()=>{});
     }catch(e){}
