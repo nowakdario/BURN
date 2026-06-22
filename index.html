@@ -626,8 +626,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     overflow:hidden;
     position:relative;
     transition:box-shadow .2s, transform .2s;
-    animation:cardIn .3s ease both;
   }
+  /* la entrada animada solo cuando se cambia de día (evita el parpadeo al editar campos) */
+  .animate-cards .card{animation:cardIn .3s ease both}
   @keyframes cardIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   .card:hover{box-shadow:var(--shadow)}
   .card.done{opacity:.75}
@@ -3350,6 +3351,11 @@ function deleteDayNamed(day){
 /* ---------- Render lista de ejercicios ---------- */
 const listEl = document.getElementById("list");
 function renderList(){
+  // Animar la entrada de las tarjetas SOLO al cambiar de día (no en cada edición de campo,
+  // que reconstruye la lista y produciría un parpadeo/"apagón").
+  const _dayChanged = (renderList._lastDay !== currentDay);
+  renderList._lastDay = currentDay;
+  listEl.classList.toggle("animate-cards", _dayChanged);
   listEl.innerHTML = "";
   // ── Paste bar (visible when clipboard has content) ──
   if(_clip){
@@ -5524,6 +5530,7 @@ async function preloadVoice(){
 /* Returns true if played → caller should skip beep; false if voice off */
 function playVoice(key, offset=0.04){
   if(!_voiceOn) return false;
+  if(_ttsVoice) return _ttsSay(key);
   const buf = _voiceBufs[key];
   if(!buf){ _decodeClip(key); return false; }
   const ctx = _getAudioCtx();
@@ -5542,6 +5549,50 @@ function updateVoiceBtn(){
   const btn = document.getElementById("voiceToggleBtn");
   if(btn) btn.textContent = _voiceOn ? "🔊" : "🔇";
 }
+/* ===== Voces del sistema (Web Speech TTS) — el usuario elige EN/ES, fem/masc =====
+   Si hay una voz del sistema elegida, los countdowns/cues/arengas se hablan con esa voz;
+   si no, se usan los clips embebidos (default). */
+const _ttsSupported = (typeof window!=='undefined') && ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+let _ttsVoice = null;          // SpeechSynthesisVoice elegida, o null = clips default
+let _ttsTimeouts = [];
+function _availableVoices(){
+  if(!_ttsSupported) return [];
+  try{ return speechSynthesis.getVoices().filter(v=>/^(es|en)/i.test(v.lang||'')); }catch(e){ return []; }
+}
+function _loadTtsChoice(){
+  if(!_ttsSupported){ _ttsVoice=null; return; }
+  const uri = localStorage.getItem('BURN.ttsVoiceURI')||'';
+  _ttsVoice = uri ? (_availableVoices().find(v=>v.voiceURI===uri || v.name===uri)||null) : null;
+}
+const _CUE_TEXT = {
+  three:{es:'tres', en:'three'}, two:{es:'dos', en:'two'}, one:{es:'uno', en:'one'},
+  rest:{es:'Descanso', en:'Rest'},
+  letsgo:{es:['¡Vamos!','¡Dale!','¡A darle!','¡Con todo!','¡No aflojes!','¡Vos podés!'],
+          en:["Let's go!","Go!","Push!","Come on!","Let's get it!","You got this!"]},
+  getit:{es:['¡Ahora!','¡Agarralo!','¡Más fuerte!','¡Hasta el final!','¡Dale que podés!','¡Con todo!'],
+          en:["Get it!","Drive!","Stay strong!","Finish strong!","Keep going!","Dig in!"]}
+};
+function _cueText(key){
+  const lang = (_ttsVoice && /^es/i.test(_ttsVoice.lang||'')) ? 'es' : 'en';
+  const v = _CUE_TEXT[key]; if(!v) return key;
+  const t = v[lang]; return Array.isArray(t) ? t[Math.floor(Math.random()*t.length)] : t;
+}
+function _ttsSay(key, rate){
+  if(!_ttsSupported || !_ttsVoice) return false;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(_cueText(key));
+    u.voice = _ttsVoice; u.lang = _ttsVoice.lang;
+    u.rate = rate || ((key==='three'||key==='two'||key==='one'||key==='rest') ? 1.0 : 1.1);
+    u.pitch = 1.0; u.volume = 1.0;
+    speechSynthesis.speak(u);
+  }catch(e){ return false; }
+  return true;
+}
+if(_ttsSupported){
+  _loadTtsChoice();
+  try{ speechSynthesis.onvoiceschanged = ()=>{ _loadTtsChoice(); }; }catch(e){}
+}
 /* Pre-scheduled audio — absolute AudioContext time scheduling */
 let _pendingSrcs = [];
 let _workCount = 0; // alternates letsgo / getit
@@ -5549,10 +5600,21 @@ function _nextWorkPhrase(){ return (_workCount++ % 2 === 0) ? "letsgo" : "getit"
 function _cancelPendingAudio(){
   _pendingSrcs.forEach(s=>{ try{ s.stop(); }catch(e){} });
   _pendingSrcs = [];
+  _ttsTimeouts.forEach(id=>{ try{ clearTimeout(id); }catch(e){} });
+  _ttsTimeouts = [];
+  if(_ttsSupported){ try{ speechSynthesis.cancel(); }catch(e){} }
 }
 /* Schedule voice at absolute AudioContext time 'when'. Adds to cancellation list. */
 function _schedVoice(key, when){
   if(!_voiceOn) return;
+  if(_ttsVoice){
+    // TTS no agenda al reloj de audio: usamos un timeout para hablar en el momento justo
+    const ctx = _getAudioCtx();
+    const ms = Math.max(0, (when - ctx.currentTime) * 1000);
+    const id = setTimeout(()=>_ttsSay(key), ms);
+    _ttsTimeouts.push(id);
+    return;
+  }
   const buf = _voiceBufs[key];
   if(!buf) return;
   const ctx = _getAudioCtx();
@@ -8696,6 +8758,7 @@ function ensureSettingsOverlay(){
     <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 id="settingsSoundTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
       <div id="settingsSoundRow" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"></div>
+      <div id="settingsVoiceRow" style="margin-top:10px"></div>
     </div>
     <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 id="settingsLookTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
