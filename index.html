@@ -1163,10 +1163,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     margin-right:auto;
     background:transparent;border-color:var(--violet);
   }
+  /* 3 botones (cambiar/info/borrar) equiespaciados y con más aire */
   body.pocket-mode .card-head .swap,
   body.pocket-mode .card-head .info,
   body.pocket-mode .card-head .cc-info,
-  body.pocket-mode .card-head .del{ margin:4px 3px; }
+  body.pocket-mode .card-head .del{
+    width:32px;height:32px;display:grid;place-items:center;
+    font-size:1.05rem;flex:0 0 auto;margin:6px 0;padding:0;
+  }
+  body.pocket-mode .card-head .swap{ margin-left:2px; }
+  body.pocket-mode .card-head .info,
+  body.pocket-mode .card-head .cc-info{ margin-left:10px; }
+  body.pocket-mode .card-head .del{ margin-left:10px;margin-right:10px; }
   body.pocket-mode .card-body{ padding:6px 8px;gap:6px; }
   body.pocket-mode .grid{ grid-template-columns:1fr 1fr;gap:6px; }
   body.pocket-mode .field{ padding:5px 8px;border-radius:8px; }
@@ -1702,6 +1710,7 @@ const MEDICAL_CONDITIONS = [
   // Otras
   {id:"embarazo",sev:3,es:"Embarazo",cat:"Otras",risk:["abdominales","crunch","sit-up","decúbito supino","supine","plancha","plank","valsalva","impacto alto","saltar","jump","alta intensidad"]},
   {id:"diastasis",sev:2,es:"Diástasis abdominal",cat:"Otras",risk:["crunch","sit-up","abdominales","plancha","plank","hollow body","core","núcleo"]},
+  {id:"prolapso",sev:2,es:"Prolapso de órganos pélvicos",cat:"Otras",risk:["saltar","jump","salto","impacto alto","high impact","correr","running","trote","valsalva","peso muerto","deadlift","sentadilla pesada","heavy squat","peso pesado","heavy","abdominales","crunch","sit-up","plancha","plank","hollow","elevación de piernas","leg raise","alta intensidad","hiit","burpee","box jump","salto al cajón","sprint"]},
   {id:"hernia_inguinal",sev:2,es:"Hernia inguinal",cat:"Otras",risk:["sentadilla","squat","peso muerto","deadlift","valsalva","abdominales","crunch","leg raise","elevación de piernas"]},
   {id:"reflujo",sev:1,es:"Reflujo gastroesofágico (GERD)",cat:"Otras",risk:["inclinado","decline","inversión","headstand","handstand","abdominal","presión abdominal"]},
   {id:"glaucoma",sev:1,es:"Glaucoma / presión intraocular elevada",cat:"Otras",risk:["valsalva","isométrico","isometric","peso muy pesado","inversión","headstand","handstand"]},
@@ -2166,7 +2175,13 @@ const LIBRARY = {
   ],
   "Peso corporal · Bodyweight": [
     {es:"Flexiones", en:"Push-ups", muscle:"Pecho"},
+    {es:"Flexiones de rodillas (con apoyo)", en:"Knee push-ups", muscle:"Pecho (fácil)"},
+    {es:"Flexiones en pared (con apoyo)", en:"Wall push-ups", muscle:"Pecho (fácil)"},
+    {es:"Flexiones inclinadas con apoyo (banco)", en:"Incline push-ups (bench)", muscle:"Pecho (fácil)"},
     {es:"Flexiones diamante", en:"Diamond push-ups", muscle:"Tríceps"},
+    {es:"Patada de glúteo (cuadrupedia)", en:"Donkey kick", muscle:"Glúteos"},
+    {es:"Patada de glúteo de pie", en:"Standing glute kickback", muscle:"Glúteos"},
+    {es:"Patada de glúteo en plancha", en:"Plank glute kickback", muscle:"Glúteos/Core"},
     {es:"Dominadas", en:"Pull-ups", muscle:"Espalda"},
     {es:"Dominadas supinas", en:"Chin-ups", muscle:"Espalda/Bíceps"},
     {es:"Fondos de tríceps en paralelas", en:"Triceps dips (parallel bars)", muscle:"Tríceps/Pecho"},
@@ -5203,13 +5218,13 @@ function renderLibTabs(){
   const allTab = document.createElement("button");
   allTab.className = "lib-tab" + (libCategory==="__all__"?" active":"");
   allTab.textContent = LL("Todos","All");
-  allTab.onclick = ()=>{ libCategory="__all__"; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+  allTab.onclick = ()=>{ libCategory="__all__"; renderLibTabs(); renderLibBody(); };
   libTabs.appendChild(allTab);
   Object.keys(LIBRARY).forEach(cat=>{
     const t = document.createElement("button");
     t.className = "lib-tab" + (cat===libCategory?" active":"");
     t.textContent = catLabel(cat);
-    t.onclick = ()=>{ libCategory=(libCategory===cat)?"__all__":cat; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+    t.onclick = ()=>{ libCategory=(libCategory===cat)?"__all__":cat; renderLibTabs(); renderLibBody(); };
     libTabs.appendChild(t);
   });
   const clib = getCustomLib();
@@ -5218,7 +5233,7 @@ function renderLibTabs(){
     const t = document.createElement("button");
     t.className = "lib-tab" + (catKey===libCategory?" active":"");
     t.textContent = "✨ "+dispName;
-    t.onclick = ()=>{ libCategory=(libCategory===catKey)?"__all__":catKey; libSearch.value=""; renderLibTabs(); renderLibBody(); };
+    t.onclick = ()=>{ libCategory=(libCategory===catKey)?"__all__":catKey; renderLibTabs(); renderLibBody(); };
     libTabs.appendChild(t);
   });
   // Add new custom category tab
@@ -5331,22 +5346,39 @@ function renderLibBody(){
     });
     return;
   }
+  // Búsqueda tolerante: sin acentos y por palabras sueltas (todas deben estar, en cualquier orden).
+  // "patada glúteo" encuentra "Patada de glúteo" sin exigir el "de".
+  const _norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  const _qTokens = _norm(q).split(/[\s,]+/).filter(Boolean);
+  const _matchQ = ex => {
+    if(!_qTokens.length) return true;
+    const hay = _norm((ex.es||'')+' '+(ex.en||'')+' '+(ex.muscle||''));
+    return _qTokens.every(t => hay.includes(t));
+  };
   let items;
-  if(q || libCategory==="__all__"){
+  if(libCategory==="__all__"){
+    // Todas las categorías, filtradas por la búsqueda (si hay)
     items = [];
     Object.entries(LIBRARY).forEach(([cat,list])=>{
-      list.forEach(ex=>{
-        if(!q || (ex.es+ex.en+ex.muscle).toLowerCase().includes(q)) items.push({...ex, cat});
-      });
+      list.forEach(ex=>{ if(_matchQ(ex)) items.push({...ex, cat}); });
     });
     Object.entries(getCustomLib()).forEach(([cat,list])=>{
-      (list||[]).forEach(ex=>{
-        if(!q || ((ex.es||'')+(ex.en||'')+(ex.muscle||'')).toLowerCase().includes(q))
-          items.push({...ex, cat});
-      });
+      (list||[]).forEach(ex=>{ if(_matchQ(ex)) items.push({...ex, cat}); });
     });
   }else{
-    items = (LIBRARY[libCategory]||[]).map(ex=>({...ex, cat:libCategory}));
+    // Categoría seleccionada + búsqueda → buscar DENTRO de esa categoría (no se pierde el texto)
+    const pool = LIBRARY[libCategory] || getCustomLib()[libCategory] || [];
+    items = pool.filter(_matchQ).map(ex=>({...ex, cat:libCategory}));
+  }
+  // Deduplicar (mismo ejercicio en varias categorías → una sola vez). Clave por nombre EN
+  // (canónico) y también por ES, para colapsar repetidos aunque cambie una de las dos.
+  {
+    const _seenEn = new Set(), _seenEs = new Set();
+    items = items.filter(ex=>{
+      const en = _norm(ex.en||''), es = _norm(ex.es||'');
+      if((en && _seenEn.has(en)) || (es && _seenEs.has(es))) return false;
+      if(en) _seenEn.add(en); if(es) _seenEs.add(es); return true;
+    });
   }
   if(!items.length){
     const e = document.createElement("div");
