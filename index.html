@@ -767,6 +767,13 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   button.info:hover{transform:scale(1.15)}
   .swap{border:none;background:transparent;cursor:pointer;font-size:1rem;flex:0 0 auto}
   .swap:hover{transform:scale(1.15) rotate(90deg);transition:transform .2s}
+  .ex-timer-btn{display:block;width:100%;margin-top:4px;border:2px solid var(--accent);background:var(--accent);
+    color:#fff;border-radius:10px;padding:9px;font-weight:700;font-size:.9rem;cursor:pointer;font-family:var(--font-body)}
+  .ex-timer-btn:active{transform:scale(.98)}
+  /* Los 3 botones de la cabecera (cambiar/info/borrar): mismo tamaño en todos los modos */
+  .card-head .swap, .card-head .info, .card-head .cc-info, .card-head .del{
+    width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;padding:0;line-height:1;
+  }
 
   footer.app{text-align:center;font-size:.78rem;opacity:.85;padding:10px 0 30px;color:var(--ink);display:flex;flex-direction:column;align-items:center;gap:10px}
   .bg-pick{
@@ -3914,6 +3921,18 @@ function makeCard(ex, idx){
   grid.appendChild(numField(restLabel, ex.rest, 1, v=>{ ex.rest=v; save(); }));
   body.appendChild(grid);
 
+  // Ejercicios por tiempo (plancha/holds) dentro de un día por reps: timer propio con ▶
+  if(_isTime){
+    const _secs = isContinuous ? (+ex.reps||0)*60 : (+ex.reps||0);
+    if(_secs>0){
+      const _pb = document.createElement("button");
+      _pb.className = "ex-timer-btn";
+      _pb.innerHTML = `▶ ${LL("Iniciar","Start")} · ${isContinuous?(ex.reps+" min"):(ex.reps+"s")}`;
+      _pb.onclick = ()=>{ if(typeof warmAudio==="function") warmAudio(); startTimer(_secs, lang==="en"?(ex.en||ex.es):(ex.es||ex.en)); };
+      body.appendChild(_pb);
+    }
+  }
+
   // Tracker de series con peso/reps por serie
   const track = document.createElement("div");
   track.className = "sets-track";
@@ -5463,11 +5482,13 @@ const timerDisplay = document.getElementById("timerDisplay");
 let timerInt = null, timeLeft = 0;
 
 let _endVoiceSched = false;
-function startTimer(seconds){
+function startTimer(seconds, label){
   cancelPendingBeeps();
-  if(!seconds || seconds<=0) return; // sin descanso configurado: no mostrar timer
+  if(!seconds || seconds<=0) return; // sin descanso/duración configurada: no mostrar timer
   if(typeof startBgAudio === "function") startBgAudio();
-  try{ if(typeof updateMediaSummary==="function") updateMediaSummary({title:LL("😮‍💨 Descanso","😮‍💨 Rest"), artist:(typeof dayLabel==="function"?dayLabel(currentDay):currentDay)}); }catch(e){}
+  const _lab = document.getElementById("restLabEl");
+  if(_lab) _lab.textContent = label || LL("Descanso","Rest");
+  try{ if(typeof updateMediaSummary==="function") updateMediaSummary({title:(label?("⏱ "+label):LL("😮‍💨 Descanso","😮‍💨 Rest")), artist:(typeof dayLabel==="function"?dayLabel(currentDay):currentDay)}); }catch(e){}
   _endVoiceSched = false;
   timeLeft = seconds;
   timerEl.classList.add("show");
@@ -5534,6 +5555,7 @@ function playVoice(key, offset=0.04){
   const buf = _voiceBufs[key];
   if(!buf){ _decodeClip(key); return false; }
   const ctx = _getAudioCtx();
+  if(ctx.state==='suspended'){ try{ ctx.resume(); }catch(e){} }
   const src = ctx.createBufferSource();
   src.buffer = buf;
   src.connect(ctx.destination);
@@ -5593,6 +5615,9 @@ if(_ttsSupported){
   _loadTtsChoice();
   try{ speechSynthesis.onvoiceschanged = ()=>{ _loadTtsChoice(); }; }catch(e){}
 }
+/* Decodificar los clips de voz por adelantado para que el countdown no tenga latencia
+   (antes se decodificaban en el primer uso y los sonidos se apilaban). */
+try{ setTimeout(()=>{ try{ preloadVoice(); }catch(e){} }, 400); }catch(e){}
 /* Pre-scheduled audio — absolute AudioContext time scheduling */
 let _pendingSrcs = [];
 let _workCount = 0; // alternates letsgo / getit
@@ -6534,7 +6559,7 @@ function renderTrainStraight(){
       if(_all !== ex.done) ex.done = _all;
       save(); renderTrainStraight();
       if(log.done){ warmAudio(); startTimer(ex.customRest ? (log.rest ?? ex.rest) : ex.rest); }
-      if(isDayComplete(currentDay)){
+      if(isDayComplete(currentDay) || ((data[currentDay]||[]).length>0 && (data[currentDay]||[]).every(e=>e.done))){
         stopTrainPhrases();
         const _end = BURN_ENDINGS[Math.floor(Math.random()*BURN_ENDINGS.length)];
         setTimeout(()=>{ showCelebration(_end); renderDays(); }, 500);
