@@ -2824,15 +2824,9 @@ function migrateData(){
       // renombrar ejercicio con nombre informal
       if(ex.es === "Abd paso tapa"){ ex.es = "Abdominal bicicleta con pase de disco"; changed = true; }
       if(Array.isArray(ex.mix)) ex.mix.forEach(m=>{ if(m.es === "Abd paso tapa"){ m.es = "Abdominal bicicleta con pase de disco"; changed = true; } });
-      const reps = +ex.reps;
-      // cardio continuo: 1 serie, sin peso, tiempo larguísimo en segundos
-      if((+ex.sets===1) && (ex.weight===0 || ex.weight==null) && reps>120){
-        ex.reps = Math.round(reps/60);   // segundos -> minutos
-        if(Array.isArray(ex.setsDone)){
-          ex.setsDone.forEach(s=>{ if(s && +s.r>120) s.r = Math.round(+s.r/60); });
-        }
-        changed = true;
-      }
+      // NOTA: el tiempo SIEMPRE se guarda en segundos. Antes había una migración que convertía
+      // tiempos >120 a minutos (÷60); se quitó porque rompía el modelo de segundos (al recargar
+      // un valor grande como 1800 se volvía 30). El display lindo min:seg lo hace fmtDur().
     });
   });
   if(changed){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){} }
@@ -4027,7 +4021,7 @@ function makeCircuitCard(ex, idx){
   attachExDrag(card, idx);
   // steppers de tiempo/descanso: editables (tipear) + mantener apretado = repetir acelerando.
   const _ccMin = f => (f==="intReps" ? 1 : 0);
-  const _ccStep = f => (f==="reps" ? 5 : 1);     // trabajo (s) de a 5; rest/micropausa/reps-set de a 1
+  const _ccStep = f => 1;     // todos los campos de a 1 (antes "Trabajo (s)" iba de a 5)
   card.querySelectorAll(".cc-m, .cc-p").forEach(btn=>{
     const f = btn.dataset.f;
     const valEl = card.querySelector(`[data-v="${f}"]`);
@@ -4171,6 +4165,15 @@ document.getElementById("dayResetBtn").onclick = ()=>{
 document.getElementById("modeStraight").onclick = ()=>{ setDayMode(currentDay,"straight"); renderList(); };
 document.getElementById("modeCircuit").onclick = ()=>{ setDayMode(currentDay,"circuit"); renderList(); };
 
+/* Formatea un tiempo en SEGUNDOS como min:seg cuando es largo (≥60s → "m:ss"), o "Ns" si es corto.
+   El campo SIEMPRE guarda segundos; esto es solo para mostrar lindo (botón ▶, etc.).
+   OJO: nombre distinto a fmtClock() (que es ⏱ HH:MM:SS del reloj de sesión) para no pisarlo. */
+function fmtDur(secs){
+  secs = Math.max(0, Math.round(+secs || 0));
+  if(secs < 60) return secs + "s";
+  const m = Math.floor(secs / 60), s = secs % 60;
+  return m + ":" + String(s).padStart(2, "0");
+}
 function makeCard(ex, idx){
   ex.setsDone = ex.setsDone || [];
   const card = document.createElement("div");
@@ -4248,9 +4251,7 @@ function makeCard(ex, idx){
   const _metric = exMetric(ex, currentDay);          // 'time' | 'reps' (entorno + holds)
   const _isTime = _metric==='time';
   const _showW  = dayShowsWeight(currentDay);          // peso solo en fuerza/hipertrofia
-  const isContinuous = _isTime && (+ex.sets===1) && (+ex.reps>=10);
-  const repsLabel = isContinuous ? LL("Tiempo (min)","Time (min)")
-                   : _isTime ? LL("Tiempo (s)","Time (s)")
+  const repsLabel = _isTime ? LL("Tiempo (s)","Time (s)")
                    : L("Reps","Reps");
   const setsLabel = isCircuit ? LL("Rondas","Rounds") : LL("Series","Sets");
   const weightLabel = LL("Peso (kg)","Weight (kg)");
@@ -4263,11 +4264,11 @@ function makeCard(ex, idx){
 
   // Ejercicios por tiempo (plancha/holds) dentro de un día por reps: timer propio con ▶
   if(_isTime){
-    const _secs = isContinuous ? (+ex.reps||0)*60 : (+ex.reps||0);
+    const _secs = (+ex.reps||0);   // el tiempo SIEMPRE está en segundos
     if(_secs>0){
       const _pb = document.createElement("button");
       _pb.className = "ex-timer-btn";
-      _pb.innerHTML = `▶ ${LL("Iniciar","Start")} · ${isContinuous?(ex.reps+" min"):(ex.reps+"s")}`;
+      _pb.innerHTML = `▶ ${LL("Iniciar","Start")} · ${fmtDur(_secs)}`;
       _pb.onclick = ()=>{ if(typeof warmAudio==="function") warmAudio(); startTimer(_secs, lang==="en"?(ex.en||ex.es):(ex.es||ex.en)); };
       body.appendChild(_pb);
     }
@@ -6997,7 +6998,7 @@ function renderTrainStraight(){
     </div>
     <div class="train-meta">
       <span>${ex.sets} ${LL("series","sets")}</span>
-      <span>${ex.reps} ${_twTime?'s':'reps'}</span>
+      <span>${_twTime ? fmtDur(ex.reps) : ex.reps+' reps'}</span>
       ${_twShow?`<span>${ex.weight} kg</span>`:''}
       <span>⏱ ${ex.customRest ? LL("por serie","per set") : ex.rest+"s"}</span>
       ${(()=>{ const _ke=estimateKcal(currentDay); return _ke?`<span class="kcal-inline">🔥 ~${_ke.kcal} kcal</span>`:''; })()}
@@ -7144,7 +7145,7 @@ function renderTrainCircuitRep(){
     <div class="train-meta">
       <span>${LL("Ej.","Ex.")} ${circExInRound+1} / ${list.length}</span>
       <span>${LL("Serie","Set")} ${circRound+1} / ${circRounds}</span>
-      <span>🎯 ${log.r} ${_twTime?'s':'reps'}</span>
+      <span>🎯 ${_twTime ? fmtDur(log.r) : log.r+' reps'}</span>
       ${_twShow ? `<span>${log.w > 0 ? log.w+' kg' : LL("Corporal","Bodyweight")}</span>` : ''}
       ${_est ? `<span class="kcal-inline">🔥 ~${_est.kcal} kcal</span>` : ''}
     </div>
