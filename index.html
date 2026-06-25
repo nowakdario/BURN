@@ -5859,7 +5859,7 @@ function updateTimer(){
   const s = String(Math.max(timeLeft,0)%60).padStart(2,"0");
   timerDisplay.textContent = `${m}:${s}`;
 }
-function stopTimer(){ clearInterval(timerInt); timerInt=null; timerEl.classList.remove("show"); }
+function stopTimer(){ clearInterval(timerInt); timerInt=null; timerEl.classList.remove("show"); _scheduleAudioRelease(1.6); /* cerrar el ctx ~1.6s después del countdown → suelta el foco de audio */ }
 document.getElementById("timerSkip").onclick = ()=>{ cancelPendingBeeps(); stopTimer(); };
 document.getElementById("timerAdd").onclick = ()=>{ _cancelPendingAudio(); _endVoiceSched=false; timeLeft+=15; updateTimer(); };
 
@@ -5879,7 +5879,10 @@ const GO_OFFSET = 0.32; // secs from clip start to key word ("go"/"it") // secs 
 let   _voiceOn   = JSON.parse(localStorage.getItem("BURN.voice") ?? "false");
 async function _decodeClip(key){
   if(_voiceBufs[key]) return _voiceBufs[key];
-  const ctx = _getAudioCtx();
+  // Decodificar NO necesita el contexto "running": usamos uno sin resumir, así el decode de
+  // arranque (preloadVoice) no toma el foco de audio ni interfiere con el cierre del ctx.
+  if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const ctx = _audioCtx;
   const bin = atob(VOICE_CLIPS[key]);
   const arr = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
@@ -9614,17 +9617,23 @@ function updateMediaSummary(opts){
 let _bgHoldTimer = null;
 let _bgHandlersSet = false;
 /* Programa la LIBERACIÓN del foco de audio: poco después del último sonido se pausa el carrier
-   y se SUSPENDE el AudioContext. Suspender el ctx es lo que devuelve el volumen a las otras apps
-   — un AudioContext "running" las mantiene bajadas TODO el tiempo, aunque no suene nada. */
+   y se CIERRA el AudioContext. En muchos Android, SUSPENDER el ctx no suelta el foco (las otras
+   apps quedan aplastadas indefinidamente); CERRARLO sí (es lo que hace el reload). _getAudioCtx
+   crea uno nuevo en el próximo sonido (permitido porque el usuario ya interactuó con la app). */
 function _scheduleAudioRelease(holdSec){
   if(_bgHoldTimer) clearTimeout(_bgHoldTimer);
   _bgHoldTimer = setTimeout(_releaseAudio, Math.max(300, (holdSec || 0.3) * 1000 + 500));
 }
 function _releaseAudio(){
   if(_bgHoldTimer){ clearTimeout(_bgHoldTimer); _bgHoldTimer = null; }
-  try{ if(_bgEl) _bgEl.pause(); }catch(e){}
-  if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "paused"; }catch(e){} }
-  try{ if(_audioCtx && _audioCtx.state === "running") _audioCtx.suspend(); }catch(e){}
+  try{ if(_bgEl){ _bgEl.pause(); _bgEl.currentTime = 0; } }catch(e){}
+  if("mediaSession" in navigator){
+    try{ navigator.mediaSession.playbackState = "none"; navigator.mediaSession.metadata = null; }catch(e){}
+  }
+  // cerrar (no suspender) para soltar de verdad el foco de audio del SO
+  try{
+    if(_audioCtx && _audioCtx.state !== "closed"){ const _c = _audioCtx; _audioCtx = null; _c.close(); }
+  }catch(e){ _audioCtx = null; }
 }
 /* Mantiene el audio activo durante un sonido real (countdown, voz, marca). El carrier suena solo
    si el usuario activó 📻; el foco se libera apenas termina el sonido (ver _releaseAudio). */
