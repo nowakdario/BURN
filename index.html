@@ -6009,6 +6009,7 @@ let _pendingOscillators = [];
 function _getAudioCtx(){
   if(!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
   if(_audioCtx.state==="suspended") _audioCtx.resume();
+  _scheduleAudioRelease(1.2); // libera el foco de audio ~1.2s después si no llega otro sonido
   return _audioCtx;
 }
 async function warmAudio(){
@@ -9611,18 +9612,28 @@ function updateMediaSummary(opts){
    de otras apps baja únicamente en ese instante y vuelve enseguida, no de forma permanente. */
 let _bgHoldTimer = null;
 let _bgHandlersSet = false;
-function _bgAudioPulse(holdSec){
-  if(!_bgAudioOn) return;
-  const el = _ensureBgEl();
-  try{ el.play().catch(()=>{}); }catch(e){}
-  if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "playing"; }catch(e){} }
+/* Programa la LIBERACIÓN del foco de audio: poco después del último sonido se pausa el carrier
+   y se SUSPENDE el AudioContext. Suspender el ctx es lo que devuelve el volumen a las otras apps
+   — un AudioContext "running" las mantiene bajadas TODO el tiempo, aunque no suene nada. */
+function _scheduleAudioRelease(holdSec){
   if(_bgHoldTimer) clearTimeout(_bgHoldTimer);
-  const ms = Math.max(300, (holdSec || 0.3) * 1000 + 500); // duración del sonido + cola corta
-  _bgHoldTimer = setTimeout(()=>{
-    try{ if(_bgEl) _bgEl.pause(); }catch(e){}
-    if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "paused"; }catch(e){} }
-    _bgHoldTimer = null;
-  }, ms);
+  _bgHoldTimer = setTimeout(_releaseAudio, Math.max(300, (holdSec || 0.3) * 1000 + 500));
+}
+function _releaseAudio(){
+  if(_bgHoldTimer){ clearTimeout(_bgHoldTimer); _bgHoldTimer = null; }
+  try{ if(_bgEl) _bgEl.pause(); }catch(e){}
+  if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "paused"; }catch(e){} }
+  try{ if(_audioCtx && _audioCtx.state === "running") _audioCtx.suspend(); }catch(e){}
+}
+/* Mantiene el audio activo durante un sonido real (countdown, voz, marca). El carrier suena solo
+   si el usuario activó 📻; el foco se libera apenas termina el sonido (ver _releaseAudio). */
+function _bgAudioPulse(holdSec){
+  if(_bgAudioOn){
+    const el = _ensureBgEl();
+    try{ el.play().catch(()=>{}); }catch(e){}
+    if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "playing"; }catch(e){} }
+  }
+  _scheduleAudioRelease(holdSec);
 }
 /* "Primea" el carrier durante un gesto del usuario (marcar serie, entrar a entrenar…) para
    que el navegador permita reproducirlo luego, aunque la pantalla esté bloqueada. Ya NO deja
@@ -9661,7 +9672,9 @@ document.getElementById("bgAudioBtn").onclick = ()=>{
 document.addEventListener("visibilitychange", ()=>{
   if(document.visibilityState === "visible"){
     _requestWakeLock();
-    if(_audioCtx && _audioCtx.state === "suspended"){ try{ _audioCtx.resume(); }catch(e){} }
+    // NO resumimos el AudioContext acá: el ctx solo debe estar "running" durante un sonido real
+    // (lo resume _getAudioCtx en cada beep/voz y se vuelve a suspender al terminar). Resumirlo al
+    // volver a la app mantenía el foco de audio tomado y bajaba el volumen de otras apps sin razón.
   }
 });
 updateWakeBtn(); updateBgBtn();
