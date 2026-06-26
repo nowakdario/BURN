@@ -1944,6 +1944,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <h4 id="settingsAppTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
       <button id="settingsUpdateBtn" style="width:100%;border:2px solid var(--violet);background:var(--violet);color:#fff;border-radius:10px;padding:11px;font-weight:700;font-size:.92rem;cursor:pointer;font-family:var(--font-body)"></button>
       <div id="settingsAppHint" style="font-size:.74rem;color:var(--ink-soft);margin-top:7px;line-height:1.4"></div>
+      <div id="settingsUpdateLog" style="font-size:.74rem;color:var(--ink);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);line-height:1.55;display:flex;flex-direction:column;gap:1px"></div>
     </div>
   </div></div>
 
@@ -9280,6 +9281,7 @@ function ensureSettingsOverlay(){
       <h4 id="settingsAppTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
       <button id="settingsUpdateBtn" style="width:100%;border:2px solid var(--violet);background:var(--violet);color:#fff;border-radius:10px;padding:11px;font-weight:700;font-size:.92rem;cursor:pointer;font-family:var(--font-body)"></button>
       <div id="settingsAppHint" style="font-size:.74rem;color:var(--ink-soft);margin-top:7px;line-height:1.4"></div>
+      <div id="settingsUpdateLog" style="font-size:.74rem;color:var(--ink);margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);line-height:1.55;display:flex;flex-direction:column;gap:1px"></div>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -9337,6 +9339,8 @@ function openSettings(){
   _upBtn.textContent = LL("🔄 Buscar actualizaciones","🔄 Check for updates");
   _upBtn.onclick = ()=> updateApp();
   ov.querySelector("#settingsAppHint").textContent = LL("Trae la última versión publicada sin reinstalar la app.","Pulls the latest published version without reinstalling the app.");
+  const _logEl = ov.querySelector("#settingsUpdateLog");
+  if(_logEl) _logEl.innerHTML = _updateLogHtml();
   ov.querySelector("#settingsSoundTitle").textContent = LL("🔊 Sonido y pantalla — voz · pantalla encendida · audio en 2º plano","🔊 Sound & screen — voice · keep awake · background audio");
   ov.querySelector("#settingsLookTitle").textContent = LL("🎨 Apariencia","🎨 Appearance");
   ov.querySelector("#settingsThemeLbl").textContent = LL("Modo claro / oscuro:","Light / dark mode:");
@@ -9635,14 +9639,12 @@ function _releaseAudio(){
     if(_audioCtx && _audioCtx.state !== "closed"){ const _c = _audioCtx; _audioCtx = null; _c.close(); }
   }catch(e){ _audioCtx = null; }
 }
-/* Mantiene el audio activo durante un sonido real (countdown, voz, marca). El carrier suena solo
-   si el usuario activó 📻; el foco se libera apenas termina el sonido (ver _releaseAudio). */
+/* Mantiene el audio activo durante un sonido real (countdown, voz, marca).
+   IMPORTANTE: el carrier (`_bgEl`, audio en LOOP) se desactivó por completo. En Android un audio
+   en loop se trata como "música" y mantiene el foco de audio tomado → dejaba las otras apps
+   "planchadas" indefinidamente. Los beeps cortos del AudioContext toman foco transitorio y lo
+   sueltan solos. Solo programamos el cierre del ctx tras el sonido (ver _releaseAudio). */
 function _bgAudioPulse(holdSec){
-  if(_bgAudioOn){
-    const el = _ensureBgEl();
-    try{ el.play().catch(()=>{}); }catch(e){}
-    if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "playing"; }catch(e){} }
-  }
   _scheduleAudioRelease(holdSec);
 }
 /* "Primea" el carrier durante un gesto del usuario (marcar serie, entrar a entrenar…) para
@@ -9724,17 +9726,70 @@ if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); });
 }
 /* Botón ⚙️ → "Buscar actualizaciones": fuerza traer la última versión publicada */
+/* ──────────── Registro de versión / actualizaciones ─────────────────────────────────
+   APP_BUILD se bumpea en CADA deploy (ver comentario). Al cargar comparamos con lo guardado
+   para saber si esta carga trajo una versión NUEVA y cuándo — así el botón de update deja de
+   ser una caja negra: el usuario ve si actualizó algo o no, y la fecha. */
+const APP_BUILD = "v118 · 2026-06-25 (audio sin carrier + update forzado)";   // ⬅️ BUMPEAR en cada deploy
+let _updateMsg = "";  // "updated" | "installed" | "nochange" | ""  (resultado de esta carga)
+(function _trackBuild(){
+  try{
+    const prev  = localStorage.getItem("BURN.build");
+    const reqAt = +localStorage.getItem("BURN.updateReqAt") || 0;
+    const fromUpdateClick = reqAt && (Date.now() - reqAt < 90000); // recargó por el botón update
+    if(prev !== APP_BUILD){
+      localStorage.setItem("BURN.build", APP_BUILD);
+      localStorage.setItem("BURN.buildDate", new Date().toISOString());
+      _updateMsg = prev ? "updated" : "installed";
+    } else if(fromUpdateClick){
+      _updateMsg = "nochange";
+    }
+    if(fromUpdateClick) localStorage.setItem("BURN.lastUpdateCheck", new Date().toISOString());
+    localStorage.removeItem("BURN.updateReqAt");
+    if(_updateMsg === "updated"){
+      setTimeout(()=>{ try{ toast(LL("✅ Actualizada a "+APP_BUILD, "✅ Updated to "+APP_BUILD)); }catch(e){} }, 1600);
+    }
+  }catch(e){}
+})();
+function _fmtDateTime(iso){
+  try{
+    const d = new Date(iso); if(isNaN(d.getTime())) return iso;
+    const p = n=>String(n).padStart(2,"0");
+    return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }catch(e){ return iso; }
+}
+function _updateLogHtml(){
+  const build  = localStorage.getItem("BURN.build") || APP_BUILD;
+  const bdate  = localStorage.getItem("BURN.buildDate");
+  const lastCk = localStorage.getItem("BURN.lastUpdateCheck");
+  let status = "";
+  if(_updateMsg==="updated")        status = `<div style="color:var(--ok);font-weight:700">${LL("✅ Se instaló una versión nueva","✅ A new version was installed")}</div>`;
+  else if(_updateMsg==="installed") status = `<div style="color:var(--ok);font-weight:700">${LL("✅ App instalada","✅ App installed")}</div>`;
+  else if(_updateMsg==="nochange")  status = `<div style="color:var(--ink-soft)">${LL("✓ Ya tenías la última versión","✓ You already had the latest version")}</div>`;
+  return status
+    + `<div>${LL("Versión","Version")}: <b>${esc(build)}</b></div>`
+    + (bdate ?`<div>${LL("Instalada","Installed")}: ${esc(_fmtDateTime(bdate))}</div>`:"")
+    + (lastCk?`<div>${LL("Última revisión","Last check")}: ${esc(_fmtDateTime(lastCk))}</div>`:"");
+}
 async function updateApp(){
   const btn = document.getElementById("settingsUpdateBtn");
   if(btn){ btn.disabled = true; btn.textContent = LL("⏳ Actualizando…","⏳ Updating…"); }
+  try{ localStorage.setItem("BURN.updateReqAt", String(Date.now())); }catch(e){} // marca para detectar el resultado tras recargar
   try{
-    if("serviceWorker" in navigator){
-      const reg = await navigator.serviceWorker.getRegistration();
-      if(reg && reg.update) { try{ await reg.update(); }catch(e){} }
-    }
+    // Borrar TODAS las cachés primero (network-first igual las re-llena con lo último).
     if(window.caches){ const ks = await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }
+    // DESREGISTRAR el/los service worker(s): así la próxima carga viene 100% de la red (sin que un
+    // SW viejo siga sirviendo una versión cacheada vieja). El SW se vuelve a registrar solo al cargar.
+    if("serviceWorker" in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=> r.unregister().catch(()=>{})));
+    }
   }catch(e){}
-  setTimeout(()=>{ try{ location.reload(); }catch(e){ location.href = location.pathname; } }, 500);
+  // recargar evitando la caché HTTP del navegador (cache-bust por querystring)
+  setTimeout(()=>{
+    try{ location.replace(location.pathname + "?u=" + Date.now()); }
+    catch(e){ try{ location.reload(); }catch(_){ location.href = location.pathname; } }
+  }, 500);
 }
 
 

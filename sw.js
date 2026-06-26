@@ -1,9 +1,23 @@
 /* BURN service worker — network-first.
    Online: siempre sirve la última versión (evita que la PWA instalada quede pegada a una vieja).
    Offline: cae al último contenido cacheado. La localStorage del usuario NO se toca. */
-const CACHE = 'burn-cache-v1';
+const CACHE = 'burn-cache-v2';
+/* Shell mínimo para que la app funcione OFFLINE apenas se instala (sin esperar a visitar todo).
+   La app es un solo index.html autocontenido, así que con cachearlo alcanza; igual sumamos icons
+   y manifest. Precache resiliente: si alguno falla, no aborta los demás. */
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
-self.addEventListener('install', e => { self.skipWaiting(); });
+self.addEventListener('install', e => {
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(CACHE);
+      await Promise.all(SHELL.map(async u => {
+        try { const r = await fetch(u, { cache: 'no-store' }); if (r && r.ok) await c.put(u, r.clone()); } catch (_) {}
+      }));
+    } catch (_) {}
+    self.skipWaiting();
+  })());
+});
 
 self.addEventListener('activate', e => {
   e.waitUntil((async () => {
