@@ -385,16 +385,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   /* == Hand-drawn X for completed days (two diagonals drawn sequentially) == */
   .day-chip.struck { position:relative; }
   .day-chip.struck .day-btn-inner { opacity:0.42; }
-  /* SVG cuadrado fijo centrado — así las diagonales quedan a ~45° sea cual sea el ancho del chip */
+  /* La tachadura se extiende a lo ANCHO del chip (no un cuadrado fijo). preserveAspectRatio=none
+     estira el viewBox al tamaño del chip, y vector-effect:non-scaling-stroke mantiene el grosor
+     de línea uniforme aunque se estire. */
   .day-strike-svg {
-    position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%);
-    width:42px; height:42px;
+    position:absolute; top:0; left:0;
+    width:100%; height:100%;
     pointer-events:none; overflow:visible;
   }
   .day-chip.active .day-strike-svg { color:var(--violet-deep); }
   .day-strike-path {
     stroke:currentColor; stroke-width:3; fill:none; stroke-linecap:round;
+    vector-effect:non-scaling-stroke;
   }
   .day-strike-d1 { stroke-dasharray:60; stroke-dashoffset:60; }
   .day-strike-d2 { stroke-dasharray:60; stroke-dashoffset:60; }
@@ -1171,6 +1173,9 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     margin-right:auto;
     background:transparent;border-color:var(--violet);
   }
+  /* Card COMPLETADA en pocket mode: el check va VERDE. Sin esto, el override de arriba lo deja
+     con fondo transparente y el ✓ blanco se pierde en modo claro (sobre la card clara). */
+  body.pocket-mode .card.done .check{ background:var(--ok) !important;border-color:var(--ok) !important; }
   /* 3 botones (cambiar/info/borrar) equiespaciados y con más aire */
   body.pocket-mode .card-head .swap,
   body.pocket-mode .card-head .info,
@@ -3481,16 +3486,17 @@ function renderDays(){
       const svg = document.createElementNS(ns,"svg");
       svg.setAttribute("class","day-strike-svg");
       svg.setAttribute("viewBox","0 0 42 42");
+      svg.setAttribute("preserveAspectRatio","none"); // estira la tachadura a lo ancho del chip
       // diagonal 1: top-left → bottom-right
       // diagonal 1 a mano alzada: top-left → bottom-right con leve arco
       const d1 = document.createElementNS(ns,"path");
       d1.setAttribute("class","day-strike-path day-strike-d1");
-      d1.setAttribute("d","M 5,4 C 12,10 19,22 27,31 C 31,35 35,37 38,38");
+      d1.setAttribute("d","M -3,-2 C 8,9 14,16 21,22 C 28,28 36,33 45,44");
       d1.setAttribute("pathLength","60");
       // diagonal 2: top-right → bottom-left, leve arco opuesto
       const d2 = document.createElementNS(ns,"path");
       d2.setAttribute("class","day-strike-path day-strike-d2");
-      d2.setAttribute("d","M 37,4 C 30,11 22,22 14,30 C 10,34 7,36 4,38");
+      d2.setAttribute("d","M 44,-3 C 34,10 27,17 20,21 C 13,26 6,34 -3,43");
       d2.setAttribute("pathLength","60");
       svg.appendChild(d1);
       svg.appendChild(d2);
@@ -5393,9 +5399,10 @@ function isDayComplete(day){
   const list = data[day] || [];
   if(!list.length) return false;
   return list.every(ex=>{
+    if(ex.done) return true; // marcado con el check GENERAL del ejercicio → cuenta para tachar el día
     if(Array.isArray(ex.setsDone) && +ex.sets > 0)
       return ex.setsDone.slice(0, +ex.sets).filter(s=>s&&s.done).length >= +ex.sets;
-    return !!ex.done;
+    return false;
   });
 }
 /* == Celebration overlay == */
@@ -9305,6 +9312,93 @@ function ensureSettingsOverlay(){
   });
   return ov;
 }
+/* ── Tutorial completo: "Cómo usar BURN" (se abre desde ⚙️ → Ayuda) ── */
+function openTutorial(){
+  let ov = document.getElementById("tutorialOverlay");
+  if(ov){ ov.style.display = "flex"; return; }
+  const S = (t, items) => ({ t, items });
+  const SECTIONS = [
+    S(LL("📅 Días y rutina","📅 Days & routine"), [
+      LL("Cada chip de arriba es un día (Lun, Mar…). Tocalo para abrirlo.","Each chip on top is a day (Mon, Tue…). Tap it to open it."),
+      LL("Tocá el día activo otra vez para renombrarlo. El menú ⋮ del chip: duplicar, mover o borrar.","Tap the active day again to rename it. The chip's ⋮ menu: duplicate, move or delete."),
+      LL("Agregá días con el selector “＋ día”.","Add days with the “＋ day” selector.")
+    ]),
+    S(LL("🏋️ Ejercicios","🏋️ Exercises"), [
+      LL("➕ agrega un ejercicio. Tocá el nombre para editarlo.","➕ adds an exercise. Tap the name to edit it."),
+      LL("Ajustá Series, Reps/Tiempo, Peso y Descanso con los botones − / ＋ (de a 1; mantené apretado para ir rápido).","Adjust Sets, Reps/Time, Weight and Rest with − / ＋ (steps of 1; hold to go faster)."),
+      LL("Cargá cada serie y marcá la casilla ✓ al terminarla. Al marcarla arranca el descanso.","Log each set and tick ✓ when you finish it. Ticking it starts the rest timer.")
+    ]),
+    S(LL("🏷️ Tipo y modo del día","🏷️ Day type & mode"), [
+      LL("En ⚙️ elegís el Tipo (fuerza, hipertrofia, cardio, running…). En running/cardio los ejercicios van por Tiempo (segundos) en vez de reps.","In ⚙️ pick the Type (strength, hypertrophy, cardio, running…). In running/cardio exercises use Time (seconds) instead of reps."),
+      LL("Series ↓ vs Circuito ↻: el circuito repite todos los ejercicios por rondas.","Straight sets ↓ vs Circuit ↻: a circuit repeats all exercises in rounds.")
+    ]),
+    S(LL("⏱ Timer de descanso","⏱ Rest timer"), [
+      LL("Al marcar una serie ✓ arranca el countdown, con beeps/voz en los últimos segundos.","Marking a set ✓ starts the countdown, with beeps/voice in the last seconds."),
+      LL("“+15s” suma tiempo; “✕” lo salta.","“+15s” adds time; “✕” skips it.")
+    ]),
+    S(LL("▶ Modo entrenamiento","▶ Train mode"), [
+      LL("Sesión guiada paso a paso: te lleva ejercicio por ejercicio, con timer, voz y un resumen final (calorías, músculos, progreso).","Guided step-by-step session: takes you exercise by exercise, with timer, voice and a final summary (calories, muscles, progress).")
+    ]),
+    S(LL("⏲️ Intervalos / HIIT","⏲️ Intervals / HIIT"), [
+      LL("Timer configurable: preparación, trabajo, descanso, rondas y sets. Ideal para HIIT, Tabata o EMOM.","Configurable timer: prep, work, rest, rounds and sets. Great for HIIT, Tabata or EMOM.")
+    ]),
+    S(LL("🏃 Beep test / VO₂máx","🏃 Beep test / VO₂max"), [
+      LL("Test de course-navette: corré entre conos al ritmo de los pitidos. Estima tu VO₂máx y nivel.","Course-navette test: run between cones to the beeps. Estimates your VO₂max and level.")
+    ]),
+    S(LL("🔥 Calorías","🔥 Calories"), [
+      LL("BURN estima las calorías de cada día (MET por ejercicio, tiempo activo, EPOC, edad/sexo).","BURN estimates each day's calories (MET per exercise, active time, EPOC, age/sex)."),
+      LL("Las ves en ⚙️ → 🔥 Calorías estimadas y dentro del Modo entrenamiento.","See them in ⚙️ → 🔥 Estimated calories and inside Train mode."),
+      LL("Necesitás cargar tu peso en ⚙️ → 👤 Perfil del atleta.","You need to set your weight in ⚙️ → 👤 Athlete profile.")
+    ]),
+    S(LL("📚 Biblioteca y plantillas","📚 Library & templates"), [
+      LL("🗂️ Plantillas: rutinas prediseñadas listas para cargar.","🗂️ Templates: ready-made routines you can load."),
+      LL("Buscá ejercicios en la biblioteca y creá los tuyos propios.","Browse exercises in the library and create your own.")
+    ]),
+    S(LL("💬 Motivación","💬 Motivation"), [
+      LL("Frases motivacionales: marcá favoritas, agregá las tuyas y creá categorías.","Motivational quotes: mark favorites, add your own and create categories.")
+    ]),
+    S(LL("💾 Datos (en ⚙️)","💾 Data (in ⚙️)"), [
+      LL("Guardá la semana completa e importá/exportá en JSON o Excel.","Save the full week and import/export as JSON or Excel."),
+      LL("📤 Compartir rutina: la mandás por WhatsApp/Quick Share; quien la reciba la importa con 📥.","📤 Share routine: send it via WhatsApp/Quick Share; the recipient imports it with 📥.")
+    ]),
+    S(LL("⚙️ Ajustes","⚙️ Settings"), [
+      LL("Pocket (compacto) vs God mode (todo a la vista).","Pocket (compact) vs God mode (everything visible)."),
+      LL("Sonido: voz, pantalla siempre encendida 🔆 y audio en 2º plano 📻.","Sound: voice, keep screen awake 🔆 and background audio 📻."),
+      LL("Apariencia: tema claro/oscuro y paletas de color.","Appearance: light/dark theme and color palettes."),
+      LL("Condiciones médicas y perfil del atleta (peso, edad, sexo) para personalizar y estimar calorías.","Medical conditions and athlete profile (weight, age, sex) to personalize and estimate calories.")
+    ]),
+    S(LL("📲 Instalar y actualizar","📲 Install & update"), [
+      LL("📲 Instalar app: la dejás como app en tu celu y funciona sin internet.","📲 Install app: keep it as an app on your phone and use it offline."),
+      LL("🔄 Buscar actualizaciones (en ⚙️) trae la última versión sin reinstalar. Abajo ves la versión instalada y la fecha.","🔄 Check for updates (in ⚙️) pulls the latest version without reinstalling. Below you see the installed version and date.")
+    ]),
+    S(LL("💡 Tips","💡 Tips"), [
+      LL("↶ / ↷ deshacer y rehacer cualquier cambio.","↶ / ↷ undo and redo any change."),
+      LL("Activá los tooltips (acá abajo en Ayuda) para ver explicaciones al mantener presionado.","Turn on tooltips (below in Help) to see explanations on long-press.")
+    ])
+  ];
+  const body = SECTIONS.map(s=>
+    `<div style="margin-bottom:15px">
+       <div style="font-weight:800;color:var(--violet-deep);font-size:.98rem;margin-bottom:5px">${esc(s.t)}</div>
+       <div style="font-size:.85rem;color:var(--ink);line-height:1.5">${s.items.map(i=>`<div style="margin-bottom:4px">• ${esc(i)}</div>`).join("")}</div>
+     </div>`).join("");
+  ov = document.createElement("div");
+  ov.id = "tutorialOverlay";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10001;display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:24px 0";
+  ov.innerHTML = `<div style="background:var(--panel-strong);border-radius:16px;padding:20px;max-width:440px;width:92%;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <strong style="color:var(--violet-deep);font-size:1.1rem">${LL("📖 Cómo usar BURN","📖 How to use BURN")}</strong>
+        <button id="tutClose" style="border:none;background:transparent;font-size:1.2rem;cursor:pointer;color:var(--ink-soft)">✕</button>
+      </div>
+      <div style="font-size:.8rem;color:var(--ink-soft);margin-bottom:14px">${LL("Guía rápida de todas las funciones.","Quick guide to every feature.")}</div>
+      ${body}
+      <button id="tutCloseBtn" style="width:100%;border:2px solid var(--violet);background:var(--violet);color:#fff;border-radius:10px;padding:11px;font-weight:700;cursor:pointer;margin-top:4px;font-family:var(--font-body)">${LL("¡Entendido! 💪","Got it! 💪")}</button>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = ()=>{ ov.style.display = "none"; };
+  ov.onclick = e=>{ if(e.target===ov) close(); };
+  ov.querySelector("#tutClose").onclick = close;
+  ov.querySelector("#tutCloseBtn").onclick = close;
+}
 function openSettings(){
   const ov = ensureSettingsOverlay();
   ov.querySelector("#settingsTitle").textContent = LL("⚙️ Preferencias","⚙️ Preferences");
@@ -9379,6 +9473,12 @@ function openSettings(){
     if(_ht) _ht.textContent = LL("❓ Ayuda / Tooltips","❓ Help / Tooltips");
     if(_helpRow){
       _helpRow.innerHTML = "";
+      // Botón: abrir el tutorial completo "Cómo usar BURN"
+      const _tutBtn = document.createElement("button");
+      _tutBtn.textContent = LL("📖 Tutorial completo — cómo usar la app","📖 Full tutorial — how to use the app");
+      _tutBtn.style.cssText = "width:100%;border:2px solid var(--violet);background:var(--violet);color:#fff;border-radius:10px;padding:10px;font-weight:700;font-size:.9rem;cursor:pointer;margin-bottom:10px;font-family:var(--font-body)";
+      _tutBtn.onclick = ()=>{ try{ openTutorial(); }catch(e){} };
+      _helpRow.appendChild(_tutBtn);
       const _helpLab = document.createElement("label");
       _helpLab.style.cssText = "display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--ink);cursor:pointer";
       const _helpCb = document.createElement("input");
@@ -9760,7 +9860,7 @@ if("serviceWorker" in navigator){
    APP_BUILD se bumpea en CADA deploy (ver comentario). Al cargar comparamos con lo guardado
    para saber si esta carga trajo una versión NUEVA y cuándo — así el botón de update deja de
    ser una caja negra: el usuario ve si actualizó algo o no, y la fecha. */
-const APP_BUILD = "v122 · 2026-06-25 (calorías en el gear + fix ducking)";   // ⬅️ BUMPEAR en cada deploy
+const APP_BUILD = "v126 · 2026-06-25 (tachadura sobresale + check general tacha el día)";   // ⬅️ BUMPEAR en cada deploy
 let _updateMsg = "";  // "updated" | "installed" | "nochange" | ""  (resultado de esta carga)
 (function _trackBuild(){
   try{
