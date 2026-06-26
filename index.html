@@ -1906,6 +1906,10 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </div></div>
     </div>
     <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsKcalTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsKcalSlot"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 id="settingsTypeTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
       <div id="settingsTypeDay" style="font-size:.82rem;color:var(--ink-soft);margin-bottom:8px"></div>
       <div id="settingsTypeSlot" style="display:flex;flex-wrap:wrap;gap:8px"></div>
@@ -9243,6 +9247,10 @@ function ensureSettingsOverlay(){
       <div id="settingsDataSlot"></div>
     </div>
     <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
+      <h4 id="settingsKcalTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
+      <div id="settingsKcalSlot"></div>
+    </div>
+    <div style="background:var(--cream-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px">
       <h4 id="settingsTypeTitle" style="margin:0 0 8px;color:var(--ink-soft);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;font-weight:700"></h4>
       <div id="settingsTypeDay" style="font-size:.82rem;color:var(--ink-soft);margin-bottom:8px"></div>
       <div id="settingsTypeSlot" style="display:flex;flex-wrap:wrap;gap:8px"></div>
@@ -9321,6 +9329,16 @@ function openSettings(){
     gvList.appendChild(lab);
   });
   // ── Tipo de entrenamiento del día (entorno) ──
+  // ── Calorías estimadas del día (arriba de "Tipo de entrenamiento") ──
+  const _kcTitle = ov.querySelector("#settingsKcalTitle");
+  const _kcSlot  = ov.querySelector("#settingsKcalSlot");
+  if(_kcTitle) _kcTitle.textContent = LL("🔥 Calorías estimadas del día","🔥 Day's estimated calories");
+  if(_kcSlot){
+    try{
+      const _kc = (typeof estimateKcal==="function") ? estimateKcal(currentDay) : null;
+      _kcSlot.innerHTML = (typeof kcalBannerHTML==="function") ? kcalBannerHTML(_kc, false) : "";
+    }catch(e){ _kcSlot.innerHTML = ""; }
+  }
   ov.querySelector("#settingsTypeTitle").textContent = LL("🏷️ Tipo de entrenamiento del día","🏷️ Day training type");
   ov.querySelector("#settingsTypeDay").textContent = (currentDay ? (lang==='en'? (dayLabel?dayLabel(currentDay):currentDay) : (dayLabel?dayLabel(currentDay):currentDay)) : "");
   const _typeSlot = ov.querySelector("#settingsTypeSlot");
@@ -9630,27 +9648,32 @@ function _scheduleAudioRelease(holdSec){
 }
 function _releaseAudio(){
   if(_bgHoldTimer){ clearTimeout(_bgHoldTimer); _bgHoldTimer = null; }
-  // DESTRUIR el elemento de audio (no solo pausar): en este Android, pausar/suspender/cerrar NO
-  // suelta el foco de audio — la música queda "planchada". Lo único que lo soltó fue el reload,
-  // que DESTRUYE el elemento. Acá replicamos eso: removemos el <audio> del DOM y lo nuleamos
-  // (se recrea en el próximo sonido). Así la música de otras apps vuelve a su volumen.
+  // CAUSA RAÍZ del ducking que quedaba "planchado" (en TODOS los dispositivos): el carrier es un
+  // <audio loop> que NUNCA termina → el SO nunca recibe "reproducción finalizada" → nunca suelta el
+  // foco de audio. FIX LIMPIO: hacer que TERMINE. Quitamos el loop y saltamos al final → dispara el
+  // evento 'ended' → el SO suelta el foco → la música de otras apps vuelve a su nivel.
+  // (pause()/suspend() NO sirven: dejan el audio "pausado, podría reanudarse" y el foco queda tomado.)
+  // No destruimos el elemento: se reusa (loop=true otra vez) en el próximo sonido.
   try{
-    if(_bgEl){ _bgEl.pause(); _bgEl.removeAttribute("src"); try{ _bgEl.load(); }catch(_){}; _bgEl.remove(); _bgEl = null; }
-  }catch(e){ _bgEl = null; }
+    if(_bgEl){
+      _bgEl.loop = false;
+      const d = _bgEl.duration;
+      if(isFinite(d) && d > 0.1){ try{ _bgEl.currentTime = Math.max(0, d - 0.04); }catch(_){} }
+    }
+  }catch(e){}
   if("mediaSession" in navigator){
     try{ navigator.mediaSession.playbackState = "none"; navigator.mediaSession.metadata = null; }catch(e){}
   }
-  try{
-    if(_audioCtx && _audioCtx.state !== "closed"){ const _c = _audioCtx; _audioCtx = null; _c.close(); }
-  }catch(e){ _audioCtx = null; }
+  try{ if(_audioCtx && _audioCtx.state === "running") _audioCtx.suspend(); }catch(e){}
 }
-/* Duck TRANSITORIO (lo que pediste): mientras suena un sonido de BURN (countdown, voz, marca) el
-   carrier reproduce → baja la música de otras apps; apenas termina, _releaseAudio DESTRUYE el
-   elemento → la música vuelve a su volumen. El hold (_scheduleAudioRelease) mantiene el carrier
-   vivo entre beeps cercanos para que no parpadee, y lo libera cuando el sonido realmente termina. */
+/* Duck TRANSITORIO: mientras suena un sonido de BURN (countdown, voz, marca) el carrier reproduce en
+   loop → baja la música de otras apps; al terminar el sonido, _releaseAudio lo hace TERMINAR (no lo
+   pausa) → el SO suelta el foco y la música vuelve. El hold (_scheduleAudioRelease) lo mantiene vivo
+   entre beeps cercanos para que no parpadee. */
 function _bgAudioPulse(holdSec){
   const el = _ensureBgEl();
-  try{ el.play().catch(()=>{}); }catch(e){}
+  el.loop = true;
+  try{ if(el.paused || el.ended) el.currentTime = 0; el.play().catch(()=>{}); }catch(e){}
   if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "playing"; }catch(e){} }
   _scheduleAudioRelease(holdSec);
 }
@@ -9737,7 +9760,7 @@ if("serviceWorker" in navigator){
    APP_BUILD se bumpea en CADA deploy (ver comentario). Al cargar comparamos con lo guardado
    para saber si esta carga trajo una versión NUEVA y cuándo — así el botón de update deja de
    ser una caja negra: el usuario ve si actualizó algo o no, y la fecha. */
-const APP_BUILD = "v119 · 2026-06-25 (duck transitorio: destruye el audio al terminar)";   // ⬅️ BUMPEAR en cada deploy
+const APP_BUILD = "v122 · 2026-06-25 (calorías en el gear + fix ducking)";   // ⬅️ BUMPEAR en cada deploy
 let _updateMsg = "";  // "updated" | "installed" | "nochange" | ""  (resultado de esta carga)
 (function _trackBuild(){
   try{
