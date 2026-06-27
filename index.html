@@ -3485,18 +3485,13 @@ function renderDays(){
       const ns = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(ns,"svg");
       svg.setAttribute("class","day-strike-svg");
-      svg.setAttribute("viewBox","0 0 42 42");
-      svg.setAttribute("preserveAspectRatio","none"); // estira la tachadura a lo ancho del chip
-      // diagonal 1: top-left → bottom-right
-      // diagonal 1 a mano alzada: top-left → bottom-right con leve arco
+      // viewBox + paths se calculan en _drawDayStrikes() midiendo el tamaño REAL del chip, así la X
+      // queda proporcionada y contenida en cualquier ancho (no se aplasta en chips largos).
       const d1 = document.createElementNS(ns,"path");
       d1.setAttribute("class","day-strike-path day-strike-d1");
-      d1.setAttribute("d","M -3,-2 C 8,9 14,16 21,22 C 28,28 36,33 45,44");
       d1.setAttribute("pathLength","60");
-      // diagonal 2: top-right → bottom-left, leve arco opuesto
       const d2 = document.createElementNS(ns,"path");
       d2.setAttribute("class","day-strike-path day-strike-d2");
-      d2.setAttribute("d","M 44,-3 C 34,10 27,17 20,21 C 13,26 6,34 -3,43");
       d2.setAttribute("pathLength","60");
       svg.appendChild(d1);
       svg.appendChild(d2);
@@ -3609,6 +3604,32 @@ function renderDays(){
     }
   }
   daysEl.appendChild(sel);
+  _drawDayStrikes();
+}
+/* Dibuja la X de "día completado" midiendo el tamaño REAL de cada chip (en píxeles), de esquina a
+   esquina con un leve arco hecho a mano. Al usar viewBox = tamaño del chip (sin estirar), la X queda
+   proporcionada y CONTENIDA en cualquier ancho — no se aplasta ni se desborda en chips largos. */
+function _drawDayStrikes(){
+  try{
+    document.querySelectorAll(".day-chip.struck").forEach(chip=>{
+      const svg = chip.querySelector(".day-strike-svg");
+      if(!svg) return;
+      const W = Math.round(chip.clientWidth)  || 80;
+      const H = Math.round(chip.clientHeight) || 32;
+      svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+      const mx = Math.max(5, W * 0.05);   // margen horizontal (no tocar las puntas redondeadas)
+      const my = Math.max(3, H * 0.16);   // margen vertical
+      const x0 = mx, x1 = W - mx, cx = W / 2, ym = H / 2;
+      // Punto de control COMPARTIDO: las dos diagonales pasan por el mismo punto del centro → SE CRUZAN
+      // de verdad (con controles distintos se separaban y parecían 4 líneas sueltas). Leve arco a mano.
+      const ctlY = ym - H * 0.06;
+      const f = n => n.toFixed(1);
+      const d1 = svg.querySelector(".day-strike-d1");
+      const d2 = svg.querySelector(".day-strike-d2");
+      if(d1) d1.setAttribute("d", "M "+f(x0)+" "+f(my)+" Q "+f(cx)+" "+f(ctlY)+" "+f(x1)+" "+f(H-my)); // ↘
+      if(d2) d2.setAttribute("d", "M "+f(x1)+" "+f(my)+" Q "+f(cx)+" "+f(ctlY)+" "+f(x0)+" "+f(H-my)); // ↙
+    });
+  }catch(e){}
 }
 
 function addDayNamed(name){
@@ -5838,8 +5859,9 @@ let _endVoiceSched = false;
 function startTimer(seconds, label){
   cancelPendingBeeps();
   if(!seconds || seconds<=0) return; // sin descanso/duración configurada: no mostrar timer
-  // El carrier ya NO se arranca en loop acá: cada beep/voz del countdown lo activa en pulsos
-  // (ver _bgAudioPulse), así la música de otras apps no baja durante todo el descanso.
+  // Mantener viva la página durante el descanso → el cronómetro corre con el teléfono bloqueado.
+  // (Si 📻 está apagado, no hace nada: no duckea pero el reloj se frena al bloquear.)
+  try{ startBgKeepAlive(); }catch(e){}
   const _lab = document.getElementById("restLabEl");
   if(_lab) _lab.textContent = label || LL("Descanso","Rest");
   try{ if(typeof updateMediaSummary==="function") updateMediaSummary({title:(label?("⏱ "+label):LL("😮‍💨 Descanso","😮‍💨 Rest")), artist:(typeof dayLabel==="function"?dayLabel(currentDay):currentDay)}); }catch(e){}
@@ -5851,18 +5873,24 @@ function startTimer(seconds, label){
   timerInt = setInterval(()=>{
     timeLeft--;
     updateTimer();
-    if(timeLeft<=0){ if(!_endVoiceSched && !playVoice("letsgo")) beep(); stopTimer(); }
-  else if(timeLeft<=3 && timeLeft>0){
-      if(timeLeft===1){
-        const _rwp=_nextWorkPhrase();
-        if(_voiceOn && _voiceBufs[_rwp]){
-          const _rc=_getAudioCtx();
-          const _rwo=_rwp==="letsgo"?0.25:0.18;
-          _schedVoice(_rwp, _rc.currentTime+(1.0-_rwo));
-          _endVoiceSched = true;
-        }
+    if(timeLeft<=0){ stopTimer(); return; }
+    // Pre-agendar el sonido del PRÓXIMO segundo en el reloj del AudioContext (sample-accurate),
+    // arrancando el clip ANTES para que el PICO de su onda caiga justo cuando cambia el número.
+    if(timeLeft>=1 && timeLeft<=4){
+      const _ctx = _getAudioCtx();
+      const _at  = _ctx.currentTime + 1.0;     // momento del próximo cambio de número
+      const _next = timeLeft - 1;              // número que se mostrará (0 = arranque/“go”)
+      if(_next === 0){
+        const _k = _nextWorkPhrase();
+        const _pk = (_clipPeak[_k] != null) ? _clipPeak[_k] : (_k==="letsgo"?0.25:0.18);
+        if(_voiceOn && _voiceBufs[_k]){ _schedVoice(_k, _at - _pk); _endVoiceSched = true; }
+        else _schedBeep(990, _at);
+      } else {
+        const _k = ["","one","two","three"][_next];
+        const _pk = (_clipPeak[_k] != null) ? _clipPeak[_k] : 0.12;
+        if(_voiceOn && _voiceBufs[_k]) _schedVoice(_k, _at - _pk);
+        else _schedBeep(660, _at);
       }
-      if(!playVoice(["","one","two","three"][timeLeft])) beep(660);
     }
   },1000);
 }
@@ -5871,7 +5899,7 @@ function updateTimer(){
   const s = String(Math.max(timeLeft,0)%60).padStart(2,"0");
   timerDisplay.textContent = `${m}:${s}`;
 }
-function stopTimer(){ clearInterval(timerInt); timerInt=null; timerEl.classList.remove("show"); _scheduleAudioRelease(1.6); /* cerrar el ctx ~1.6s después del countdown → suelta el foco de audio */ }
+function stopTimer(){ clearInterval(timerInt); timerInt=null; timerEl.classList.remove("show"); _bgKeepAlive=false; _scheduleAudioRelease(1.6); /* fin del descanso: cortar keep-alive y soltar el foco ~1.6s después (deja terminar el "go") */ }
 document.getElementById("timerSkip").onclick = ()=>{ cancelPendingBeeps(); stopTimer(); };
 document.getElementById("timerAdd").onclick = ()=>{ _cancelPendingAudio(); _endVoiceSched=false; timeLeft+=15; updateTimer(); };
 
@@ -5887,6 +5915,22 @@ const VOICE_CLIPS = {
 };
 /* AudioBuffer cache — decoded once, played with AudioContext scheduler */
 const _voiceBufs = {};
+const _clipPeak  = {}; // key -> segundos desde el inicio del clip hasta el PICO de la onda
+/* Detecta el instante del pico de amplitud del clip (ignorando los primeros 20ms para no
+   confundir un click de arranque con el pico real de la palabra). Sirve para alinear ese pico
+   con el cambio de número del countdown (3,2,1…). */
+function _detectClipPeak(buf){
+  try{
+    const ch = buf.getChannelData(0);
+    const sr = buf.sampleRate || 44100;
+    const n  = ch.length;
+    const skip = Math.floor(sr * 0.02);
+    let maxV = 0, maxI = skip;
+    const step = Math.max(1, Math.floor(n / 12000));
+    for(let i=skip; i<n; i+=step){ const a = ch[i] < 0 ? -ch[i] : ch[i]; if(a > maxV){ maxV = a; maxI = i; } }
+    return maxI / sr;
+  }catch(e){ return 0; }
+}
 const GO_OFFSET = 0.32; // secs from clip start to key word ("go"/"it") // secs from letsgo clip start to "go" syllable
 let   _voiceOn   = JSON.parse(localStorage.getItem("BURN.voice") ?? "false");
 async function _decodeClip(key){
@@ -5900,6 +5944,7 @@ async function _decodeClip(key){
   for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
   const buf = await ctx.decodeAudioData(arr.buffer.slice(0));
   _voiceBufs[key] = buf;
+  _clipPeak[key] = _detectClipPeak(buf);
   return buf;
 }
 async function preloadVoice(){
@@ -8911,7 +8956,7 @@ let ivExercises = [];   // ejercicios del día cuando se abre desde un circuito
 
 document.getElementById("ivStart").onclick = async ()=>{
   await warmAudio();
-  startBgAudio();
+  startBgKeepAlive(); // mantener la página viva durante toda la sesión de intervalos (corre bloqueado)
   ivConf = ivConfig();
   ivPhases = buildIvPhases(ivConf);
   if(!ivPhases.length){ toast(LL("Configurá al menos trabajo y series.","Set at least work and sets.")); return; }
@@ -8984,22 +9029,28 @@ function startIvPhase(){
 function ivTick(){
   if(ivPaused) return;
   ivLeft--;
-  // 3/2/1 countdown voices
-  if(ivLeft<=3 && ivLeft>0){
-    if(!playVoice(["","one","two","three"][Math.round(ivLeft)])) beep(660);
-  }
-  // pre-schedule phrase so key word lands at transition
-  if(ivLeft===1){
-    const _nph=ivPhases[ivIdx+1];
-    if(_nph && _nph.type==="work"){
-      const _ctx=_getAudioCtx(), _wp=_nextWorkPhrase();
-      const _wo=_wp==="letsgo"?0.25:0.18;
-      _schedVoice(_wp, _ctx.currentTime+(1.0-_wo));
+  // Pre-agendar el sonido del PRÓXIMO segundo con el PICO de la onda alineado al cambio de número.
+  if(ivLeft>=1 && ivLeft<=4){
+    const _ctx = _getAudioCtx();
+    const _at  = _ctx.currentTime + 1.0;
+    const _next = ivLeft - 1;
+    if(_next === 0){
+      _schedBeep(990, _at); // beep de cambio de fase
+      const _nph = ivPhases[ivIdx+1];
+      if(_nph && _nph.type==="work" && _voiceOn){
+        const _wp = _nextWorkPhrase();
+        const _pk = (_clipPeak[_wp] != null) ? _clipPeak[_wp] : (_wp==="letsgo"?0.25:0.18);
+        if(_voiceBufs[_wp]) _schedVoice(_wp, _at - _pk);
+      }
+    } else {
+      const _k = ["","one","two","three"][_next];
+      const _pk = (_clipPeak[_k] != null) ? _clipPeak[_k] : 0.12;
+      if(_voiceOn && _voiceBufs[_k]) _schedVoice(_k, _at - _pk);
+      else _schedBeep(660, _at);
     }
   }
   renderIvClock();
   if(ivLeft<=0){
-    beep(990);
     ivIdx++;
     if(ivIdx>=ivPhases.length){ ivFinish(); return; }
     startIvPhase();
@@ -9028,7 +9079,7 @@ function ivFinish(){
   drawRingPie(document.getElementById("ivPie"), 1);
   const _end = BURN_ENDINGS[Math.floor(Math.random()*BURN_ENDINGS.length)];
   setTimeout(()=>{ showCelebration(_end); }, 700);
-  setTimeout(stopBgAudio, 2500);
+  setTimeout(stopBgKeepAlive, 2500);
 }
 document.getElementById("ivPause").onclick = function(){
   ivPaused = !ivPaused;
@@ -9038,14 +9089,14 @@ document.getElementById("ivPause").onclick = function(){
 document.getElementById("ivStop").onclick = ()=>{
   clearInterval(ivInt);
   _cancelPendingAudio();
-  stopBgAudio();
+  stopBgKeepAlive();
   ivRun.classList.remove("show");
 };
 document.getElementById("ivExit").onclick = ()=>{
   if(!confirm(LL("¿Salir sin finalizar?","Exit without finishing?"))) return;
   clearInterval(ivInt);
   _cancelPendingAudio();
-  stopBgAudio();
+  stopBgKeepAlive();
   ivRun.classList.remove("show");
 };
 
@@ -9738,6 +9789,7 @@ function updateMediaSummary(opts){
    de otras apps baja únicamente en ese instante y vuelve enseguida, no de forma permanente. */
 let _bgHoldTimer = null;
 let _bgHandlersSet = false;
+let _bgKeepAlive = false; // true mientras hay un timer activo → el carrier NO se corta (página viva → reloj corre bloqueado)
 /* Programa la LIBERACIÓN del foco de audio: poco después del último sonido se pausa el carrier
    y se CIERRA el AudioContext. En muchos Android, SUSPENDER el ctx no suelta el foco (las otras
    apps quedan aplastadas indefinidamente); CERRARLO sí (es lo que hace el reload). _getAudioCtx
@@ -9748,6 +9800,9 @@ function _scheduleAudioRelease(holdSec){
 }
 function _releaseAudio(){
   if(_bgHoldTimer){ clearTimeout(_bgHoldTimer); _bgHoldTimer = null; }
+  // Si hay un timer activo (keep-alive), NO cortamos el carrier: tiene que seguir sonando para que
+  // el SO no congele la página → el cronómetro sigue corriendo con el teléfono bloqueado.
+  if(_bgKeepAlive) return;
   // CAUSA RAÍZ del ducking que quedaba "planchado" (en TODOS los dispositivos): el carrier es un
   // <audio loop> que NUNCA termina → el SO nunca recibe "reproducción finalizada" → nunca suelta el
   // foco de audio. FIX LIMPIO: hacer que TERMINE. Quitamos el loop y saltamos al final → dispara el
@@ -9798,6 +9853,23 @@ function stopBgAudio(){
   if(_bgEl){ try{ _bgEl.pause(); }catch(e){} }
   if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "paused"; }catch(e){} }
 }
+/* Keep-alive: mientras corre un timer (descanso / circuito / HIIT), el carrier suena en LOOP continuo
+   para que el SO no congele la página → el cronómetro sigue corriendo con el teléfono bloqueado.
+   Costo: vuelve a duckear durante el timer (es el precio de correr en background en la web). Gateado
+   por 📻 (_bgAudioOn): si está apagado, no hay keep-alive (no duckea, pero se frena al bloquear). */
+function startBgKeepAlive(){
+  _bgKeepAlive = true;
+  if(!_bgAudioOn) return;
+  const el = _ensureBgEl();
+  el.loop = true;
+  try{ if(el.paused || el.ended) el.currentTime = 0; el.play().catch(()=>{}); }catch(e){}
+  try{ updateMediaSummary(); }catch(e){}
+  if("mediaSession" in navigator){ try{ navigator.mediaSession.playbackState = "playing"; }catch(e){} }
+}
+function stopBgKeepAlive(){
+  _bgKeepAlive = false;
+  _releaseAudio(); // ahora sí termina el carrier → suelta el foco → la música de otras apps vuelve
+}
 function updateBgBtn(){
   const b = document.getElementById("bgAudioBtn");
   if(b) b.style.opacity = _bgAudioOn ? "1" : ".4";
@@ -9807,8 +9879,10 @@ document.getElementById("bgAudioBtn").onclick = ()=>{
   localStorage.setItem(BGAUDIO_KEY, JSON.stringify(_bgAudioOn));
   if(_bgAudioOn){ startBgAudio(); } else { stopBgAudio(); }
   updateBgBtn();
-  toast(_bgAudioOn ? LL("📻 Sonidos con pantalla bloqueada (sin bajar tu música de fondo)","📻 Cue audio with screen locked (won't lower your background music)")
-                   : LL("Audio en segundo plano desactivado","Background audio off"));
+  if(!_bgAudioOn){ try{ stopBgKeepAlive(); }catch(e){} }
+  else if(_bgKeepAlive){ try{ startBgKeepAlive(); }catch(e){} } // si hay un timer corriendo, retomar el keep-alive
+  toast(_bgAudioOn ? LL("📻 Cronómetro corre con la pantalla bloqueada (puede bajar tu música durante el timer)","📻 Timer keeps running with the screen locked (may lower your music during the timer)")
+                   : LL("📻 Off: no baja tu música, pero el cronómetro se frena al bloquear","📻 Off: won't lower your music, but the timer pauses when locked"));
 };
 
 document.addEventListener("visibilitychange", ()=>{
@@ -9860,7 +9934,7 @@ if("serviceWorker" in navigator){
    APP_BUILD se bumpea en CADA deploy (ver comentario). Al cargar comparamos con lo guardado
    para saber si esta carga trajo una versión NUEVA y cuándo — así el botón de update deja de
    ser una caja negra: el usuario ve si actualizó algo o no, y la fecha. */
-const APP_BUILD = "v126 · 2026-06-25 (tachadura sobresale + check general tacha el día)";   // ⬅️ BUMPEAR en cada deploy
+const APP_BUILD = "v130 · 2026-06-25 (tachadura X que cruza bien + cronómetro bloqueado + sync)";   // ⬅️ BUMPEAR en cada deploy
 let _updateMsg = "";  // "updated" | "installed" | "nochange" | ""  (resultado de esta carga)
 (function _trackBuild(){
   try{
